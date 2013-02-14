@@ -11,7 +11,7 @@ record Fun (C D : Cat) : Set where
   field OMap  : ! C ! → ! D !
         HMap  : ∀{X Y} → C < X , Y > → D < OMap X , OMap Y >
         fid   : ∀{X} → HMap (iden C {X}) ≡ iden D {OMap X}
-        fcomp : ∀{X Y Z}{f : Hom C Y Z}{g : C < X , Y >} → 
+        fcomp : ∀{X Y Z}{f : C < Y , Z >}{g : C < X , Y >} → 
                 HMap (C ! f • g) ≡ D ! HMap f • HMap g
 
 open Fun
@@ -29,24 +29,25 @@ IdF C = record{OMap = id;HMap = id;fid = refl;fcomp = refl}
 -- I have recently learnt that putting proofs inside record defs like 
 -- this is very bad for performance
 
+-- fancy syntax seems to get in the way already below, you can't use it partially applied
 _○_ : ∀{C D E} → Fun D E → Fun C D → Fun C E
-_○_ {C}{D}{E} F G = record{OMap  = λ X → OMap F (OMap G X);
-                          HMap   = λ f → HMap F (HMap G f);
-                          fid    = begin 
+_○_ {C}{D}{E} F G = record{OMap  = OMap F ∘ OMap G;
+                           HMap  = HMap F ∘ HMap G;
+                           fid   = begin 
                                    HMap F (HMap G (iden C)) 
                                    ≡⟨ cong (HMap F) (fid G) ⟩
                                    HMap F (iden D)
                                    ≡⟨ fid F ⟩ 
                                    iden E 
                                    ∎;
-                          fcomp  = λ {X}{Y}{Z}{f}{g} → 
+                           fcomp = λ {X}{Y}{Z}{f}{g} → 
                                    begin
                                    HMap F (HMap G (comp C f g)) 
                                    ≡⟨ cong (HMap F) (fcomp G)  ⟩ 
                                    HMap F (comp D (HMap G f) (HMap G g))
                                    ≡⟨ fcomp F ⟩ 
                                    comp E (HMap F (HMap G f)) (HMap F (HMap G g)) 
-                                    ∎}
+                                   ∎}
   where open Cat
 
 -- Not sure if we'll need this, if we do we will need a EqualityExtras file
