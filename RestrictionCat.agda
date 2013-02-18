@@ -5,6 +5,7 @@ open import Categories
 open import Relation.Binary.PropositionalEquality
 open ≡-Reasoning
 open import Function
+open import Data.Product
 
 record RestCat : Set where
   field cat  : Cat
@@ -17,6 +18,7 @@ record RestCat : Set where
                comp (rest g) (rest f) ≡ rest (comp g (rest f))
         R4   : ∀{A B C}{f : Hom A B}{g : Hom B C} →
                comp (rest g) f ≡ comp  f (rest (comp g f))
+
 
 module Lemmata (X : RestCat) where
   open RestCat X
@@ -83,3 +85,53 @@ Trivial C = record {
   R4   = trans idl (sym idr)} 
   where open Cat C
 
+module Totals (X : RestCat) where
+  open RestCat X
+  open Cat cat
+
+  record Tot (A B : Obj) : Set where
+    field hom : Hom A B 
+          tot : rest hom ≡ iden
+
+  open Tot
+
+  TotEq : ∀{A B}{f g : Tot A B} → Tot.hom f ≡ Tot.hom g → f ≡ g
+  TotEq {A}{B}{f}{g} p = cong₂ (λ x y → record { hom = x; tot = {!!} }) p {!!}
+
+
+
+  Total : ∀{A B}(f : Hom A B) → Set
+  Total f = rest f ≡ iden
+
+  Totals : Cat
+  Totals = record {
+    Obj  = Obj; 
+    Hom  = Tot;
+    iden = record { hom = iden; tot = Lemmata.lemiii X (Monos.idmono cat) };
+    comp = λ g f → record { hom = comp (hom g) (hom f); 
+                            tot = begin 
+         rest (comp (hom g) (hom f)) 
+         ≡⟨ Lemmata.lemiv X (hom f) (hom g) ⟩ 
+         rest (comp (rest (hom g)) (hom f)) 
+         ≡⟨ cong (λ h → rest (comp h (hom f))) (tot g) ⟩ 
+         rest (comp iden (hom f))
+         ≡⟨ cong rest idl ⟩ 
+         rest (hom f)
+         ≡⟨ tot f ⟩ 
+         iden
+         ∎
+     };
+    idl  = TotEq idl;
+    idr  = TotEq idr;
+    ass  = TotEq ass}
+  
+{-  
+  Totals : RestCat
+  Totals = record { 
+    cat  = ?; 
+    rest = rest; 
+    R1   = idr; 
+    R2   = trans idr (sym idl); 
+    R3   = idr; 
+    R4   = trans idl (sym idr)} 
+ -}   
