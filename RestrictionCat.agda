@@ -4,7 +4,7 @@ module RestrictionCat where
 open import Categories
 open import Relation.Binary.HeterogeneousEquality
 open import Equality
-open ≅-Reasoning
+open ≅-Reasoning 
 open import Function
 open import Data.Product
 
@@ -25,8 +25,8 @@ module Lemmata (X : RestCat) where
   open RestCat X
   open Cat cat
   
-  lemii : ∀{A B}(f : Hom A B) → comp (rest f) (rest f) ≅ rest f
-  lemii f = begin 
+  lemii : ∀{A B}{f : Hom A B} → comp (rest f) (rest f) ≅ rest f
+  lemii {f = f} = begin 
     comp (rest f) (rest f) 
     ≅⟨ R3 ⟩ 
     rest (comp f (rest f))
@@ -46,8 +46,8 @@ module Lemmata (X : RestCat) where
     comp f iden
     ∎)
 
-  lemi : ∀{A B}(f : Hom A B) → rest (rest f) ≅ rest f
-  lemi f = begin 
+  lemi : ∀{A B}{f : Hom A B} → rest (rest f) ≅ rest f
+  lemi {f = f} = begin 
     rest (rest f)
     ≅⟨ cong rest (sym idl) ⟩ 
     rest (comp iden (rest f))
@@ -59,8 +59,9 @@ module Lemmata (X : RestCat) where
     rest f
     ∎
 
-  lemiv : ∀{A B C}(f : Hom A B)(g : Hom B C) → rest (comp g f) ≅ rest (comp (rest g) f)
-  lemiv f g = begin 
+  lemiv : ∀{A B C}{f : Hom A B}{g : Hom B C} → 
+          rest (comp g f) ≅ rest (comp (rest g) f)
+  lemiv {f = f}{g = g} = begin 
     rest (comp g f) 
     ≅⟨ cong (rest ∘ comp g) (sym R1) ⟩ 
     rest (comp g (comp f (rest f))) 
@@ -88,7 +89,9 @@ Trivial C = record {
 
 module Totals (X : RestCat) where
   open RestCat X
+  open Lemmata X
   open Cat cat
+  open Monos cat
 
   record Tot (A B : Obj) : Set where
     field hom : Hom A B 
@@ -96,7 +99,7 @@ module Totals (X : RestCat) where
 
   open Tot
 
-  TotEq : ∀{A B}{f g : Tot A B} → Tot.hom f ≅ Tot.hom g → f ≅ g
+  TotEq : ∀{A B}{f g : Tot A B} → hom f ≅ hom g → f ≅ g
   TotEq {A}{B}{f}{g} p = cong₂
     {_}
     {_}
@@ -107,38 +110,55 @@ module Totals (X : RestCat) where
     (λ x y → record { hom = x; tot = y }) p 
     (fixtypes (cong rest p) refl)
 
-  Total : ∀{A B}(f : Hom A B) → Set
-  Total {A} f = rest f ≅ iden {A}
-
   Totals : Cat
   Totals = record {
     Obj  = Obj; 
     Hom  = Tot;
-    iden = record { hom = iden; tot = Lemmata.lemiii X (Monos.idmono cat) };
-    comp = λ g f → record { hom = comp (hom g) (hom f); 
-                            tot = begin 
-         rest (comp (hom g) (hom f)) 
-         ≅⟨ Lemmata.lemiv X (hom f) (hom g) ⟩ 
-         rest (comp (rest (hom g)) (hom f)) 
-         ≅⟨ cong (λ h → rest (comp h (hom f))) (tot g) ⟩ 
-         rest (comp iden (hom f))
-         ≅⟨ cong rest idl ⟩ 
-         rest (hom f)
-         ≅⟨ tot f ⟩ 
-         iden
-         ∎
+    iden = record { hom = iden; tot = lemiii idmono };
+    comp = λ g f → record { 
+      hom = comp (hom g) (hom f); 
+      tot = begin 
+        rest (comp (hom g) (hom f)) 
+        ≅⟨ lemiv ⟩ 
+        rest (comp (rest (hom g)) (hom f)) 
+        ≅⟨ cong (λ h → rest (comp h (hom f))) (tot g) ⟩ 
+        rest (comp iden (hom f))
+        ≅⟨ cong rest idl ⟩ 
+        rest (hom f)
+        ≅⟨ tot f ⟩ 
+        iden
+        ∎
      };
     idl  = TotEq idl;
     idr  = TotEq idr;
     ass  = TotEq ass}
-  
+
 {-  
-  Totals : RestCat
-  Totals = record { 
-    cat  = ?; 
-    rest = rest; 
-    R1   = idr; 
-    R2   = trans idr (sym idl); 
-    R3   = idr; 
-    R4   = trans idl (sym idr)} 
- -}   
+  TotalsR : RestCat
+  TotalsR = record { 
+    cat  = Totals; 
+    rest = λ _ → record {hom = iden; 
+                         tot = Lemmata.lemiii X (Monos.idmono cat)};
+    R1   = TotEq idr;
+    R2   = TotEq refl;
+    R3   = TotEq idr;
+    R4   = TotEq (trans idl (sym idr))}
+-}
+
+  TotalsR : RestCat
+  TotalsR = record { 
+    cat  = Totals; 
+    rest = λ f → record { 
+      hom = rest (hom f); 
+      tot = begin 
+        rest (rest (hom f))
+        ≅⟨ lemi ⟩ 
+        rest (hom f)
+        ≅⟨ tot f ⟩ 
+        iden
+        ∎};
+    R1   = TotEq R1;
+    R2   = TotEq R2;
+    R3   = TotEq R3;
+    R4   = TotEq R4}
+
