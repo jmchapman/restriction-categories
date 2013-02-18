@@ -18,24 +18,37 @@ open Fun
 IdF : ∀ C → Fun C C
 IdF C = record{OMap = id;HMap = id;fid = refl;fcomp = refl}
 
+open Cat
+
+○fid : {C D E : Cat} (F : Fun D E)(G : Fun C D){X : Obj C} →
+       HMap F (HMap G (iden C {X})) ≅ iden E {OMap F (OMap G X)}
+○fid {C}{D}{E} F G =  
+  proof
+  HMap F (HMap G (iden C)) 
+  ≅⟨ cong (HMap F) (fid G) ⟩
+  HMap F (iden D)
+  ≅⟨ fid F ⟩ 
+  iden E 
+  ∎ 
+
+○fcomp : {C D E : Cat} (F : Fun D E)(G : Fun C D)
+  {X Y Z : Obj C} {f : Hom C Y Z}{g : Hom C X Y} →
+  (HMap F ∘ HMap G) (comp C f g) 
+  ≅ 
+  comp E ((HMap F ∘ HMap G) f) ((HMap F ∘ HMap G) g)
+○fcomp {C}{D}{E} F G {f = f}{g = g} =
+  proof
+  HMap F (HMap G (comp C f g)) 
+  ≅⟨ cong (HMap F) (fcomp G) ⟩ 
+  HMap F (comp D (HMap G f) (HMap G g))
+  ≅⟨ fcomp F ⟩ 
+  comp E (HMap F (HMap G f))(HMap F (HMap G g)) 
+  ∎
+
 _○_ : ∀{C D E} → Fun D E → Fun C D → Fun C E
-_○_ {C}{D}{E} F G = record{OMap  = OMap F ∘ OMap G;
-                           HMap  = HMap F ∘ HMap G;
-                           fid   = proof
-                                   HMap F (HMap G (iden C)) 
-                                   ≅⟨ cong (HMap F) (fid G) ⟩
-                                   HMap F (iden D)
-                                   ≅⟨ fid F ⟩ 
-                                   iden E 
-                                   ∎;
-                           fcomp = λ {X}{Y}{Z}{f}{g} → 
-                                   proof
-                                   HMap F (HMap G (comp C f g)) 
-                                   ≅⟨ cong (HMap F) (fcomp G)  ⟩ 
-                                   HMap F (comp D (HMap G f) (HMap G g))
-                                   ≅⟨ fcomp F ⟩ 
-                                   comp E (HMap F (HMap G f)) 
-                                          (HMap F (HMap G g)) 
-                                   ∎}
-  where open Cat
+F ○ G = record{
+  OMap  = OMap F ∘ OMap G;
+  HMap  = HMap F ∘ HMap G;
+  fid   = ○fid F G;
+  fcomp = ○fcomp F G}
 

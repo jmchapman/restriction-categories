@@ -37,14 +37,14 @@ module Lemmata (X : RestCat) where
     ∎
 
   lemiii : ∀{A B}{f : Hom A B} → Mono f → rest f ≅ iden
-  lemiii {f = f} p = p (
+  lemiii {f = f} p = p $
     proof
     comp f (rest f)
     ≅⟨ R1 ⟩ 
     f
     ≅⟨ sym idr ⟩ 
     comp f iden
-    ∎)
+    ∎
 
   lemi : ∀{A B}{f : Hom A B} → rest (rest f) ≅ rest f
   lemi {f = f} = 
