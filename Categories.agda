@@ -2,7 +2,7 @@
 module Categories where
 
 open import Relation.Binary.HeterogeneousEquality
-open ≅-Reasoning
+open ≅-Reasoning renaming (begin_ to proof_)
 
 record Cat : Set where
   field Obj  : Set
@@ -22,7 +22,8 @@ module Monos (X : Cat) where
   Mono f = ∀{C}{g h : Hom C _} → comp f g ≅ comp f h → g ≅ h
 
   idmono : ∀{A} → Mono (iden {A})
-  idmono {A}{C}{g}{h} p = begin 
+  idmono {A}{C}{g}{h} p = 
+    proof
     g 
     ≅⟨ sym idl ⟩ 
     comp iden g 

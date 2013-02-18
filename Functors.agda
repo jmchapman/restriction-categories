@@ -4,7 +4,7 @@ module Functors where
 open import Relation.Binary.HeterogeneousEquality
 open import Function
 open import Categories
-open ≅-Reasoning
+open ≅-Reasoning renaming (begin_ to proof_)
 
 record Fun (C D : Cat) : Set where
   open Cat
@@ -21,7 +21,7 @@ IdF C = record{OMap = id;HMap = id;fid = refl;fcomp = refl}
 _○_ : ∀{C D E} → Fun D E → Fun C D → Fun C E
 _○_ {C}{D}{E} F G = record{OMap  = OMap F ∘ OMap G;
                            HMap  = HMap F ∘ HMap G;
-                           fid   = begin 
+                           fid   = proof
                                    HMap F (HMap G (iden C)) 
                                    ≅⟨ cong (HMap F) (fid G) ⟩
                                    HMap F (iden D)
@@ -29,7 +29,7 @@ _○_ {C}{D}{E} F G = record{OMap  = OMap F ∘ OMap G;
                                    iden E 
                                    ∎;
                            fcomp = λ {X}{Y}{Z}{f}{g} → 
-                                   begin
+                                   proof
                                    HMap F (HMap G (comp C f g)) 
                                    ≅⟨ cong (HMap F) (fcomp G)  ⟩ 
                                    HMap F (comp D (HMap G f) (HMap G g))

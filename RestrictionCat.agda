@@ -4,7 +4,7 @@ module RestrictionCat where
 open import Categories
 open import Relation.Binary.HeterogeneousEquality
 open import Equality
-open ≅-Reasoning 
+open ≅-Reasoning renaming (begin_ to proof_)
 open import Function
 open import Data.Product
 
@@ -26,7 +26,8 @@ module Lemmata (X : RestCat) where
   open Cat cat
   
   lemii : ∀{A B}{f : Hom A B} → comp (rest f) (rest f) ≅ rest f
-  lemii {f = f} = begin 
+  lemii {f = f} = 
+    proof
     comp (rest f) (rest f) 
     ≅⟨ R3 ⟩ 
     rest (comp f (rest f))
@@ -38,7 +39,8 @@ module Lemmata (X : RestCat) where
   open Monos cat
 
   lemiii : ∀{A B}{f : Hom A B} → Mono f → rest f ≅ iden
-  lemiii {f = f} p = p (begin 
+  lemiii {f = f} p = p (
+    proof
     comp f (rest f)
     ≅⟨ R1 ⟩ 
     f
@@ -47,7 +49,8 @@ module Lemmata (X : RestCat) where
     ∎)
 
   lemi : ∀{A B}{f : Hom A B} → rest (rest f) ≅ rest f
-  lemi {f = f} = begin 
+  lemi {f = f} = 
+    proof
     rest (rest f)
     ≅⟨ cong rest (sym idl) ⟩ 
     rest (comp iden (rest f))
@@ -61,7 +64,8 @@ module Lemmata (X : RestCat) where
 
   lemiv : ∀{A B C}{f : Hom A B}{g : Hom B C} → 
           rest (comp g f) ≅ rest (comp (rest g) f)
-  lemiv {f = f}{g = g} = begin 
+  lemiv {f = f}{g = g} = 
+    proof
     rest (comp g f) 
     ≅⟨ cong (rest ∘ comp g) (sym R1) ⟩ 
     rest (comp g (comp f (rest f))) 
@@ -117,7 +121,8 @@ module Totals (X : RestCat) where
     iden = record { hom = iden; tot = lemiii idmono };
     comp = λ g f → record { 
       hom = comp (hom g) (hom f); 
-      tot = begin 
+      tot = 
+        proof
         rest (comp (hom g) (hom f)) 
         ≅⟨ lemiv ⟩ 
         rest (comp (rest (hom g)) (hom f)) 
@@ -150,7 +155,8 @@ module Totals (X : RestCat) where
     cat  = Totals; 
     rest = λ f → record { 
       hom = rest (hom f); 
-      tot = begin 
+      tot = 
+        proof
         rest (rest (hom f))
         ≅⟨ lemi ⟩ 
         rest (hom f)
