@@ -24,6 +24,7 @@ record RestCat : Set where
 module Lemmata (X : RestCat) where
   open RestCat X
   open Cat cat
+  open Monos cat
   
   lemii : ∀{A B}{f : Hom A B} → comp (rest f) (rest f) ≅ rest f
   lemii {f = f} = 
@@ -34,9 +35,6 @@ module Lemmata (X : RestCat) where
     ≅⟨ cong rest R1 ⟩ 
     rest f
     ∎
-
-   
-  open Monos cat
 
   lemiii : ∀{A B}{f : Hom A B} → Mono f → rest f ≅ iden
   lemiii {f = f} p = p (
@@ -167,4 +165,3 @@ module Totals (X : RestCat) where
     R2   = TotEq R2;
     R3   = TotEq R3;
     R4   = TotEq R4}
-
