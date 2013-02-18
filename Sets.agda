@@ -3,7 +3,8 @@ module Sets where
 
 open import Categories
 open import Function
-open import Relation.Binary.PropositionalEquality
+open import Relation.Binary.HeterogeneousEquality
+
 Sets : Cat
 Sets = record {
          Obj  = Set;

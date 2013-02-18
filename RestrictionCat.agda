@@ -2,8 +2,9 @@
 module RestrictionCat where
 
 open import Categories
-open import Relation.Binary.PropositionalEquality
-open ≡-Reasoning
+open import Relation.Binary.HeterogeneousEquality
+open import Equality
+open ≅-Reasoning
 open import Function
 open import Data.Product
 
@@ -11,67 +12,67 @@ record RestCat : Set where
   field cat  : Cat
   open  Cat cat
   field rest : ∀{A B} → Hom A B → Hom A A
-        R1   : ∀{A B}{f : Hom A B} → comp f (rest f) ≡ f 
+        R1   : ∀{A B}{f : Hom A B} → comp f (rest f) ≅ f 
         R2   : ∀{A B C}{f : Hom A B}{g : Hom A C} →
-               comp (rest f) (rest g) ≡ comp (rest g) (rest f)
+               comp (rest f) (rest g) ≅ comp (rest g) (rest f)
         R3   : ∀{A B C}{f : Hom A B}{g : Hom A C} →
-               comp (rest g) (rest f) ≡ rest (comp g (rest f))
+               comp (rest g) (rest f) ≅ rest (comp g (rest f))
         R4   : ∀{A B C}{f : Hom A B}{g : Hom B C} →
-               comp (rest g) f ≡ comp  f (rest (comp g f))
+               comp (rest g) f ≅ comp  f (rest (comp g f))
 
 
 module Lemmata (X : RestCat) where
   open RestCat X
   open Cat cat
   
-  lemii : ∀{A B}(f : Hom A B) → comp (rest f) (rest f) ≡ rest f
+  lemii : ∀{A B}(f : Hom A B) → comp (rest f) (rest f) ≅ rest f
   lemii f = begin 
     comp (rest f) (rest f) 
-    ≡⟨ R3 ⟩ 
+    ≅⟨ R3 ⟩ 
     rest (comp f (rest f))
-    ≡⟨ cong rest R1 ⟩ 
+    ≅⟨ cong rest R1 ⟩ 
     rest f
     ∎
 
    
   open Monos cat
 
-  lemiii : ∀{A B}{f : Hom A B} → Mono f → rest f ≡ iden
+  lemiii : ∀{A B}{f : Hom A B} → Mono f → rest f ≅ iden
   lemiii {f = f} p = p (begin 
     comp f (rest f)
-    ≡⟨ R1 ⟩ 
+    ≅⟨ R1 ⟩ 
     f
-    ≡⟨ sym idr ⟩ 
+    ≅⟨ sym idr ⟩ 
     comp f iden
     ∎)
 
-  lemi : ∀{A B}(f : Hom A B) → rest (rest f) ≡ rest f
+  lemi : ∀{A B}(f : Hom A B) → rest (rest f) ≅ rest f
   lemi f = begin 
     rest (rest f)
-    ≡⟨ cong rest (sym idl) ⟩ 
+    ≅⟨ cong rest (sym idl) ⟩ 
     rest (comp iden (rest f))
-    ≡⟨ sym R3 ⟩ 
+    ≅⟨ sym R3 ⟩ 
     comp (rest iden) (rest f)
-    ≡⟨ cong (λ g → comp g (rest f)) (lemiii idmono) ⟩ 
+    ≅⟨ cong (λ g → comp g (rest f)) (lemiii idmono) ⟩ 
     comp iden (rest f)
-    ≡⟨ idl ⟩ 
+    ≅⟨ idl ⟩ 
     rest f
     ∎
 
-  lemiv : ∀{A B C}(f : Hom A B)(g : Hom B C) → rest (comp g f) ≡ rest (comp (rest g) f)
+  lemiv : ∀{A B C}(f : Hom A B)(g : Hom B C) → rest (comp g f) ≅ rest (comp (rest g) f)
   lemiv f g = begin 
     rest (comp g f) 
-    ≡⟨ cong (rest ∘ comp g) (sym R1) ⟩ 
+    ≅⟨ cong (rest ∘ comp g) (sym R1) ⟩ 
     rest (comp g (comp f (rest f))) 
-    ≡⟨ cong rest (sym ass) ⟩ 
+    ≅⟨ cong rest (sym ass) ⟩ 
     rest (comp (comp g f) (rest f)) 
-    ≡⟨ sym R3 ⟩ 
+    ≅⟨ sym R3 ⟩ 
     comp (rest (comp g f)) (rest f) 
-    ≡⟨ R2 ⟩ 
+    ≅⟨ R2 ⟩ 
     comp (rest f) (rest (comp g f)) 
-    ≡⟨ R3 ⟩ 
+    ≅⟨ R3 ⟩ 
     rest (comp f (rest (comp g f))) 
-    ≡⟨ cong rest (sym R4) ⟩ 
+    ≅⟨ cong rest (sym R4) ⟩ 
     rest (comp (rest g) f) 
     ∎
 
@@ -91,17 +92,23 @@ module Totals (X : RestCat) where
 
   record Tot (A B : Obj) : Set where
     field hom : Hom A B 
-          tot : rest hom ≡ iden
+          tot : rest hom ≅ iden {A}
 
   open Tot
 
-  TotEq : ∀{A B}{f g : Tot A B} → Tot.hom f ≡ Tot.hom g → f ≡ g
-  TotEq {A}{B}{f}{g} p = cong₂ (λ x y → record { hom = x; tot = {!!} }) p {!!}
-
-
+  TotEq : ∀{A B}{f g : Tot A B} → Tot.hom f ≅ Tot.hom g → f ≅ g
+  TotEq {A}{B}{f}{g} p = cong₂
+    {_}
+    {_}
+    {_}
+    {Hom A B}
+    {λ hom → rest hom ≅ iden {A}}
+    {λ _ _ → Tot A B}
+    (λ x y → record { hom = x; tot = y }) p 
+    (fixtypes (cong rest p) refl)
 
   Total : ∀{A B}(f : Hom A B) → Set
-  Total f = rest f ≡ iden
+  Total {A} f = rest f ≅ iden {A}
 
   Totals : Cat
   Totals = record {
@@ -111,13 +118,13 @@ module Totals (X : RestCat) where
     comp = λ g f → record { hom = comp (hom g) (hom f); 
                             tot = begin 
          rest (comp (hom g) (hom f)) 
-         ≡⟨ Lemmata.lemiv X (hom f) (hom g) ⟩ 
+         ≅⟨ Lemmata.lemiv X (hom f) (hom g) ⟩ 
          rest (comp (rest (hom g)) (hom f)) 
-         ≡⟨ cong (λ h → rest (comp h (hom f))) (tot g) ⟩ 
+         ≅⟨ cong (λ h → rest (comp h (hom f))) (tot g) ⟩ 
          rest (comp iden (hom f))
-         ≡⟨ cong rest idl ⟩ 
+         ≅⟨ cong rest idl ⟩ 
          rest (hom f)
-         ≡⟨ tot f ⟩ 
+         ≅⟨ tot f ⟩ 
          iden
          ∎
      };

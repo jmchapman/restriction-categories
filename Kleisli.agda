@@ -2,7 +2,7 @@ module Kleisli where
 
 open import Categories
 open import Monads
-open import Relation.Binary.PropositionalEquality
+open import Relation.Binary.HeterogeneousEquality
 
 Kl : ∀{C} → Monad C → Cat
 Kl {C} M = record{
