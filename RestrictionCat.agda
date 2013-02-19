@@ -65,7 +65,7 @@ module Lemmata (X : RestCat) where
   lemiv {f = f}{g = g} = 
     proof
     rest (comp g f) 
-    ≅⟨ cong (rest ∘ comp g) (sym R1) ⟩ 
+    ≅⟨ cong (λ f' → rest (comp g f')) (sym R1) ⟩ 
     rest (comp g (comp f (rest f))) 
     ≅⟨ cong rest (sym ass) ⟩ 
     rest (comp (comp g f) (rest f)) 
@@ -84,9 +84,16 @@ Trivial C = record {
   cat  = C; 
   rest = λ _ → iden; 
   R1   = idr; 
-  R2   = trans idr (sym idl); 
+  R2   = proof comp iden iden ∎;
   R3   = idr; 
-  R4   = trans idl (sym idr)} 
+  R4   = λ {_ _ _ f} →
+   proof 
+   comp iden f 
+   ≅⟨ idl ⟩ 
+   f 
+   ≅⟨ sym idr ⟩ 
+   comp f iden 
+   ∎}
   where open Cat C
 
 module Totals (X : RestCat) where
@@ -146,7 +153,6 @@ module Totals (X : RestCat) where
     R2   = TotEq refl;
     R3   = TotEq idr;
     R4   = TotEq (trans idl (sym idr))}
--}
 
   TotalsR : RestCat
   TotalsR = record { 
@@ -165,3 +171,34 @@ module Totals (X : RestCat) where
     R2   = TotEq R2;
     R3   = TotEq R3;
     R4   = TotEq R4}
+-}
+
+open import Functors
+
+record RestFun (X Y : RestCat) : Set where
+  open Cat
+  open RestCat
+  open Fun
+  field fun   : Fun (cat X) (cat Y)
+        frest : ∀{A B}{f : Hom (cat X) A B} → rest Y (HMap fun f) ≅ HMap fun (rest X f)
+
+F : ∀{X} → Fun (RestCat.cat (Trivial (Totals.Totals X))) (RestCat.cat X)
+F {X} = record { 
+  OMap  = id; 
+  HMap  = hom; 
+  fid   = refl;
+  fcomp = refl}
+  where open Totals X
+        open Tot
+
+RF : ∀{X} → RestFun (Trivial (Totals.Totals X)) X
+RF {X} = record { 
+  fun   = F; 
+  frest = λ {_ _ f} → tot f }
+  where open Totals X
+        open Tot
+
+RFFaithful : ∀{X} → Faithful (F {X})
+RFFaithful {X} = TotEq
+  where open Totals X
+        open Tot

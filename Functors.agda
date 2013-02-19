@@ -52,3 +52,5 @@ F ○ G = record{
   fid   = ○fid F G;
   fcomp = ○fcomp F G}
 
+Faithful : ∀{C D} → Fun C D → Set
+Faithful {C} F = ∀{A B}{f g : Hom C A B} → HMap F f ≅ HMap F g → f ≅ g

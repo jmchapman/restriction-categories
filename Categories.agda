@@ -14,7 +14,6 @@ record Cat : Set where
         ass  : ∀{W X Y Z}{f : Hom Y Z}{g : Hom X Y}{h : Hom W X} → 
                comp (comp f g) h ≅ comp f (comp g h)
 
-
 module Monos (X : Cat) where
   open Cat X
 
