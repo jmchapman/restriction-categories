@@ -3,6 +3,7 @@ module Categories where
 
 open import Relation.Binary.HeterogeneousEquality
 open ≅-Reasoning renaming (begin_ to proof_)
+open import Data.Product
 
 record Cat : Set where
   field Obj  : Set
@@ -31,6 +32,39 @@ module Monos (X : Cat) where
     ≅⟨ idl ⟩ 
     h 
     ∎
+
+module Pullbacks (X : Cat) where
+  open Cat X
+
+  record Square {X Y Z}(f : Hom Y Z)(g : Hom X Z) : Set where
+     field W    : Obj
+           h    : Hom W Y
+           k    : Hom W X
+           scom : comp f h ≅ comp g k
+  open Square
+
+{-
+  PMap : ∀{X Y Z}{f : Hom Y Z}{g : Hom X Z}(sq sq' : Square f g) → Hom (W sq') (W sq) → Set
+  PMap sq sq' u = comp (h sq) u ≅ h sq' × comp (k sq) u ≅ k sq'
+
+  record Pullback {X Y Z}(f : Hom Y Z)(g : Hom X Z) : Set where
+    field sq : Square f g
+          prop : {sq' : Square f g} →
+                   Σ (Hom (W sq') (W sq))
+                     (λ u → PMap sq sq' u × (∀ u' → PMap sq sq' u' → u ≅ u')) 
+-}
+
+  record PMap  {X Y Z : Obj}{f : Hom Y Z}{g : Hom X Z}(sq sq' : Square f g) : Set where
+    field mor   : Hom (W sq') (W sq)
+          prop1 : comp (h sq) mor ≅ h sq'
+          prop2 : comp (k sq) mor ≅ k sq'
+  open PMap
+
+  record Pullback {X Y Z}(f : Hom Y Z)(g : Hom X Z) : Set where
+    field sq : Square f g
+          prop : {sq' : Square f g} → Σ (PMap sq sq') λ u → (u' : PMap sq sq') → mor u ≅  mor u'
+
+
 
 _Op : Cat → Cat
 C Op = record {
