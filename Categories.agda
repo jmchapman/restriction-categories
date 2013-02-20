@@ -36,10 +36,10 @@ module Monos (X : Cat) where
 module Pullbacks (X : Cat) where
   open Cat X
 
-  record Square {X Y Z}(f : Hom Y Z)(g : Hom X Z) : Set where
+  record Square {X Y Z}(f : Hom X Z)(g : Hom Y Z) : Set where
      field W    : Obj
-           h    : Hom W Y
-           k    : Hom W X
+           h    : Hom W X
+           k    : Hom W Y
            scom : comp f h ≅ comp g k
   open Square
 
@@ -54,17 +54,72 @@ module Pullbacks (X : Cat) where
                      (λ u → PMap sq sq' u × (∀ u' → PMap sq sq' u' → u ≅ u')) 
 -}
 
-  record PMap  {X Y Z : Obj}{f : Hom Y Z}{g : Hom X Z}(sq sq' : Square f g) : Set where
+  record PMap  {X Y Z : Obj}{f : Hom X Z}{g : Hom Y Z}(sq' sq : Square f g) : Set where
     field mor   : Hom (W sq') (W sq)
           prop1 : comp (h sq) mor ≅ h sq'
           prop2 : comp (k sq) mor ≅ k sq'
   open PMap
 
-  record Pullback {X Y Z}(f : Hom Y Z)(g : Hom X Z) : Set where
+  record Pullback {X Y Z}(f : Hom X Z)(g : Hom Y Z) : Set where
     field sq : Square f g
-          prop : {sq' : Square f g} → Σ (PMap sq sq') λ u → (u' : PMap sq sq') → mor u ≅  mor u'
+          prop : (sq' : Square f g) → Σ (PMap sq' sq) λ u → (u' : PMap sq' sq) → mor u ≅  mor u'
+  open Pullback
 
 
+  -- pasting lemmas
+  lem1 : ∀{U X Y Z}{f : Hom X Z}{g : Hom Y Z}(p : Pullback f g) → {f' : Hom U X} → Pullback f' (h (sq p)) → Pullback (comp f f') g
+  lem1 {_}{_}{_}{_}{f}{g} p {f'} q = record { 
+    sq   = record { 
+      W    = W (sq q); 
+      h    = h (sq q); 
+      k    = comp (k (sq p)) (k (sq q)); 
+      scom = 
+        proof
+        comp (comp f f') (h (sq q)) 
+        ≅⟨ ass ⟩
+        comp f (comp f' (h (sq q)))
+        ≅⟨ cong (comp f) (scom (sq q)) ⟩
+        comp f (comp (h (sq p)) (k (sq q)))
+        ≅⟨ sym ass ⟩
+        comp (comp f (h (sq p))) (k (sq q))
+        ≅⟨ cong (λ f' → comp f' (k (sq q))) (scom (sq p)) ⟩
+        comp (comp g (k (sq p))) (k (sq q))
+        ≅⟨ ass ⟩
+        comp g (comp (k (sq p)) (k (sq q))) 
+        ∎}; 
+    prop = λ r → 
+      let 
+        m : Square f g
+        m = record { 
+          W    = W r; 
+          h    = comp f' (h r); 
+          k    = k r; 
+          scom = {!!} } 
+        u : Σ (PMap m (sq p)) (λ u → (u' : PMap m (sq p)) →  mor u ≅ mor u')
+        u = prop p m
+        m' : Square f' (h (sq p))
+        m' = record { 
+          W    = W r; 
+          h    = h r; 
+          k    = mor (proj₁ u);
+          scom = {!!} }
+        u' : Σ (PMap m' (sq q)) (λ u₁ → (u' : PMap m' (sq q)) → mor u₁ ≅ mor u')
+        u' = prop q m'
+        -- maybe need this for uniqueness
+        m'' : Square f g
+        m'' = record { 
+          W    = W (sq q); 
+          h    = comp f' (h (sq q)); 
+          k    = comp (k (sq p)) (k (sq q)); 
+          scom = {!!}}
+        
+      in 
+       (record { 
+         mor   = (mor (proj₁ u'));
+         prop1 = {!!}; 
+         prop2 = {!!} }) 
+       , 
+       {!!} }
 
 _Op : Cat → Cat
 C Op = record {
