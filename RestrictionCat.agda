@@ -79,6 +79,30 @@ module Lemmata (X : RestCat) where
     rest (comp (rest g) f) 
     ∎
 
+  _≤_ : ∀{A B} → Hom A B → Hom A B → Set
+  f ≤ g = comp g (rest f) ≅ f
+
+  -- antisymmetry
+  ex1 : ∀{A B}(f g : Hom A B) → f ≤ g → g ≤ f → f ≅ g
+  ex1 f g p q = 
+    proof 
+    f 
+    ≅⟨ sym p ⟩ 
+    comp g (rest f)
+    ≅⟨ cong (λ g' → comp g' (rest f)) (sym q) ⟩ 
+    comp (comp f (rest g)) (rest f)
+    ≅⟨ ass ⟩ 
+    comp f (comp (rest g) (rest f))
+    ≅⟨ cong (comp f) (sym R2) ⟩ 
+    comp f (comp (rest f) (rest g))
+    ≅⟨ sym ass ⟩ 
+    comp (comp f (rest f)) (rest g)
+    ≅⟨ cong (λ f' → comp f' (rest g)) R1 ⟩ 
+    comp f (rest g)
+    ≅⟨ q ⟩ 
+    g 
+    ∎
+
 Trivial : Cat → RestCat
 Trivial C = record { 
   cat  = C; 
