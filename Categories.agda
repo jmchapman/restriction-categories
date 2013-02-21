@@ -33,6 +33,31 @@ module Monos (X : Cat) where
     h 
     ∎
 
+module Isos (X : Cat) where
+  open Cat X
+
+  Iso : ∀{A B} → Hom A B → Set
+  Iso {A}{B} f = Σ (Hom B A) (λ g → comp f g ≅ iden {B} × comp g f ≅ iden {A})
+
+
+  invuniq : ∀{A B}(f : Hom A B)(p q : Iso f) → proj₁ p ≅ proj₁ q
+  invuniq f (g , p , p') (g' , q , q') = 
+    proof 
+    g 
+    ≅⟨ sym idr ⟩ 
+    comp g iden
+    ≅⟨ cong (comp g) (sym q) ⟩ 
+    comp g (comp f g')
+    ≅⟨ sym ass ⟩ 
+    comp (comp g f) g'
+    ≅⟨ cong (λ h → comp h g') p' ⟩     
+    comp iden g'
+    ≅⟨ idl ⟩     
+    g'
+    ∎
+
+
+{-
 module Pullbacks (X : Cat) where
   open Cat X
 
@@ -42,17 +67,6 @@ module Pullbacks (X : Cat) where
            k    : Hom W Y
            scom : comp f h ≅ comp g k
   open Square
-
-{-
-  PMap : ∀{X Y Z}{f : Hom Y Z}{g : Hom X Z}(sq sq' : Square f g) → Hom (W sq') (W sq) → Set
-  PMap sq sq' u = comp (h sq) u ≅ h sq' × comp (k sq) u ≅ k sq'
-
-  record Pullback {X Y Z}(f : Hom Y Z)(g : Hom X Z) : Set where
-    field sq : Square f g
-          prop : {sq' : Square f g} →
-                   Σ (Hom (W sq') (W sq))
-                     (λ u → PMap sq sq' u × (∀ u' → PMap sq sq' u' → u ≅ u')) 
--}
 
   record PMap  {X Y Z : Obj}{f : Hom X Z}{g : Hom Y Z}(sq' sq : Square f g) : Set where
     field mor   : Hom (W sq') (W sq)
@@ -136,7 +150,7 @@ module Pullbacks (X : Cat) where
           mor   = mor u''; 
           prop1 = prop1 u''; 
           prop2 = sym (proj₂ u (record {
-            mor = comp (k (sq q)) (mor u''); 
+            mor   = comp (k (sq q)) (mor u''); 
             prop1 = 
               proof
               comp (h (sq p)) (comp (k (sq q)) (mor u'')) 
@@ -156,7 +170,17 @@ module Pullbacks (X : Cat) where
               comp (comp (k (sq p)) (k (sq q))) (mor u'') 
               ≅⟨ prop2 u'' ⟩ 
               k r ∎ }))})}
-
+{-
+  lem2 : ∀{U X Y Z}{f : Hom X Z}{g : Hom Y Z}{f' : Hom U X} → Pullback (comp f f') g → (p : Pullback f g) → 
+         Pullback f' (h (sq p))
+  lem2 {_}{_}{_}{_}{f}{g}{f'} r p = record { 
+    sq   = record { 
+      W    = W (sq r); 
+      h    = h (sq r); 
+      k    = {!!}; 
+      scom = {!!} }; 
+    prop = {!!} }
+-}
 _Op : Cat → Cat
 C Op = record {
   Obj  = Obj; 
@@ -167,3 +191,4 @@ C Op = record {
   idr  = idl;
   ass  = sym ass}
   where open Cat C
+-}

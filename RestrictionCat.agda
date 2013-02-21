@@ -84,7 +84,7 @@ Trivial C = record {
   cat  = C; 
   rest = λ _ → iden; 
   R1   = idr; 
-  R2   = proof comp iden iden ∎;
+  R2   = refl; --proof comp iden iden ∎;
   R3   = idr; 
   R4   = λ {_ _ _ f} →
    proof 
@@ -182,7 +182,7 @@ record RestFun (X Y : RestCat) : Set where
   field fun   : Fun (cat X) (cat Y)
         frest : ∀{A B}{f : Hom (cat X) A B} → rest Y (HMap fun f) ≅ HMap fun (rest X f)
 
-F : ∀{X} → Fun (RestCat.cat (Trivial (Totals.Totals X))) (RestCat.cat X)
+F : ∀{X} → Fun (Totals.Totals X) (RestCat.cat X)
 F {X} = record { 
   OMap  = id; 
   HMap  = hom; 
