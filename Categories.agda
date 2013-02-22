@@ -57,7 +57,6 @@ module Isos (X : Cat) where
     ∎
 
 
-{-
 module Pullbacks (X : Cat) where
   open Cat X
 
@@ -81,6 +80,7 @@ module Pullbacks (X : Cat) where
 
 
   -- pasting lemmas
+{-
   lem1 : ∀{U X Y Z}{f : Hom X Z}{g : Hom Y Z}(p : Pullback f g) → 
          {f' : Hom U X} → Pullback f' (h (sq p)) → Pullback (comp f f') g
   lem1 {_}{_}{_}{_}{f}{g} p {f'} q = record { 
@@ -170,17 +170,26 @@ module Pullbacks (X : Cat) where
               comp (comp (k (sq p)) (k (sq q))) (mor u'') 
               ≅⟨ prop2 u'' ⟩ 
               k r ∎ }))})}
-{-
-  lem2 : ∀{U X Y Z}{f : Hom X Z}{g : Hom Y Z}{f' : Hom U X} → Pullback (comp f f') g → (p : Pullback f g) → 
-         Pullback f' (h (sq p))
-  lem2 {_}{_}{_}{_}{f}{g}{f'} r p = record { 
+-}
+  lem2 : ∀{U X Y Z}{f : Hom X Z}{g : Hom Y Z}{f' : Hom U X}(r : Pullback (comp f f') g) → (p : Pullback f g) → 
+         (k' : Hom (W (sq r)) (W (sq p))) → comp f' (h (sq r)) ≅ comp (h (sq p)) k' → Pullback f' (h (sq p))
+  lem2 {_}{_}{_}{_}{f}{g}{f'} r p k' q = record { 
     sq   = record { 
       W    = W (sq r); 
       h    = h (sq r); 
-      k    = {!!}; 
-      scom = {!!} }; 
-    prop = {!!} }
--}
+      k    = k'; 
+      scom = q }; 
+    prop = λ sq' → (record { 
+      mor   = mor (proj₁ (prop r (record { 
+        W    = W sq'; 
+        h    = h sq'; 
+        k    = {!!}; 
+        scom = {!!} }))); 
+      prop1 = {!!}; 
+      prop2 = {!!} }) 
+      , 
+      {!!} }
+
 _Op : Cat → Cat
 C Op = record {
   Obj  = Obj; 
@@ -191,4 +200,3 @@ C Op = record {
   idr  = idl;
   ass  = sym ass}
   where open Cat C
--}
