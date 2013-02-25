@@ -171,7 +171,8 @@ module Pullbacks (X : Cat) where
               ≅⟨ prop2 u'' ⟩ 
               k r ∎ }))})}
 -}
-  lem2 : ∀{U X Y Z}{f : Hom X Z}{g : Hom Y Z}{f' : Hom U X}(r : Pullback (comp f f') g) → (p : Pullback f g) → 
+  lem2 : ∀{U X Y Z}{f : Hom X Z}{g : Hom Y Z}{f' : Hom U X}
+         (r : Pullback (comp f f') g)(p : Pullback f g) → 
          (k' : Hom (W (sq r)) (W (sq p))) → comp f' (h (sq r)) ≅ comp (h (sq p)) k' → Pullback f' (h (sq p))
   lem2 {_}{_}{_}{_}{f}{g}{f'} r p k' q = record { 
     sq   = record { 
@@ -179,17 +180,58 @@ module Pullbacks (X : Cat) where
       h    = h (sq r); 
       k    = k'; 
       scom = q }; 
-    prop = λ sq' → (record { 
-      mor   = mor (proj₁ (prop r (record { 
-        W    = W sq'; 
-        h    = h sq'; 
-        k    = {!!}; 
-        scom = {!!} }))); 
-      prop1 = {!!}; 
-      prop2 = {!!} }) 
+    prop = λ sq' → let
+        m : Square (comp f f') g
+        m = record { 
+          W    = W sq'; 
+          h    = h sq';
+          k    = comp (k (sq p)) (k sq');
+          scom = 
+            proof
+            comp (comp f f') (h sq')
+            ≅⟨ ass ⟩
+            comp f (comp f' (h sq'))
+            ≅⟨ cong (comp f) (scom sq') ⟩
+            comp f (comp (h (sq p)) (k sq'))
+            ≅⟨ sym ass ⟩
+            comp (comp f (h (sq p))) (k sq')
+            ≅⟨ cong (λ f'' → comp f'' (k sq')) (scom (sq p)) ⟩
+            comp (comp g (k (sq p))) (k sq')
+            ≅⟨ ass ⟩
+            comp g (comp (k (sq p)) (k sq')) 
+            ∎ }
+        u = prop r m
+
+        m' : Square f g
+        m' = record { 
+          W    = W sq'; 
+          h    = comp f' (h sq'); 
+          k    = k m;
+          scom = 
+            proof
+            comp f (comp f' (h sq')) 
+            ≅⟨ sym ass ⟩
+            comp (comp f f') (h sq')
+            ≅⟨ scom m ⟩
+            comp g (comp (k (sq p)) (k sq')) 
+            ∎ }
+        u' = prop p m'
+    in record { 
+         mor = mor (proj₁ u);
+         prop1 = prop1 (proj₁ u); 
+         prop2 = 
+           proof
+           comp k' (mor (proj₁ u)) 
+           ≅⟨ {!prop2 (proj₁ u')!} ⟩
+           mor (proj₁ u') 
+           ≅⟨ proj₂ u' (record { 
+             mor = k sq'; 
+             prop1 = sym (scom sq'); 
+             prop2 = refl }) ⟩
+           k sq' 
+           ∎ }
       , 
       {!!} }
-
 _Op : Cat → Cat
 C Op = record {
   Obj  = Obj; 
