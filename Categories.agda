@@ -80,45 +80,48 @@ module Pullbacks (X : Cat) where
 
 
   -- pasting lemmas
+  bigsquare : ∀{U X Y Z}{f : Hom X Z}{g : Hom Y Z}(p : Pullback f g) →
+              {f' : Hom U X} → Pullback f' (h (sq p)) → Square (comp f f') g
+  bigsquare {_}{_}{_}{_}{f}{g} p {f'} q = record {
+    W = W (sq q);
+    h = h (sq q);
+    k = comp (k (sq p)) (k (sq q));
+    scom = 
+      proof
+      comp (comp f f') (h (sq q)) ≅⟨ ass ⟩
+      comp f (comp f' (h (sq q))) ≅⟨ cong (comp f) (scom (sq q)) ⟩
+      comp f (comp (h (sq p)) (k (sq q))) ≅⟨ sym ass ⟩
+      comp (comp f (h (sq p))) (k (sq q)) ≅⟨
+      cong (λ f'' → comp f'' (k (sq q))) (scom (sq p)) ⟩
+      comp (comp g (k (sq p))) (k (sq q)) ≅⟨ ass ⟩
+      comp g (comp (k (sq p)) (k (sq q))) 
+      ∎ }
+
+  m : ∀{U X Y Z}{f : Hom X Z}{g : Hom Y Z}{f' : Hom U X} → 
+      Square (comp f f') g → Square f g
+  m {_}{_}{_}{_}{f}{g}{f'} r = record { 
+    W    = W r; 
+    h    = comp f' (h r); 
+    k    = k r; 
+    scom = 
+      proof 
+      comp f (comp f' (h r)) 
+      ≅⟨ sym ass ⟩ 
+      comp (comp f f') (h r)
+      ≅⟨ scom r ⟩ 
+      comp g (k r) 
+      ∎ } 
+
 
   lem1 : ∀{U X Y Z}{f : Hom X Z}{g : Hom Y Z}(p : Pullback f g) → 
          {f' : Hom U X} → Pullback f' (h (sq p)) → Pullback (comp f f') g
   lem1 {_}{_}{_}{_}{f}{g} p {f'} q = record { 
-    sq   = record { 
-      W    = W (sq q); 
-      h    = h (sq q); 
-      k    = comp (k (sq p)) (k (sq q)); 
-      scom = 
-        proof
-        comp (comp f f') (h (sq q)) 
-        ≅⟨ ass ⟩
-        comp f (comp f' (h (sq q)))
-        ≅⟨ cong (comp f) (scom (sq q)) ⟩
-        comp f (comp (h (sq p)) (k (sq q)))
-        ≅⟨ sym ass ⟩
-        comp (comp f (h (sq p))) (k (sq q))
-        ≅⟨ cong (λ f' → comp f' (k (sq q))) (scom (sq p)) ⟩
-        comp (comp g (k (sq p))) (k (sq q))
-        ≅⟨ ass ⟩
-        comp g (comp (k (sq p)) (k (sq q))) 
-        ∎}; 
+    sq   = bigsquare p q; 
     prop = λ r → 
       let 
-        m : Square f g
-        m = record { 
-          W    = W r; 
-          h    = comp f' (h r); 
-          k    = k r; 
-          scom = 
-            proof 
-            comp f (comp f' (h r)) 
-            ≅⟨ sym ass ⟩ 
-            comp (comp f f') (h r)
-            ≅⟨ scom r ⟩ 
-            comp g (k r) 
-            ∎ } 
-        u : Σ (PMap m (sq p)) (λ u → (u' : PMap m (sq p)) →  mor u ≅ mor u')
-        u = prop p m
+        u : Σ (PMap (m r) (sq p)) 
+              (λ u → (u' : PMap (m r) (sq p)) →  mor u ≅ mor u')
+        u = prop p (m r)
         m' : Square f' (h (sq p))
         m' = record { 
           W    = W r; 
@@ -171,9 +174,33 @@ module Pullbacks (X : Cat) where
               ≅⟨ prop2 u'' ⟩ 
               k r ∎ }))})}
 
+  m2 : ∀{U X Y Z}{f : Hom X Z}{g : Hom Y Z}{f' : Hom U X} → 
+       (p : Pullback f g) → Square f' (h (sq p)) → 
+       Square (comp f f') g
+  m2 {_}{_}{_}{_}{f}{g}{f'} p sq' = record { 
+    W    = W sq'; 
+    h    = h sq';
+    k    = comp (k (sq p)) (k sq');
+    scom = 
+      proof
+      comp (comp f f') (h sq')
+      ≅⟨ ass ⟩
+      comp f (comp f' (h sq'))
+      ≅⟨ cong (comp f) (scom sq') ⟩
+      comp f (comp (h (sq p)) (k sq'))
+      ≅⟨ sym ass ⟩
+      comp (comp f (h (sq p))) (k sq')
+      ≅⟨ cong (λ f'' → comp f'' (k sq')) (scom (sq p)) ⟩
+      comp (comp g (k (sq p))) (k sq')
+      ≅⟨ ass ⟩
+      comp g (comp (k (sq p)) (k sq')) 
+      ∎ }
+
   lem2 : ∀{U X Y Z}{f : Hom X Z}{g : Hom Y Z}{f' : Hom U X}
          (r : Pullback (comp f f') g)(p : Pullback f g) → 
-         (k' : Hom (W (sq r)) (W (sq p))) → comp f' (h (sq r)) ≅ comp (h (sq p)) k' → k (sq r) ≅ comp (k (sq p)) k' → 
+         (k' : Hom (W (sq r)) (W (sq p))) → 
+         comp f' (h (sq r)) ≅ comp (h (sq p)) k' → 
+         k (sq r) ≅ comp (k (sq p)) k' → 
          Pullback f' (h (sq p))
   lem2 {_}{_}{_}{_}{f}{g}{f'} r p k' q q' = record { 
     sq   = record { 
@@ -182,27 +209,9 @@ module Pullbacks (X : Cat) where
       k    = k'; 
       scom = q }; 
     prop = λ sq' → let
-        m : Square (comp f f') g
-        m = record { 
-          W    = W sq'; 
-          h    = h sq';
-          k    = comp (k (sq p)) (k sq');
-          scom = 
-            proof
-            comp (comp f f') (h sq')
-            ≅⟨ ass ⟩
-            comp f (comp f' (h sq'))
-            ≅⟨ cong (comp f) (scom sq') ⟩
-            comp f (comp (h (sq p)) (k sq'))
-            ≅⟨ sym ass ⟩
-            comp (comp f (h (sq p))) (k sq')
-            ≅⟨ cong (λ f'' → comp f'' (k sq')) (scom (sq p)) ⟩
-            comp (comp g (k (sq p))) (k sq')
-            ≅⟨ ass ⟩
-            comp g (comp (k (sq p)) (k sq')) 
-            ∎ }
-        u : Σ (PMap m (sq r)) λ u → (u' : PMap m (sq r)) → mor u ≅  mor u'
-        u = prop r m
+        u : Σ (PMap (m2 p sq') (sq r)) 
+            λ u → (u' : PMap (m2 p sq') (sq r)) → mor u ≅  mor u'
+        u = prop r (m2 p sq')
 
         m' : Square f g
         m' = record { 
@@ -214,10 +223,11 @@ module Pullbacks (X : Cat) where
             comp f (comp f' (h sq')) 
             ≅⟨ sym ass ⟩
             comp (comp f f') (h sq')
-            ≅⟨ scom m ⟩
+            ≅⟨ scom (m2 p sq') ⟩
             comp g (comp (k (sq p)) (k sq')) 
             ∎ }
-        u' : Σ (PMap m' (sq p)) λ u' → (u'' : PMap m' (sq p)) → mor u' ≅  mor u''
+        u' : Σ (PMap m' (sq p)) 
+               λ u' → (u'' : PMap m' (sq p)) → mor u' ≅  mor u''
         u' = prop p m'
 
         k'u : PMap m' (sq p)
