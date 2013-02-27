@@ -1,0 +1,70 @@
+open import Categories
+module PullbacksLemmas (X : Cat) where
+open import Relation.Binary.HeterogeneousEquality
+open ≅-Reasoning renaming (begin_ to proof_)
+open import Data.Product
+open Cat X
+open Monos X
+open import Pullbacks X
+open import Function
+
+pullbackmonic : ∀{X Y Z}{f : Hom X Z}{g : Hom Y Z} → Mono g → 
+                (q : Pullback f g) → Mono (Square.h (Pullback.sq q))
+pullbackmonic {X}{Y}{Z}{f}{g} p q {A}{f₁}{f₂} r = 
+  let m₁ : Square f g
+      m₁ = record { 
+        W    = A; 
+        h    = comp (h sq) f₁; 
+        k    = comp (k sq) f₁; 
+        scom = 
+          proof 
+          comp f (comp (h sq) f₁) 
+          ≅⟨ sym ass ⟩ 
+          comp (comp f (h sq)) f₁
+          ≅⟨ cong (λ f₃ → comp f₃ f₁) (scom sq) ⟩ 
+          comp (comp g (k sq)) f₁
+          ≅⟨ ass ⟩ 
+          comp g (comp (k sq) f₁) 
+          ∎ }
+      m₂ : Square f g
+      m₂ = record { 
+        W    = A; 
+        h    = comp (h sq) f₂; 
+        k    = comp (k sq) f₂; 
+        scom = 
+          proof 
+          comp f (comp (h sq) f₂) 
+          ≅⟨ sym ass ⟩ 
+          comp (comp f (h sq)) f₂
+          ≅⟨ cong (λ f₃ → comp f₃ f₂) (scom sq) ⟩ 
+          comp (comp g (k sq)) f₂
+          ≅⟨ ass ⟩ 
+          comp g (comp (k sq) f₂) 
+          ∎} 
+
+      lem : k m₁ ≅ k m₂ -- comp (k sq) f₁ ≅ comp (k sq) f₂
+      lem = p $
+        proof 
+        comp g (comp (k sq) f₁)
+        ≅⟨ sym (scom m₁) ⟩ 
+        comp f (comp (h sq) f₁)
+        ≅⟨ cong (comp f) r ⟩ 
+        comp f (comp (h sq) f₂)
+        ≅⟨ scom m₂ ⟩ 
+        comp g (comp (k sq) f₂)
+        ∎
+      u = prop m₁
+
+  in 
+     proof 
+     f₁ 
+     ≅⟨ sym (proj₂ u (record { mor = f₁; prop1 = refl; prop2 = refl })) ⟩ 
+     mor (proj₁ u)
+     ≅⟨ proj₂ u (record { mor = f₂; prop1 = sym r; prop2 = sym lem}) ⟩ 
+     f₂ 
+     ∎
+  where
+  open Pullback q
+  open Square
+  open PMap
+
