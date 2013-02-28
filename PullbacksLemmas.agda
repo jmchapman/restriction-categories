@@ -93,3 +93,24 @@ monic→pullback {X}{Z}{f} p = record {
   where
   open Square
   open PMap
+
+easysquare : ∀{X Z}(f : Hom X Z) → Square f f
+easysquare {X}{Z} f  = record { W = X; h = iden; k = iden; scom = refl }
+
+pullback→mono : ∀{X Z}{f : Hom X Z} → 
+                ((sq' : Square f f) → Σ (PMap sq' (easysquare f)) λ u → (u' : PMap sq' (easysquare f)) → PMap.mor u ≅  PMap.mor u') →
+                Mono f
+pullback→mono {X}{Z}{f} g {A}{f₁}{f₂} r = 
+  let m : Square f f
+      m = record { W = A; h = f₁; k = f₂; scom = r }
+      u = proj₁ (g m)
+  in
+     proof 
+     f₁ 
+     ≅⟨ sym (prop1 u) ⟩
+     comp iden (mor u) 
+     ≅⟨ prop2 u ⟩
+     f₂ 
+     ∎
+  where
+  open PMap
