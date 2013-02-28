@@ -68,3 +68,28 @@ pullbackmonic {X}{Y}{Z}{f}{g} p q {A}{f₁}{f₂} r =
   open Square
   open PMap
 
+monic→pullback : ∀{X Z}{f : Hom X Z} → Mono f → Pullback f f
+monic→pullback {X}{Z}{f} p = record { 
+  sq = record { W = X; h = iden; k = iden; scom = refl }; 
+  prop = λ sq' → (record { 
+                    mor = h sq'; 
+                    prop1 = idl; 
+                    prop2 =
+                      proof 
+                      comp iden (h sq') 
+                      ≅⟨ cong (comp iden) (p (scom sq')) ⟩ 
+                      comp iden (k sq')
+                      ≅⟨ idl ⟩ 
+                      k sq'
+                      ∎}) , 
+                 (λ u' → 
+                      proof 
+                      h sq'
+                      ≅⟨ sym (prop1 u') ⟩ 
+                      comp iden (mor u')
+                      ≅⟨ idl ⟩ 
+                      mor u'
+                      ∎)} 
+  where
+  open Square
+  open PMap
