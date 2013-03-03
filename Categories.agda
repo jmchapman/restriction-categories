@@ -2,8 +2,9 @@
 module Categories where
 
 open import Relation.Binary.HeterogeneousEquality
-open ≅-Reasoning renaming (begin_ to proof_)
+open ≅-Reasoning renaming (begin_ to proof_ ; _≅⟨_⟩_ to _≅[_]_)
 open import Data.Product
+open import Function
 
 record Cat : Set where
   field Obj  : Set
@@ -25,13 +26,26 @@ module Monos (X : Cat) where
   idmono {A}{C}{g}{h} p = 
     proof
     g 
-    ≅⟨ sym idl ⟩ 
+    ≅[ sym idl ] 
     comp iden g 
-    ≅⟨ p ⟩ 
+    ≅[ p ] 
     comp iden h 
-    ≅⟨ idl ⟩ 
+    ≅[ idl ] 
     h 
     ∎
+
+  compmonos : ∀{A B C}(f : Hom A B)(g : Hom B C) → Mono f → Mono g → Mono (comp g f)
+  compmonos {A}{B}{C} f g p q {D}{h1}{h2} r = p $ q $
+    proof 
+    comp g (comp f h1)
+    ≅[ sym ass ] 
+    comp (comp g f) h1 
+    ≅[ r ] 
+    comp (comp g f) h2 
+    ≅[ ass ] 
+    comp g (comp f h2) 
+    ∎
+
 
 module Isos (X : Cat) where
   open Cat X
@@ -39,23 +53,71 @@ module Isos (X : Cat) where
   Iso : ∀{A B} → Hom A B → Set
   Iso {A}{B} f = Σ (Hom B A) (λ g → comp f g ≅ iden {B} × comp g f ≅ iden {A})
 
-
   invuniq : ∀{A B}(f : Hom A B)(p q : Iso f) → proj₁ p ≅ proj₁ q
   invuniq f (g , p , p') (g' , q , q') = 
     proof 
     g 
-    ≅⟨ sym idr ⟩ 
+    ≅[ sym idr ] 
     comp g iden
-    ≅⟨ cong (comp g) (sym q) ⟩ 
+    ≅[ cong (comp g) (sym q) ] 
     comp g (comp f g')
-    ≅⟨ sym ass ⟩ 
+    ≅[ sym ass ] 
     comp (comp g f) g'
-    ≅⟨ cong (λ h → comp h g') p' ⟩     
+    ≅[ cong (λ h → comp h g') p' ]     
     comp iden g'
-    ≅⟨ idl ⟩     
+    ≅[ idl ]     
     g'
     ∎
 
+  open Monos X
+  iso→mono : ∀{A B}(f : Hom A B) → Iso f → Mono f
+  iso→mono {A}{B} f (f' , p , p') {C}{g}{h} q = 
+    proof 
+    g 
+    ≅[ sym idl ] 
+    comp iden g 
+    ≅[ cong (λ h → comp h g) (sym p') ] 
+    comp (comp f' f) g 
+    ≅[ ass ] 
+    comp f' (comp f g) 
+    ≅[ cong (comp f') q ] 
+    comp f' (comp f h) 
+    ≅[ sym ass ] 
+    comp (comp f' f) h 
+    ≅[ cong (λ g → comp g h) p' ] 
+    comp iden h 
+    ≅[ idl ] 
+    h 
+    ∎
+
+  compisos : ∀{A B C}(f : Hom A B)(g : Hom B C) → Iso f → Iso g → Iso (comp g f)
+  compisos {A}{B}{C} f g (f' , p , p') (g' , q , q') = (comp f' g') , 
+                                                       (proof 
+                                                        comp (comp g f) (comp f' g') 
+                                                        ≅[ ass ] 
+                                                        comp g (comp f (comp f' g')) 
+                                                        ≅[ cong (comp g) (sym ass) ] 
+                                                        comp g (comp (comp f f') g') 
+                                                        ≅[ cong (λ h → comp g (comp h g')) p ] 
+                                                        comp g (comp iden g') 
+                                                        ≅[ cong (comp g) idl ] 
+                                                        comp g g' 
+                                                        ≅[ q ] 
+                                                        iden 
+                                                        ∎) , 
+                                                       (proof 
+                                                        comp (comp f' g') (comp g f) 
+                                                        ≅[ ass ] 
+                                                        comp f' (comp g' (comp g f)) 
+                                                        ≅[ cong (comp f') (sym ass) ] 
+                                                        comp f' (comp (comp g' g) f) 
+                                                        ≅[ cong (λ h → comp f' (comp h f)) q' ] 
+                                                        comp f' (comp iden f) 
+                                                        ≅[ cong (comp f') idl ] 
+                                                        comp f' f 
+                                                        ≅[ p' ] 
+                                                        iden ∎)
+ 
 
 _Op : Cat → Cat
 C Op = record {
