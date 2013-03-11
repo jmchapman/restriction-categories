@@ -66,8 +66,13 @@ module Stable (X : Cat) where
                      mhom = comp (mhom mf) (h y); 
                      fhom = comp (fhom m'f') (k y); 
                      m∈ = com (proj₂ x) (m∈ mf)};
-                 idl = λ {X} {Y} {mf} → cheat _ _ (h (sq (proj₁ (pul (fhom mf)  (iso ((iden , idl , idl))))))) 
-                                        {!!} refl;
+                 idl = λ {X} {Y} {mf} → cheat 
+                   _ 
+                   _ 
+                   (h (sq (proj₁ (pul (fhom mf)  (iso (iden , idl , idl)))))) 
+                   (pullbackiso (trivialpul (fhom mf)) 
+                                (proj₁ (pul (fhom mf) (iso ((iden , idl , idl)))))) 
+                   refl;
                  idr = {!!};
                  ass = {!!} }
 
