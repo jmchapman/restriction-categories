@@ -70,8 +70,8 @@ module Isos (X : Cat) where
     ∎
 
   open Monos X
-  iso→mono : ∀{A B}(f : Hom A B) → Iso f → Mono f
-  iso→mono {A}{B} f (f' , p , p') {C}{g}{h} q = 
+  iso→mono : ∀{A B}{f : Hom A B} → Iso f → Mono f
+  iso→mono {A}{B} {f} (f' , p , p') {C}{g}{h} q = 
     proof 
     g 
     ≅[ sym idl ] 
@@ -90,33 +90,35 @@ module Isos (X : Cat) where
     h 
     ∎
 
-  compisos : ∀{A B C}(f : Hom A B)(g : Hom B C) → Iso f → Iso g → Iso (comp g f)
-  compisos {A}{B}{C} f g (f' , p , p') (g' , q , q') = (comp f' g') , 
-                                                       (proof 
-                                                        comp (comp g f) (comp f' g') 
-                                                        ≅[ ass ] 
-                                                        comp g (comp f (comp f' g')) 
-                                                        ≅[ cong (comp g) (sym ass) ] 
-                                                        comp g (comp (comp f f') g') 
-                                                        ≅[ cong (λ h → comp g (comp h g')) p ] 
-                                                        comp g (comp iden g') 
-                                                        ≅[ cong (comp g) idl ] 
-                                                        comp g g' 
-                                                        ≅[ q ] 
-                                                        iden 
-                                                        ∎) , 
-                                                       (proof 
-                                                        comp (comp f' g') (comp g f) 
-                                                        ≅[ ass ] 
-                                                        comp f' (comp g' (comp g f)) 
-                                                        ≅[ cong (comp f') (sym ass) ] 
-                                                        comp f' (comp (comp g' g) f) 
-                                                        ≅[ cong (λ h → comp f' (comp h f)) q' ] 
-                                                        comp f' (comp iden f) 
-                                                        ≅[ cong (comp f') idl ] 
-                                                        comp f' f 
-                                                        ≅[ p' ] 
-                                                        iden ∎)
+  compisos : ∀{A B C}{f : Hom A B}{g : Hom B C} → Iso f → Iso g → Iso (comp g f)
+  compisos {A}{B}{C} {f} {g} (f' , p , p') (g' , q , q') = 
+    (comp f' g') , 
+    (proof 
+     comp (comp g f) (comp f' g') 
+     ≅[ ass ] 
+     comp g (comp f (comp f' g')) 
+     ≅[ cong (comp g) (sym ass) ] 
+     comp g (comp (comp f f') g') 
+     ≅[ cong (λ h → comp g (comp h g')) p ] 
+     comp g (comp iden g') 
+     ≅[ cong (comp g) idl ] 
+     comp g g' 
+     ≅[ q ] 
+     iden 
+     ∎) , 
+    (proof 
+     comp (comp f' g') (comp g f) 
+     ≅[ ass ] 
+     comp f' (comp g' (comp g f)) 
+     ≅[ cong (comp f') (sym ass) ] 
+     comp f' (comp (comp g' g) f) 
+     ≅[ cong (λ h → comp f' (comp h f)) q' ] 
+     comp f' (comp iden f) 
+     ≅[ cong (comp f') idl ] 
+     comp f' f 
+     ≅[ p' ] 
+     iden 
+     ∎)
  
 
 _Op : Cat → Cat
