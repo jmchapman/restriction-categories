@@ -13,11 +13,11 @@ record Fun (C D : Cat) : Set where
         fid   : ∀{X} → HMap (iden C {X}) ≅ iden D {OMap X}
         fcomp : ∀{X Y Z}{f : Hom C Y Z}{g : Hom C X Y} → 
                 HMap (comp C f g) ≅ comp D (HMap f) (HMap g)
-open Fun
 
 IdF : ∀ C → Fun C C
 IdF C = record{OMap = id;HMap = id;fid = refl;fcomp = refl}
 
+open Fun
 open Cat
 
 ○fid : {C D E : Cat} (F : Fun D E)(G : Fun C D){X : Obj C} →
