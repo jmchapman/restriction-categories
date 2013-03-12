@@ -2,7 +2,7 @@
 open import Categories
 module Stable (X : Cat) where
   open import Relation.Binary.HeterogeneousEquality
-  open ≅-Reasoning renaming (begin_ to proof_ ; _≅⟨_⟩_ to _≅[_]_)
+  open ≅-Reasoning renaming (begin_ to proof_)
   open import Data.Product
   open import Function
   open Cat X
@@ -45,9 +45,12 @@ module Stable (X : Cat) where
     open Pullback
     open Square
 
-    postulate cheat : ∀{A B}(mf m'f' : Span A B)
-                      → (s : Hom (A' mf) (A' m'f')) → Iso s → comp (mhom m'f') s ≅ (mhom mf) 
-                      → comp (fhom m'f') s ≅ (fhom mf) → mf ≅ m'f'
+    postulate cheat : ∀{A B}(mf m'f' : Span A B) → 
+                      (s : Hom (A' mf) (A' m'f')) → 
+                      Iso s → 
+                      comp (mhom m'f') s ≅ (mhom mf) →
+                      comp (fhom m'f') s ≅ (fhom mf) → 
+                      mf ≅ m'f'
 
     Partials : Cat
     Partials = record {
@@ -71,14 +74,17 @@ module Stable (X : Cat) where
                    _ 
                    (h (sq (proj₁ (pul (fhom mf)  (iso (iden , idl , idl)))))) 
                    (pullbackiso (trivialpul (fhom mf)) 
-                                (proj₁ (pul (fhom mf) (iso ((iden , idl , idl)))))) 
+                                (proj₁ (pul (fhom mf) 
+                                            (iso ((iden , idl , idl)))))) 
                    refl
-                   (scom (sq (proj₁ (pul (fhom mf)  (iso (iden , idl , idl))))));
+                   (scom (sq (proj₁ (pul (fhom mf)
+                                         (iso (iden , idl , idl))))));
                  idr = λ {X} {Y} {mf} → cheat 
                    _ 
                    _ 
                    (k (sq (proj₁ (pul iden (m∈ mf))))) 
-                   (pullbackiso (trivialpul2 (mhom mf)) (proj₁ (pul iden (m∈ mf)))) 
+                   (pullbackiso (trivialpul2 (mhom mf)) 
+                                (proj₁ (pul iden (m∈ mf))))
                    (sym (scom (sq (proj₁ (pul iden (m∈ mf)))))) 
                    refl;
                  ass = {!!} }

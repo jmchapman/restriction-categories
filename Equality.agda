@@ -3,6 +3,7 @@ module Equality where
 
 open import Relation.Binary.HeterogeneousEquality
 open import Data.Unit
+
 postulate ext : ∀{A : Set}{B : A → Set}{f g : ∀ x → B x} → 
                 (∀ x → f x ≅ g x) → f ≅ g
 

@@ -204,7 +204,8 @@ record RestFun (X Y : RestCat) : Set where
   open RestCat
   open Fun
   field fun   : Fun (cat X) (cat Y)
-        frest : ∀{A B}{f : Hom (cat X) A B} → rest Y (HMap fun f) ≅ HMap fun (rest X f)
+        frest : ∀{A B}{f : Hom (cat X) A B} → 
+                rest Y (HMap fun f) ≅ HMap fun (rest X f)
 
 F : ∀{X} → Fun (Totals.Totals X) (RestCat.cat X)
 F {X} = record { 
