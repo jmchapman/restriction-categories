@@ -2,7 +2,7 @@
 module Categories where
 
 open import Relation.Binary.HeterogeneousEquality
-open ≅-Reasoning renaming (begin_ to proof_ ; _≅⟨_⟩_ to _≅[_]_)
+open ≅-Reasoning renaming (begin_ to proof_)
 open import Data.Product
 open import Function
 
@@ -23,26 +23,27 @@ module Monos (X : Cat) where
   Mono f = ∀{C}{g h : Hom C _} → comp f g ≅ comp f h → g ≅ h
 
   idmono : ∀{A} → Mono (iden {A})
-  idmono {A}{C}{g}{h} p = 
+  idmono {_}{_}{g}{h} p = 
     proof
     g 
-    ≅[ sym idl ] 
+    ≅⟨ sym idl ⟩ 
     comp iden g 
-    ≅[ p ] 
+    ≅⟨ p ⟩ 
     comp iden h 
-    ≅[ idl ] 
+    ≅⟨ idl ⟩ 
     h 
     ∎
 
-  compmonos : ∀{A B C}(f : Hom A B)(g : Hom B C) → Mono f → Mono g → Mono (comp g f)
-  compmonos {A}{B}{C} f g p q {D}{h1}{h2} r = p $ q $
+  compmonos : ∀{A B C}(f : Hom A B)(g : Hom B C) → Mono f → Mono g → 
+              Mono (comp g f)
+  compmonos f g p q {D}{h1}{h2} r = p $ q $
     proof 
     comp g (comp f h1)
-    ≅[ sym ass ] 
+    ≅⟨ sym ass ⟩ 
     comp (comp g f) h1 
-    ≅[ r ] 
+    ≅⟨ r ⟩ 
     comp (comp g f) h2 
-    ≅[ ass ] 
+    ≅⟨ ass ⟩ 
     comp g (comp f h2) 
     ∎
 
@@ -57,70 +58,70 @@ module Isos (X : Cat) where
   invuniq f (g , p , p') (g' , q , q') = 
     proof 
     g 
-    ≅[ sym idr ] 
+    ≅⟨ sym idr ⟩ 
     comp g iden
-    ≅[ cong (comp g) (sym q) ] 
+    ≅⟨ cong (comp g) (sym q) ⟩ 
     comp g (comp f g')
-    ≅[ sym ass ] 
+    ≅⟨ sym ass ⟩ 
     comp (comp g f) g'
-    ≅[ cong (λ h → comp h g') p' ]     
+    ≅⟨ cong (λ h → comp h g') p' ⟩     
     comp iden g'
-    ≅[ idl ]     
+    ≅⟨ idl ⟩     
     g'
     ∎
 
   open Monos X
   iso→mono : ∀{A B}{f : Hom A B} → Iso f → Mono f
-  iso→mono {A}{B} {f} (f' , p , p') {C}{g}{h} q = 
+  iso→mono {_}{_}{f} (f' , p , p') {_}{g}{h} q = 
     proof 
     g 
-    ≅[ sym idl ] 
+    ≅⟨ sym idl ⟩ 
     comp iden g 
-    ≅[ cong (λ h → comp h g) (sym p') ] 
+    ≅⟨ cong (λ h → comp h g) (sym p') ⟩ 
     comp (comp f' f) g 
-    ≅[ ass ] 
+    ≅⟨ ass ⟩ 
     comp f' (comp f g) 
-    ≅[ cong (comp f') q ] 
+    ≅⟨ cong (comp f') q ⟩ 
     comp f' (comp f h) 
-    ≅[ sym ass ] 
+    ≅⟨ sym ass ⟩ 
     comp (comp f' f) h 
-    ≅[ cong (λ g → comp g h) p' ] 
+    ≅⟨ cong (λ g → comp g h) p' ⟩ 
     comp iden h 
-    ≅[ idl ] 
+    ≅⟨ idl ⟩ 
     h 
     ∎
 
-  compisos : ∀{A B C}{f : Hom A B}{g : Hom B C} → Iso f → Iso g → Iso (comp g f)
-  compisos {A}{B}{C} {f} {g} (f' , p , p') (g' , q , q') = 
+  compisos : ∀{A B C}{f : Hom A B}{g : Hom B C} → Iso f → Iso g → 
+             Iso (comp g f)
+  compisos {_}{_}{_} {f} {g} (f' , p , p') (g' , q , q') = 
     (comp f' g') , 
     (proof 
      comp (comp g f) (comp f' g') 
-     ≅[ ass ] 
+     ≅⟨ ass ⟩ 
      comp g (comp f (comp f' g')) 
-     ≅[ cong (comp g) (sym ass) ] 
+     ≅⟨ cong (comp g) (sym ass) ⟩ 
      comp g (comp (comp f f') g') 
-     ≅[ cong (λ h → comp g (comp h g')) p ] 
+     ≅⟨ cong (λ h → comp g (comp h g')) p ⟩ 
      comp g (comp iden g') 
-     ≅[ cong (comp g) idl ] 
+     ≅⟨ cong (comp g) idl ⟩ 
      comp g g' 
-     ≅[ q ] 
+     ≅⟨ q ⟩ 
      iden 
      ∎) , 
     (proof 
      comp (comp f' g') (comp g f) 
-     ≅[ ass ] 
+     ≅⟨ ass ⟩ 
      comp f' (comp g' (comp g f)) 
-     ≅[ cong (comp f') (sym ass) ] 
+     ≅⟨ cong (comp f') (sym ass) ⟩ 
      comp f' (comp (comp g' g) f) 
-     ≅[ cong (λ h → comp f' (comp h f)) q' ] 
+     ≅⟨ cong (λ h → comp f' (comp h f)) q' ⟩ 
      comp f' (comp iden f) 
-     ≅[ cong (comp f') idl ] 
+     ≅⟨ cong (comp f') idl ⟩ 
      comp f' f 
-     ≅[ p' ] 
+     ≅⟨ p' ⟩ 
      iden 
      ∎)
  
-
 _Op : Cat → Cat
 C Op = record {
   Obj  = Obj; 
