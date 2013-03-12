@@ -47,7 +47,7 @@ module Stable (X : Cat) where
 
     postulate cheat : ∀{A B}(mf m'f' : Span A B)
                       → (s : Hom (A' mf) (A' m'f')) → Iso s → comp (mhom m'f') s ≅ (mhom mf) 
-                      → mf ≅ m'f'
+                      → comp (fhom m'f') s ≅ (fhom mf) → mf ≅ m'f'
 
     Partials : Cat
     Partials = record {
@@ -72,7 +72,14 @@ module Stable (X : Cat) where
                    (h (sq (proj₁ (pul (fhom mf)  (iso (iden , idl , idl)))))) 
                    (pullbackiso (trivialpul (fhom mf)) 
                                 (proj₁ (pul (fhom mf) (iso ((iden , idl , idl)))))) 
+                   refl
+                   (scom (sq (proj₁ (pul (fhom mf)  (iso (iden , idl , idl))))));
+                 idr = λ {X} {Y} {mf} → cheat 
+                   _ 
+                   _ 
+                   (k (sq (proj₁ (pul iden (m∈ mf))))) 
+                   (pullbackiso (trivialpul2 (mhom mf)) (proj₁ (pul iden (m∈ mf)))) 
+                   (sym (scom (sq (proj₁ (pul iden (m∈ mf)))))) 
                    refl;
-                 idr = {!!};
                  ass = {!!} }
 
