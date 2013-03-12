@@ -1,7 +1,7 @@
 open import Categories
 module PullbacksLemmas (X : Cat) where
 open import Relation.Binary.HeterogeneousEquality
-open ≅-Reasoning renaming (begin_ to proof_ ; _≅⟨_⟩_ to _≅[_]_)
+open ≅-Reasoning renaming (begin_ to proof_)
 open import Data.Product
 open Cat X
 open Monos X
@@ -19,11 +19,11 @@ pullbackmonic {X}{Y}{Z}{f}{g} p q {A}{f₁}{f₂} r =
         scom = 
           proof 
           comp f (comp (h sq) f₁) 
-          ≅[ sym ass ] 
+          ≅⟨ sym ass ⟩ 
           comp (comp f (h sq)) f₁
-          ≅[ cong (λ f₃ → comp f₃ f₁) (scom sq) ] 
+          ≅⟨ cong (λ f₃ → comp f₃ f₁) (scom sq) ⟩ 
           comp (comp g (k sq)) f₁
-          ≅[ ass ] 
+          ≅⟨ ass ⟩ 
           comp g (comp (k sq) f₁) 
           ∎ }
       m₂ : Square f g
@@ -34,23 +34,23 @@ pullbackmonic {X}{Y}{Z}{f}{g} p q {A}{f₁}{f₂} r =
         scom = 
           proof 
           comp f (comp (h sq) f₂) 
-          ≅[ sym ass ] 
+          ≅⟨ sym ass ⟩ 
           comp (comp f (h sq)) f₂
-          ≅[ cong (λ f₃ → comp f₃ f₂) (scom sq) ] 
+          ≅⟨ cong (λ f₃ → comp f₃ f₂) (scom sq) ⟩ 
           comp (comp g (k sq)) f₂
-          ≅[ ass ] 
+          ≅⟨ ass ⟩ 
           comp g (comp (k sq) f₂) 
           ∎} 
 
-      lem : k m₁ ≅ k m₂ -- comp (k sq) f₁ ≅ comp (k sq) f₂
+      lem : k m₁ ≅ k m₂
       lem = p $
         proof 
         comp g (comp (k sq) f₁)
-        ≅[ sym (scom m₁) ] 
+        ≅⟨ sym (scom m₁) ⟩ 
         comp f (comp (h sq) f₁)
-        ≅[ cong (comp f) r ] 
+        ≅⟨ cong (comp f) r ⟩ 
         comp f (comp (h sq) f₂)
-        ≅[ scom m₂ ] 
+        ≅⟨ scom m₂ ⟩ 
         comp g (comp (k sq) f₂)
         ∎
       u = prop m₁
@@ -58,9 +58,9 @@ pullbackmonic {X}{Y}{Z}{f}{g} p q {A}{f₁}{f₂} r =
   in 
      proof 
      f₁ 
-     ≅[ sym (proj₂ u (record { mor = f₁; prop1 = refl; prop2 = refl })) ] 
+     ≅⟨ sym (proj₂ u (record { mor = f₁; prop1 = refl; prop2 = refl })) ⟩ 
      mor (proj₁ u)
-     ≅[ proj₂ u (record { mor = f₂; prop1 = sym r; prop2 = sym lem}) ] 
+     ≅⟨ proj₂ u (record { mor = f₂; prop1 = sym r; prop2 = sym lem}) ⟩ 
      f₂ 
      ∎
   where
@@ -77,17 +77,17 @@ monic→pullback {X}{Z}{f} p = record {
                     prop2 =
                       proof 
                       comp iden (h sq') 
-                      ≅[ cong (comp iden) (p (scom sq')) ] 
+                      ≅⟨ cong (comp iden) (p (scom sq')) ⟩ 
                       comp iden (k sq')
-                      ≅[ idl ] 
+                      ≅⟨ idl ⟩ 
                       k sq'
                       ∎}) , 
                  (λ u' → 
                       proof 
                       h sq'
-                      ≅[ sym (prop1 u') ] 
+                      ≅⟨ sym (prop1 u') ⟩ 
                       comp iden (mor u')
-                      ≅[ idl ] 
+                      ≅⟨ idl ⟩ 
                       mor u'
                       ∎)} 
   where
@@ -98,8 +98,10 @@ easysquare : ∀{X Z}(f : Hom X Z) → Square f f
 easysquare {X}{Z} f  = record { W = X; h = iden; k = iden; scom = refl }
 
 pullback→mono : ∀{X Z}{f : Hom X Z} → 
-                ((sq' : Square f f) → Σ (PMap sq' (easysquare f)) λ u → (u' : PMap sq' (easysquare f)) → PMap.mor u ≅  PMap.mor u') →
-                Mono f
+                ((sq' : Square f f) → 
+                 Σ (PMap sq' (easysquare f)) 
+                   λ u → (u' : PMap sq' (easysquare f)) → 
+                         PMap.mor u ≅  PMap.mor u') → Mono f
 pullback→mono {X}{Z}{f} g {A}{f₁}{f₂} r = 
   let m : Square f f
       m = record { W = A; h = f₁; k = f₂; scom = r }
@@ -107,9 +109,9 @@ pullback→mono {X}{Z}{f} g {A}{f₁}{f₂} r =
   in
      proof 
      f₁ 
-     ≅[ sym (prop1 u) ]
+     ≅⟨ sym (prop1 u) ⟩
      comp iden (mor u) 
-     ≅[ prop2 u ]
+     ≅⟨ prop2 u ⟩
      f₂ 
      ∎
   where
@@ -128,13 +130,13 @@ iso→pullback {X}{Y}{Z}{f}{g} (g' , p , q) = record {
     scom = 
       proof 
       comp f iden 
-      ≅[ idr ] 
+      ≅⟨ idr ⟩ 
       f 
-      ≅[ sym idl ] 
+      ≅⟨ sym idl ⟩ 
       comp iden f 
-      ≅[ cong (λ h → comp h f) (sym p) ] 
+      ≅⟨ cong (λ h → comp h f) (sym p) ⟩ 
       comp (comp g g') f 
-      ≅[ ass ] 
+      ≅⟨ ass ⟩ 
       comp g (comp g' f) 
       ∎ }; 
   prop = λ sq' → (record { 
@@ -143,22 +145,22 @@ iso→pullback {X}{Y}{Z}{f}{g} (g' , p , q) = record {
                     prop2 = 
                       proof
                       comp (comp g' f) (h sq') 
-                      ≅[ ass  ] 
+                      ≅⟨ ass  ⟩ 
                       comp g' (comp f (h sq')) 
-                      ≅[ cong (comp g') (scom sq') ] 
+                      ≅⟨ cong (comp g') (scom sq') ⟩ 
                       comp g' (comp g (k sq')) 
-                      ≅[ sym ass ] 
+                      ≅⟨ sym ass ⟩ 
                       comp (comp g' g) (k sq') 
-                      ≅[ cong (λ f → comp f (k sq')) q ] 
+                      ≅⟨ cong (λ f → comp f (k sq')) q ⟩ 
                       comp iden (k sq') 
-                      ≅[ idl ] 
+                      ≅⟨ idl ⟩ 
                       k sq' 
                       ∎ }) , 
                   (λ u' →                      
                      proof 
                      h sq' 
-                     ≅[ sym (prop1 u') ] 
+                     ≅⟨ sym (prop1 u') ⟩ 
                      comp iden (mor u')
-                     ≅[ idl ] 
+                     ≅⟨ idl ⟩ 
                      mor u'  
                      ∎)}
