@@ -11,7 +11,8 @@ module Pullbacks (X : Cat) where
            k    : Hom W Y
            scom : comp f h ≅ comp g k
 
-  record PMap  {X Y Z : Obj}{f : Hom X Z}{g : Hom Y Z}(sq' sq : Square f g) : Set where
+  record PMap  {X Y Z : Obj}{f : Hom X Z}{g : Hom Y Z}(sq' sq : Square f g) 
+         : Set where
     open Square
     field mor   : Hom (W sq') (W sq)
           prop1 : comp (h sq) mor ≅ h sq'
@@ -21,12 +22,14 @@ module Pullbacks (X : Cat) where
 
   record Pullback {X Y Z}(f : Hom X Z)(g : Hom Y Z) : Set where
     field sq : Square f g
-          prop : (sq' : Square f g) → Σ (PMap sq' sq) λ u → (u' : PMap sq' sq) → mor u ≅  mor u'
+          prop : (sq' : Square f g) → 
+                 Σ (PMap sq' sq) λ u → (u' : PMap sq' sq) → mor u ≅  mor u'
   open Pullback
 
   open Isos X
 
-  pullbackiso : ∀{X Y Z}{f : Hom X Z}{g : Hom Y Z}(p p' : Pullback f g) → Iso (mor (proj₁ (prop p (sq p'))))
+  pullbackiso : ∀{X Y Z}{f : Hom X Z}{g : Hom Y Z}(p p' : Pullback f g) → 
+                Iso (mor (proj₁ (prop p (sq p'))))
   pullbackiso {X}{Y}{Z}{f}{g} p p' = 
     let u   = prop p (sq p)
         u⁻¹ = prop p' (sq p')
@@ -85,14 +88,16 @@ module Pullbacks (X : Cat) where
             k (sq p') 
             ∎}
 
-    in (mor u₁) , 
+    in mor u₁ 
+       , 
        (proof 
         comp (mor u₂) (mor u₁)
         ≅⟨ sym (proj₂ u compp) ⟩ 
         mor (proj₁ u)
         ≅⟨ proj₂ u idenp ⟩ 
         iden
-        ∎) , 
+        ∎) 
+       , 
        (proof 
         comp (mor u₁) (mor u₂)
         ≅⟨ sym (proj₂ u⁻¹ compp') ⟩ 
@@ -104,10 +109,11 @@ module Pullbacks (X : Cat) where
 
   -- pasting lemmas
   bigsquare : ∀{U X Y Z}{f : Hom X Z}{g : Hom Y Z}(p : Pullback f g) →
-              {f' : Hom U X} → Pullback f' (Square.h (sq p)) → Square (comp f f') g
+              {f' : Hom U X} → Pullback f' (Square.h (sq p)) → 
+              Square (comp f f') g
   bigsquare {_}{_}{_}{_}{f}{g} p {f'} q = 
     let open Square (sq p)
-        open Square (sq q) renaming (W to W' ; h to h' ; k to k' ; scom to scom')
+        open Square (sq q) renaming (W to W'; h to h'; k to k'; scom to scom')
     in record {
       W = W';
       h = h';
@@ -148,13 +154,14 @@ module Pullbacks (X : Cat) where
         ∎ } 
 
   lem1 : ∀{U X Y Z}{f : Hom X Z}{g : Hom Y Z}(p : Pullback f g) → 
-         {f' : Hom U X} → Pullback f' (Square.h (sq p)) → Pullback (comp f f') g
+         {f' : Hom U X} → Pullback f' (Square.h (sq p)) → 
+         Pullback (comp f f') g
   lem1 {_}{_}{_}{_}{f}{g} p {f'} q = record { 
     sq   = bigsquare p q; 
     prop = λ r → 
     let open Square (sq p)
-        open Square (sq q) renaming (W to W' ; h to h' ; k to k' ; scom to scom')
-        open Square r renaming (W to W'' ; h to h'' ; k to k'' ; scom to scom'')
+        open Square (sq q) renaming (W to W'; h to h'; k to k'; scom to scom')
+        open Square r renaming (W to W''; h to h''; k to k''; scom to scom'')
         u : Σ (PMap (m r) (sq p)) 
               (λ u → (u' : PMap (m r) (sq p)) →  mor u ≅ mor u')
         u = prop p (m r)
@@ -196,7 +203,7 @@ module Pullbacks (X : Cat) where
               comp h (comp k' (mor u'')) 
               ≅⟨ sym ass ⟩
               comp (comp h k') (mor u'')
-              ≅⟨ cong (λ f₁ → comp f₁ (mor u'')) (sym scom') ⟩
+              ≅⟨ cong (λ f → comp f (mor u'')) (sym scom') ⟩
               comp (comp f' h') (mor u'')
               ≅⟨ ass ⟩
               comp f' (comp h' (mor u''))
@@ -209,7 +216,8 @@ module Pullbacks (X : Cat) where
               ≅⟨ sym ass ⟩
               comp (comp k k') (mor u'') 
               ≅⟨ prop2 u'' ⟩ 
-              k'' ∎ }))})}
+              k'' 
+              ∎}))})}
 
 
   m2 : ∀{U X Y Z}{f : Hom X Z}{g : Hom Y Z}{f' : Hom U X} → 
@@ -217,7 +225,7 @@ module Pullbacks (X : Cat) where
        Square (comp f f') g
   m2 {_}{_}{_}{_}{f}{g}{f'} p sq' = 
     let open Square (sq p)
-        open Square sq' renaming (W to W' ; h to h' ; k to k' ; scom to scom')
+        open Square sq' renaming (W to W'; h to h'; k to k'; scom to scom')
     in record {
       W    = W'; 
       h    = h';
@@ -246,7 +254,10 @@ module Pullbacks (X : Cat) where
          Pullback f' (Square.h (sq p))
   lem2 {_}{_}{_}{_}{f}{g}{f'} r p k' q q' = 
     let open Square (sq p) 
-        open Square (sq r) renaming (W to W'' ; h to h'' ; k to k'' ; scom to scom'')
+        open Square (sq r) renaming (W to W''; 
+                                     h to h''; 
+                                     k to k''; 
+                                     scom to scom'')
     in record { 
       sq   = record { 
         W    = W''; 
@@ -254,7 +265,10 @@ module Pullbacks (X : Cat) where
         k    = k'; 
         scom = q }; 
     prop = λ sq' → 
-    let open Square sq' renaming (W to W''' ; h to h''' ; k to k''' ; scom to scom''')
+    let open Square sq' renaming (W to W'''; 
+                                    h to h'''; 
+                                    k to k'''; 
+                                    scom to scom''')
         u : Σ (PMap (m2 p sq') (sq r)) 
             λ u → (u' : PMap (m2 p sq') (sq r)) → mor u ≅  mor u'
         u = prop r (m2 p sq')
@@ -354,7 +368,14 @@ module Pullbacks (X : Cat) where
          mor = h; 
          prop1 = idl; 
          prop2 = proof comp f h ≅⟨ scom ⟩ comp iden k ≅⟨ idl ⟩ k ∎  } , 
-      λ u' → proof h ≅⟨ sym (prop1 u') ⟩ comp iden (mor u') ≅⟨ idl ⟩ mor u' ∎ }
+      λ u' → 
+        proof 
+        h 
+        ≅⟨ sym (prop1 u') ⟩ 
+        comp iden (mor u') 
+        ≅⟨ idl ⟩ 
+        mor u'
+        ∎}
 
   trivialpul2 : ∀{X Y}(f : Hom X Y) → Pullback iden f
   trivialpul2 {X}{Y} f = record { 
@@ -374,6 +395,20 @@ module Pullbacks (X : Cat) where
       let open Square sq'
       in record { 
          mor = k; 
-         prop1 = proof comp f k ≅⟨ sym scom ⟩ comp iden h ≅⟨ idl ⟩ h ∎; 
+         prop1 = 
+           proof 
+           comp f k 
+           ≅⟨ sym scom ⟩ 
+           comp iden h 
+           ≅⟨ idl ⟩ 
+           h 
+           ∎; 
          prop2 = idl } , 
-      λ u' → proof k ≅⟨ sym (prop2 u') ⟩ comp iden (mor u') ≅⟨ idl ⟩ mor u' ∎ }
+      λ u' → 
+        proof 
+        k 
+        ≅⟨ sym (prop2 u') ⟩ 
+        comp iden (mor u') 
+        ≅⟨ idl ⟩ 
+        mor u' 
+        ∎}
