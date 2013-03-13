@@ -136,9 +136,9 @@ module Pullbacks (X : Cat) where
     
     
 
-  m : ∀{U X Y Z}{f : Hom X Z}{g : Hom Y Z}{f' : Hom U X} → 
-      Square (comp f f') g → Square f g
-  m {_}{_}{_}{_}{f}{g}{f'} r = 
+  smallsquare : ∀{U X Y Z}{f : Hom X Z}{g : Hom Y Z}{f' : Hom U X} → 
+                Square (comp f f') g → Square f g
+  smallsquare {_}{_}{_}{_}{f}{g}{f'} r = 
     let open Square r 
     in record { 
       W    = W; 
@@ -162,9 +162,9 @@ module Pullbacks (X : Cat) where
     let open Square (sq p)
         open Square (sq q) renaming (W to W'; h to h'; k to k'; scom to scom')
         open Square r renaming (W to W''; h to h''; k to k''; scom to scom'')
-        u : Σ (PMap (m r) (sq p)) 
-              (λ u → (u' : PMap (m r) (sq p)) →  mor u ≅ mor u')
-        u = prop p (m r)
+        u : Σ (PMap (smallsquare r) (sq p)) 
+              (λ u → (u' : PMap (smallsquare r) (sq p)) →  mor u ≅ mor u')
+        u = prop p (smallsquare r)
         m' : Square f' h
         m' = record { 
           W    = W''; 
