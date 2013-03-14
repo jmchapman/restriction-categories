@@ -377,6 +377,7 @@ module Pullbacks (X : Cat) where
         mor u'
         ∎}
 
+{-
   trivialpul2 : ∀{X Y}(f : Hom X Y) → Pullback iden f
   trivialpul2 {X}{Y} f = record { 
     sq = record { 
@@ -412,3 +413,34 @@ module Pullbacks (X : Cat) where
         ≅⟨ idl ⟩ 
         mor u' 
         ∎}
+-}
+
+  sympul : ∀{X Y Z}{f : Hom X Z}{g : Hom Y Z} → Pullback f g → Pullback g f
+  sympul {X}{Y}{Z}{f}{g} p = 
+    let open Square (sq p)
+    in record { 
+      sq = record { W = W; h = k; k = h; scom = sym scom }; 
+      prop = λ sq' → 
+        let open Square sq' renaming (W to W' ; h to h' ; k to k' ; scom to scom')
+            
+            symsq' : Square f g
+            symsq' = record { W = W'; h = k'; k = h'; scom = sym scom' }
+
+            pu : PMap symsq' (sq p)
+            pu = proj₁ (prop p symsq')
+
+            open PMap pu renaming (mor to u ; prop1 to uprop1 ; prop2 to uprop2)
+
+        in record { 
+             mor = u; 
+             prop1 = uprop2; 
+             prop2 = uprop1 } , 
+           λ pu' → 
+             let open PMap pu' renaming (mor to u' ; prop1 to u'prop1 ; prop2 to u'prop2)
+
+                 sympu' : PMap symsq' (sq p)
+                 sympu' = record { 
+                   mor = u'; 
+                   prop1 = u'prop2; 
+                   prop2 = u'prop1 }
+             in proj₂ (prop p symsq') sympu' }

@@ -91,7 +91,7 @@ module Stable (X : Cat) where
                    _ 
                    _ 
                    (k (sq (proj₁ (pul iden (m∈ mf))))) 
-                   (pullbackiso (trivialpul2 (mhom mf)) 
+                   (pullbackiso (sympul (trivialpul (mhom mf))) --(trivialpul2 (mhom mf)) 
                                 (proj₁ (pul iden (m∈ mf))))
                    (sym (scom (sq (proj₁ (pul iden (m∈ mf)))))) 
                    refl;
@@ -166,7 +166,7 @@ module Stable (X : Cat) where
                      upul = lem2 b'pul b''pul u (sym prop1) (sym prop2)
 
                      u'pul : Pullback k h''
-                     u'pul = {!!} 
+                     u'pul = sympul (lem2 (sympul b'''pul) (sympul bpul) u' (sym prop2') (sym prop1'))
 
                      open Pullback upul renaming (sq to usq ; prop to uprop)
                      open Pullback u'pul renaming (sq to u'sq ; prop to u'prop)
