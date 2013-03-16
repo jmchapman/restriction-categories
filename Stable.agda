@@ -42,15 +42,13 @@ module Stable (X : Cat) where
             m∈ : ∈ mhom
 
     open Span
---    open Pullback
---    open Square
 
-    postulate cheat : ∀{A B}(mf m'f' : Span A B) → 
-                      (s : Hom (A' mf) (A' m'f')) → 
-                      Iso s → 
-                      comp (mhom m'f') s ≅ (mhom mf) →
-                      comp (fhom m'f') s ≅ (fhom mf) → 
-                      mf ≅ m'f'
+    postulate quotient : ∀{A B}(mf m'f' : Span A B) → 
+                         (s : Hom (A' mf) (A' m'f')) → 
+                         Iso s → 
+                         comp (mhom m'f') s ≅ (mhom mf) →
+                         comp (fhom m'f') s ≅ (fhom mf) → 
+                         mf ≅ m'f'
 
     Partials : Cat
     Partials = record {
@@ -74,7 +72,7 @@ module Stable (X : Cat) where
                  idl = λ {X} {Y} {mf} → 
                    let open Pullback
                        open Square
-                   in cheat 
+                   in quotient
                    _ 
                    _ 
                    (h (sq (proj₁ (pul (fhom mf)  (iso (iden , idl , idl)))))) 
@@ -87,18 +85,22 @@ module Stable (X : Cat) where
                  idr = λ {X} {Y} {mf} → 
                    let open Pullback
                        open Square
-                   in cheat 
+                   in quotient
                    _ 
                    _ 
                    (k (sq (proj₁ (pul iden (m∈ mf))))) 
-                   (pullbackiso (sympul (trivialpul (mhom mf))) --(trivialpul2 (mhom mf)) 
+                   (pullbackiso (sympul (trivialpul (mhom mf)))
                                 (proj₁ (pul iden (m∈ mf))))
                    (sym (scom (sq (proj₁ (pul iden (m∈ mf)))))) 
                    refl;
                  ass = λ {W} {X} {Y} {Z} {m''f''} {m'f'} {mf} → 
-                 let open Span mf renaming (mhom to m ; fhom to f)
-                     open Span m'f' renaming (mhom to m' ; fhom to f' ; m∈ to m'∈)
-                     open Span m''f'' renaming (mhom to m'' ; fhom to f'' ; m∈ to m''∈)
+                 let open Span mf renaming (mhom to m; fhom to f)
+                     open Span m'f' renaming (mhom to m'; 
+                                              fhom to f'; 
+                                              m∈ to m'∈)
+                     open Span m''f'' renaming (mhom to m'';
+                                                fhom to f'';
+                                                m∈ to m''∈)
 
                      bpul : Pullback f m'
                      bpul = proj₁ (pul f m'∈)
@@ -109,20 +111,30 @@ module Stable (X : Cat) where
                      b'pul : Pullback (comp f' k) m''
                      b'pul = proj₁ (pul (comp f' k) m''∈)
 
-                     open Pullback b'pul renaming (sq to sq' ; prop to prop')
-                     open Square sq' renaming (W to B' ; h to h' ; k to k' ; scom to scom')
+                     open Pullback b'pul renaming (sq to sq'; prop to prop')
+                     open Square sq' renaming (W to B'; 
+                                               h to h'; 
+                                               k to k'; 
+                                               scom to scom')
 
                      b''pul : Pullback f' m''
                      b''pul = proj₁ (pul f' m''∈)
 
-                     open Pullback b''pul renaming (sq to sq'' ; prop to prop'')
-                     open Square sq'' renaming (W to B'' ; h to h'' ; k to k'' ; scom to scom'')
+                     open Pullback b''pul renaming (sq to sq''; prop to prop'')
+                     open Square sq'' renaming (W to B'';
+                                                h to h'';
+                                                k to k'';
+                                                scom to scom'')
 
                      b'''pul : Pullback f (comp m' h'')
                      b'''pul = proj₁ (pul f (com (proj₂ (pul f' m''∈)) m'∈))
 
-                     open Pullback b'''pul renaming (sq to sq''' ; prop to prop''')
-                     open Square sq''' renaming (W to B''' ; h to h''' ; k to k''' ; scom to scom''')
+                     open Pullback b'''pul renaming (sq to sq''';
+                                                     prop to prop''')
+                     open Square sq''' renaming (W to B'''; 
+                                                 h to h'''; 
+                                                 k to k'''; 
+                                                 scom to scom''')
 
                      sqb' : Square f' m''
                      sqb' = record { 
@@ -160,13 +172,19 @@ module Stable (X : Cat) where
                      pu' : PMap sqb''' sq
                      pu' = proj₁ (prop sqb''')
 
-                     open PMap pu' renaming (mor to u' ; prop1 to prop1' ; prop2 to prop2')
+                     open PMap pu' renaming (mor to u'; 
+                                             prop1 to prop1'; 
+                                             prop2 to prop2')
 
                      upul : Pullback k h''
                      upul = lem2 b'pul b''pul u (sym prop1) (sym prop2)
 
                      u'pul : Pullback k h''
-                     u'pul = sympul (lem2 (sympul b'''pul) (sympul bpul) u' (sym prop2') (sym prop1'))
+                     u'pul = sympul (lem2 (sympul b'''pul) 
+                                          (sympul bpul) 
+                                          u'
+                                          (sym prop2')
+                                          (sym prop1'))
 
                      open Pullback upul renaming (sq to usq ; prop to uprop)
                      open Pullback u'pul renaming (sq to u'sq ; prop to u'prop)
@@ -174,9 +192,11 @@ module Stable (X : Cat) where
                      pα : PMap u'sq usq
                      pα = proj₁ (uprop u'sq)
 
-                     open PMap pα renaming (mor to α ; prop1 to prop1α ; prop2 to prop2α)
+                     open PMap pα renaming (mor to α; 
+                                            prop1 to prop1α; 
+                                            prop2 to prop2α)
                      
-                 in cheat 
+                 in quotient
                    _ 
                    _ 
                    α 
