@@ -35,18 +35,18 @@ R1p {mf = mf} =
       p' = monic→pullback (mon m∈)
       
   in quotient 
-  _
-  _ 
-  h 
-  (pullbackiso p' p) 
-  (proof 
-   comp mhom h 
-   ≅⟨ refl ⟩ 
-   comp mhom h ∎) 
-  (proof 
-   comp fhom h 
-   ≅⟨ cong (comp fhom) (mon m∈ scom) ⟩ 
-   comp fhom k ∎)
+    _
+    _ 
+    h 
+    (pullbackiso p' p) 
+    (proof 
+     comp mhom h 
+     ≅⟨ refl ⟩ 
+     comp mhom h ∎) 
+    (proof 
+     comp fhom h 
+     ≅⟨ cong (comp fhom) (mon m∈ scom) ⟩ 
+     comp fhom k ∎)
   
 R2p : ∀{A B C}{mf : Span A B}{m'f' : Span A C} → 
       compspan (restp mf) (restp m'f') ≅ compspan (restp m'f') (restp mf)
@@ -71,28 +71,28 @@ R2p {mf = mf} {m'f' = m'f'} =
 
       open PMap pu renaming (mor to u)
   in quotient 
-  _ 
-  _ 
-  u 
-  (pullbackiso p' p) 
-  (proof 
-   comp (comp m h') u 
-   ≅⟨ ass ⟩ 
-   comp m (comp h' u) 
-   ≅⟨ cong (comp m) prop1 ⟩ 
-   comp m h 
-   ≅⟨ scom ⟩ 
-   comp m' k 
-   ∎) 
-  (proof 
-   comp (comp m' k') u 
-   ≅⟨ ass ⟩ 
-   comp m' (comp k' u) 
-   ≅⟨ cong (comp m') prop2 ⟩ 
-   comp m' k 
-   ≅⟨ sym scom ⟩ 
-   comp m h
-   ∎)
+    _ 
+    _ 
+    u 
+    (pullbackiso p' p) 
+    (proof 
+     comp (comp m h') u 
+     ≅⟨ ass ⟩ 
+     comp m (comp h' u) 
+     ≅⟨ cong (comp m) prop1 ⟩ 
+     comp m h 
+     ≅⟨ scom ⟩ 
+     comp m' k 
+     ∎) 
+    (proof 
+     comp (comp m' k') u 
+     ≅⟨ ass ⟩ 
+     comp m' (comp k' u) 
+     ≅⟨ cong (comp m') prop2 ⟩ 
+     comp m' k 
+     ≅⟨ sym scom ⟩ 
+     comp m h
+     ∎)
 
 R3p : ∀{A B C}{mf : Span A B}{m'f' : Span A C} →
       compspan (restp m'f') (restp mf) ≅ restp (compspan m'f' (restp mf))
@@ -154,30 +154,30 @@ R4p {mf = mf} {m'f' = m'f'} =
       open PMap pu renaming (mor to u)
 
   in quotient 
-     _ 
-     _ 
-     u 
-     (pullbackiso p' p'') 
-     (proof 
-      comp (comp (comp m h) h') u 
-      ≅⟨ ass ⟩ 
-      comp (comp m h) (comp h' u) 
-      ≅⟨ cong (comp (comp m h)) prop1  ⟩ 
-      comp (comp m h) iden 
-      ≅⟨ idr ⟩ 
-      comp m h 
-      ∎) 
-     (proof
-      comp (comp f k') u
-      ≅⟨ ass ⟩
-      comp f (comp k' u)
-      ≅⟨ cong (comp f) prop2 ⟩
-      comp f (comp iden h)
-      ≅⟨ cong (comp f) idl ⟩
-      comp f h
-      ≅⟨ scom ⟩
-      comp m' k
-      ∎)
+    _ 
+    _ 
+    u 
+    (pullbackiso p' p'') 
+    (proof 
+     comp (comp (comp m h) h') u 
+     ≅⟨ ass ⟩ 
+     comp (comp m h) (comp h' u) 
+     ≅⟨ cong (comp (comp m h)) prop1  ⟩ 
+     comp (comp m h) iden 
+     ≅⟨ idr ⟩ 
+     comp m h 
+     ∎) 
+    (proof
+     comp (comp f k') u
+     ≅⟨ ass ⟩
+     comp f (comp k' u)
+     ≅⟨ cong (comp f) prop2 ⟩
+     comp f (comp iden h)
+     ≅⟨ cong (comp f) idl ⟩
+     comp f h
+     ≅⟨ scom ⟩
+     comp m' k
+     ∎)
 
 RestPartials : RestCat
 RestPartials = record { 
