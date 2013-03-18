@@ -54,6 +54,9 @@ module Isos (X : Cat) where
   Iso : ∀{A B} → Hom A B → Set
   Iso {A}{B} f = Σ (Hom B A) (λ g → comp f g ≅ iden {B} × comp g f ≅ iden {A})
 
+  idiso : ∀{A} → Iso (iden {A})
+  idiso = iden , idl , idl
+
   invuniq : ∀{A B}(f : Hom A B)(p q : Iso f) → proj₁ p ≅ proj₁ q
   invuniq f (g , p , p') (g' , q , q') = 
     proof 
