@@ -25,16 +25,14 @@ data _↓_ {X : Set} : Delay X → X → Set where
   later↓ : ∀{dy y} → (♭ dy) ↓ y → later dy ↓ y
 
 data _∼_ {X : Set} : Delay X → Delay X → Set where
-  ↓∼ : ∀{dy dy' y y'} → dy ↓ y → dy' ↓ y' → dy ∼ dy'
+  ↓∼ : ∀{dy dy' y} → dy ↓ y → dy' ↓ y → dy ∼ dy'
   later∼ : ∀{dy dy'} → ∞ (♭ dy ∼ ♭ dy') → later dy ∼ later dy'
 
 postulate quotient : ∀{X}{dx dx' : Delay X} → dx ∼ dx' → dx ≅ dx'
 
-
 refl∼ : ∀{X}{dx : Delay X} → dx ∼ dx
 refl∼ {dx = now x}    = ↓∼ now↓ now↓
 refl∼ {dx = later dx} = later∼ (♯ refl∼)
-
 
 dlaw1 : ∀{X}(dx : Delay X) → dbind now dx ∼ dx
 dlaw1 (now x) = refl∼
@@ -47,8 +45,6 @@ dlaw3 : ∀{X Y Z}{f : X → Delay Y} {g : Y → Delay Z}(dx : Delay X) →
 dlaw3 {f = f}{g = g} (now x)   = refl∼
 dlaw3 {f = f}{g = g} (later x) = later∼ (♯ dlaw3 (♭ x))
 
-{-
--}
 
 DelayM : Monad Sets
 DelayM = record { 
@@ -67,16 +63,20 @@ help x (later dy) = later (♯ help x (♭ dy))
 drest : ∀{X Y} → (X → Delay Y) → X → Delay X
 drest f x = help x (f x) 
 
-{-
-dR1help : ∀{X Y}{f : X → Delay Y}(x : X)(dy : Delay Y) → f x ≅ dy → (dbind f) (help x dy) ∼ dy
-dR1help x (now y) p    = {!!}
-dR1help x (later dy) p = later∼ (♯ dR1help x (♭ dy) {!!})
--}
+
+dR1help : ∀{X Y}{f : X → Delay Y}(x : X)(dy : Delay Y) → f x ↓ dy →  (dbind f) (help x dy) ∼ dy
+dR1help x (now y)  p = {!!}
+dR1help x (later dy) p = later∼ (♯ ↓∼ {!dR1help x (♭ dy)!} {!!})
+
 
 open Cat (Kl DelayM)
 
+dR1 : ∀{X Y}{f : X → Delay Y}(x : X) → (dbind f ∘ (drest f)) x ∼ f x
+dR1 {f = f} x with f x 
+dR1 x | now x₁ = {!!} 
+dR1 x | later x₁ = later∼ (♯ ↓∼ {!dR1 x !} {!!})
+
 {-
-dR1 : ∀{X Y}{f : X → Delay Y}(x : X) → (comp f (drest f)) x ∼ f x
 dR1 {f = f} x with f x   | inspect f x
 dR1 {f = f} x | now y    | [ eq ] = {!!}
 dR1 {f = f} x | later dy | [ eq ] = later∼ {!!}
