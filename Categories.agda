@@ -48,6 +48,13 @@ module Monos (X : Cat) where
     ∎
 
 
+module Epis (X : Cat) where
+  open Cat X
+
+  Epi : ∀{A B} → Hom A B → Set
+  Epi f = ∀{C}{g h : Hom _ C} → comp g f ≅ comp h f → g ≅ h
+
+
 module Isos (X : Cat) where
   open Cat X
 
@@ -124,7 +131,123 @@ module Isos (X : Cat) where
      ≅⟨ p' ⟩ 
      iden 
      ∎)
- 
+
+module Idems (X : Cat) where
+  open Cat X
+
+  record Idem X : Set where
+    field e : Hom X X
+          law : comp e e ≅ e
+
+  record Split {A}(ide : Idem A) : Set where
+    open Idem ide
+    open Monos X
+    open Epis X
+    field B : Obj 
+          s : Hom B A
+          smon : Mono s
+          r : Hom A B
+          repi : Epi r
+          law1 : comp s r ≅ e
+          law2 : comp r s ≅ iden {B}
+
+  lemma : ∀{A}(e : Idem A)(sp sp' : Split e) → 
+          let open Isos X
+              open Split sp
+              open Split sp' renaming (B to B'; s to s'; r to r')
+          in
+          Σ (Hom B B') λ α → Iso α × comp α r ≅ r' × comp s' α ≅ s
+  lemma ide sp sp' =  
+    let open Isos X
+        open Idem ide
+        open Split sp
+        open Split sp' renaming (B to B'; 
+                                 s to s'; 
+                                 smon to smom';
+                                 r to r';
+                                 repi to repi';
+                                 law1 to law1';
+                                 law2 to law2')
+    in comp r' s 
+       , 
+       (comp r s' 
+        , 
+        (proof 
+         comp (comp r' s) (comp r s') 
+         ≅⟨ ass ⟩ 
+         comp r' (comp s (comp r s'))
+         ≅⟨ cong (comp r') (sym ass) ⟩ 
+         comp r' (comp (comp s r) s')
+         ≅⟨ cong (λ f → comp r' (comp f s')) law1 ⟩ 
+         comp r' (comp e s')
+         ≅⟨ cong (λ f → comp r' (comp f s')) (sym law1') ⟩ 
+         comp r' (comp (comp s' r') s')
+         ≅⟨ cong (comp r') ass ⟩
+         comp r' (comp s' (comp r' s'))
+         ≅⟨ cong (comp r' ∘ comp s') law2' ⟩
+         comp r' (comp s' iden)
+         ≅⟨ sym ass ⟩
+         comp (comp r' s') iden
+         ≅⟨ idr ⟩
+         comp r' s'
+         ≅⟨ law2' ⟩
+         iden 
+         ∎) 
+        , 
+        (proof 
+         comp (comp r s') (comp r' s) 
+         ≅⟨ ass ⟩
+         comp r (comp s' (comp r' s))
+         ≅⟨ cong (comp r) (sym ass) ⟩ 
+         comp r (comp (comp s' r') s)
+         ≅⟨ cong (λ f → comp r (comp f s)) law1' ⟩ 
+         comp r (comp e s)
+         ≅⟨ cong (λ f → comp r (comp f s)) (sym law1) ⟩ 
+         comp r (comp (comp s r) s)
+         ≅⟨ cong (comp r) ass ⟩
+         comp r (comp s (comp r s))
+         ≅⟨ cong (comp r ∘ comp s) law2 ⟩
+         comp r (comp s iden)
+         ≅⟨ sym ass ⟩
+         comp (comp r s) iden
+         ≅⟨ idr ⟩
+         comp r s
+         ≅⟨ law2 ⟩
+         iden 
+         ∎))
+       , 
+       (proof 
+        comp (comp r' s) r 
+        ≅⟨ ass ⟩ 
+        comp r' (comp s r)
+        ≅⟨ cong (comp r') law1 ⟩ 
+        comp r' e
+        ≅⟨ cong (comp r') (sym law1') ⟩ 
+        comp r' (comp s' r')
+        ≅⟨ sym ass ⟩ 
+        comp (comp r' s') r'
+        ≅⟨ cong (λ f → comp f r') law2' ⟩ 
+        comp iden r'
+        ≅⟨ idl ⟩ 
+        r'
+        ∎) 
+       , 
+       (proof 
+        comp s' (comp r' s) 
+        ≅⟨ sym ass ⟩ 
+        comp (comp s' r') s
+        ≅⟨ cong (λ f → comp f s) law1' ⟩ 
+        comp e s
+        ≅⟨ cong (λ f → comp f s) (sym law1) ⟩ 
+        comp (comp s r) s
+        ≅⟨ ass ⟩ 
+        comp s (comp r s)
+        ≅⟨ cong (comp s) law2 ⟩ 
+        comp s iden
+        ≅⟨ idr ⟩ 
+        s
+        ∎)
+
 _Op : Cat → Cat
 C Op = record {
   Obj  = Obj; 
