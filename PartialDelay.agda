@@ -96,8 +96,19 @@ f x
 
 open Cat (Kl DelayM)
 
-dR1 : ∀{X Y}{f : X → Delay Y}(x : X) → (dbind f ∘ (drest f)) x ∼ f x
-dR1 {f = f} x = let open Monad DelayM in {! !}
+dR1 : ∀{X Y}{f : X → Delay Y}(x : X) → (dbind f ∘ (drest f)) x ≅ f x
+dR1 {f = f} x = 
+  let open Monad DelayM 
+  in  proof
+      dbind f (dbind (now ∘ fst) (dbind (λ y → now (x , y)) (f x)))
+      ≅⟨ cong (λ f' → dbind f (f' (f x)))
+              (sym (law3 {f = λ y → now (x , y)} {g = now ∘ fst})) ⟩
+      dbind f (dbind (λ _ → now x) (f x))
+      ≅⟨ cong (λ f' → f' (f x)) (sym (law3 {f = λ _ → now x} {g = f})) ⟩
+      dbind (λ _ → f x) (f x)
+      ≅⟨ {!!} ⟩
+      f x 
+      ∎
 
 {-
 dR1 {f = f} x with f x   | inspect f x
