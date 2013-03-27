@@ -141,15 +141,64 @@ module Idems (X : Cat) where
 
   record Split {A}(ide : Idem A) : Set where
     open Idem ide
-    open Monos X
-    open Epis X
     field B : Obj 
           s : Hom B A
-          smon : Mono s
           r : Hom A B
-          repi : Epi r
           law1 : comp s r ≅ e
           law2 : comp r s ≅ iden {B}
+
+  open Epis X
+  open Monos X
+
+  repi : ∀{A}{e : Idem A}{sp : Split e} → 
+         let open Split sp
+         in
+         Epi r
+  repi {_}{_}{sp}{_}{g}{h} p = 
+    let open Split sp
+    in
+    proof 
+    g 
+    ≅⟨ sym idr ⟩ 
+    comp g iden 
+    ≅⟨ cong (comp g) (sym law2) ⟩ 
+    comp g (comp r s) 
+    ≅⟨ sym ass ⟩ 
+    comp (comp g r) s 
+    ≅⟨ cong (λ y → comp y s) p ⟩ 
+    comp (comp h r) s 
+    ≅⟨ ass ⟩ 
+    comp h (comp r s) 
+    ≅⟨ cong (comp h) law2 ⟩ 
+    comp h iden 
+    ≅⟨ idr ⟩ 
+    h 
+    ∎
+
+  smon : ∀{A}{e : Idem A}{sp : Split e} → 
+         let open Split sp
+         in
+         Mono s
+  smon {_}{_}{sp}{_}{g}{h} p = 
+    let open Split sp
+    in
+    proof
+    g
+    ≅⟨ sym idl ⟩
+    comp iden g
+    ≅⟨ cong (λ y → comp y g) (sym law2) ⟩
+    comp (comp r s) g
+    ≅⟨ ass ⟩
+    comp r (comp s g)
+    ≅⟨ cong (comp r) p ⟩
+    comp r (comp s h)
+    ≅⟨ sym ass ⟩
+    comp (comp r s) h
+    ≅⟨ cong (λ y → comp y h) law2 ⟩
+    comp iden h
+    ≅⟨ idl ⟩
+    h
+    ∎
 
   lemma : ∀{A}(e : Idem A)(sp sp' : Split e) → 
           let open Isos X
@@ -163,9 +212,7 @@ module Idems (X : Cat) where
         open Split sp
         open Split sp' renaming (B to B'; 
                                  s to s'; 
-                                 smon to smom';
                                  r to r';
-                                 repi to repi';
                                  law1 to law1';
                                  law2 to law2')
     in comp r' s 
