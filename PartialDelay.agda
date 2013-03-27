@@ -1,14 +1,17 @@
 {-# OPTIONS --type-in-type #-}
+
 module PartialDelay where
 
 open import Coinduction
 open import Categories
 open import Monads
+open import Functors
 open import Kleisli
 open import Sets
 open import Function
 open import Relation.Binary.HeterogeneousEquality
 open import Equality
+open import Data.Product hiding (map) renaming (proj₁ to fst; proj₂ to snd)
 open ≅-Reasoning renaming (begin_ to proof_)
 open import RestrictionCat
 
@@ -19,6 +22,7 @@ data Delay (X : Set) : Set where
 dbind : ∀{X Y} → (X → Delay Y) → Delay X → Delay Y
 dbind f (now x)   = f x
 dbind f (later x) = later (♯ dbind f (♭ x))
+
 
 data _↓_ {X : Set} : Delay X → X → Set where
   now↓ : ∀{y} → now y ↓ y
@@ -33,6 +37,9 @@ postulate quotient : ∀{X}{dx dx' : Delay X} → dx ∼ dx' → dx ≅ dx'
 refl∼ : ∀{X}{dx : Delay X} → dx ∼ dx
 refl∼ {dx = now x}    = ↓∼ now↓ now↓
 refl∼ {dx = later dx} = later∼ (♯ refl∼)
+
+trans∼ : ∀{X}{dx dx' dx'' : Delay X} → dx ∼ dx' → dx' ∼ dx'' → dx ∼ dx''
+trans∼ p q = {!!}
 
 dlaw1 : ∀{X}(dx : Delay X) → dbind now dx ∼ dx
 dlaw1 (now x) = refl∼
@@ -56,25 +63,41 @@ DelayM = record {
   law3 = ext (quotient ∘ dlaw3) }
 
 
+{-
 help : ∀{X Y}(x : X) → Delay Y → Delay X
 help x (now y)    = now x
 help x (later dy) = later (♯ help x (♭ dy))
 
 drest : ∀{X Y} → (X → Delay Y) → X → Delay X
 drest f x = help x (f x) 
+-}
 
+str : ∀{X Y} → X × Delay Y → Delay (X × Y)
+str (x , dy) = dbind (λ y → now (x , y)) dy
 
-dR1help : ∀{X Y}{f : X → Delay Y}(x : X)(dy : Delay Y) → f x ↓ dy →  (dbind f) (help x dy) ∼ dy
-dR1help x (now y)  p = {!!}
-dR1help x (later dy) p = later∼ (♯ ↓∼ {!dR1help x (♭ dy)!} {!!})
+map = Fun.HMap (TFun DelayM)
 
+drest : ∀{X Y} → (X → Delay Y) → X → Delay X
+drest f x = map fst (str (x , f x))
+
+{-
+drest f x
+= def
+map fst (str (x , f x))
+= def
+dbind (now ∘ fst) (dbind (λ y → now (x , y)) (f x))
+= law3
+dbind (dbind (now ∘ fst) ∘ (λ x₁ → now (x , x₁))) (f x) ?
+= computation
+dbind now (f x) 
+= law1
+f x
+-}
 
 open Cat (Kl DelayM)
 
 dR1 : ∀{X Y}{f : X → Delay Y}(x : X) → (dbind f ∘ (drest f)) x ∼ f x
-dR1 {f = f} x with f x 
-dR1 x | now x₁ = {!!} 
-dR1 x | later x₁ = later∼ (♯ ↓∼ {!dR1 x !} {!!})
+dR1 {f = f} x = let open Monad DelayM in {! !}
 
 {-
 dR1 {f = f} x with f x   | inspect f x
@@ -86,7 +109,8 @@ DelayR : RestCat
 DelayR = record { 
   cat  = Kl DelayM; 
   rest = drest; 
-  R1   = {!!}; 
+  R1   = {!Monad.law3 DelayM!}; 
   R2   = {!!}; 
   R3   = {!!}; 
   R4   = {!!} }
+
