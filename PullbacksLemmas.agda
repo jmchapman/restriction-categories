@@ -11,47 +11,50 @@ open import Function
 pullbackmonic : ∀{X Y Z}{f : Hom X Z}{g : Hom Y Z} → Mono g → 
                 (q : Pullback f g) → Mono (Square.h (Pullback.sq q))
 pullbackmonic {X}{Y}{Z}{f}{g} p q {A}{f₁}{f₂} r = 
-  let m₁ : Square f g
+  let open Pullback q
+      open Square sq
+      open PMap
+      m₁ : Square f g
       m₁ = record { 
         W    = A; 
-        h    = comp (h sq) f₁; 
-        k    = comp (k sq) f₁; 
+        h    = comp h f₁; 
+        k    = comp k f₁; 
         scom = 
           proof 
-          comp f (comp (h sq) f₁) 
+          comp f (comp h f₁) 
           ≅⟨ sym ass ⟩ 
-          comp (comp f (h sq)) f₁
-          ≅⟨ cong (λ f₃ → comp f₃ f₁) (scom sq) ⟩ 
-          comp (comp g (k sq)) f₁
+          comp (comp f h) f₁
+          ≅⟨ cong (λ f₃ → comp f₃ f₁) scom ⟩ 
+          comp (comp g k) f₁
           ≅⟨ ass ⟩ 
-          comp g (comp (k sq) f₁) 
+          comp g (comp k f₁) 
           ∎ }
       m₂ : Square f g
       m₂ = record { 
         W    = A; 
-        h    = comp (h sq) f₂; 
-        k    = comp (k sq) f₂; 
+        h    = comp h f₂; 
+        k    = comp k f₂; 
         scom = 
           proof 
-          comp f (comp (h sq) f₂) 
+          comp f (comp h f₂) 
           ≅⟨ sym ass ⟩ 
-          comp (comp f (h sq)) f₂
-          ≅⟨ cong (λ f₃ → comp f₃ f₂) (scom sq) ⟩ 
-          comp (comp g (k sq)) f₂
+          comp (comp f h) f₂
+          ≅⟨ cong (λ f₃ → comp f₃ f₂) scom ⟩ 
+          comp (comp g k) f₂
           ≅⟨ ass ⟩ 
-          comp g (comp (k sq) f₂) 
+          comp g (comp k f₂) 
           ∎} 
 
-      lem : k m₁ ≅ k m₂
+      lem : Square.k m₁ ≅ Square.k m₂
       lem = p $
         proof 
-        comp g (comp (k sq) f₁)
-        ≅⟨ sym (scom m₁) ⟩ 
-        comp f (comp (h sq) f₁)
+        comp g (comp k f₁)
+        ≅⟨ sym (Square.scom m₁) ⟩ 
+        comp f (comp h f₁)
         ≅⟨ cong (comp f) r ⟩ 
-        comp f (comp (h sq) f₂)
-        ≅⟨ scom m₂ ⟩ 
-        comp g (comp (k sq) f₂)
+        comp f (comp h f₂)
+        ≅⟨ Square.scom m₂ ⟩ 
+        comp g (comp k f₂)
         ∎
       u = prop m₁
 
@@ -63,10 +66,6 @@ pullbackmonic {X}{Y}{Z}{f}{g} p q {A}{f₁}{f₂} r =
      ≅⟨ proj₂ u (record { mor = f₂; prop1 = sym r; prop2 = sym lem}) ⟩ 
      f₂ 
      ∎
-  where
-  open Pullback q
-  open Square
-  open PMap
 
 monic→pullback : ∀{X Z}{f : Hom X Z} → Mono f → Pullback f f
 monic→pullback {X}{Z}{f} p = record { 
