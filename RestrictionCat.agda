@@ -369,6 +369,7 @@ module MonicClass (X : SplitRestCat) where
 
   open import Pullbacks cat
 
+{-
   MXpul : ∀{A B E}(f : Hom A E){s : Hom B E} → SRestIde s → 
           Σ (Pullback f s) λ p → 
           let open Pullback p
@@ -388,3 +389,4 @@ module MonicClass (X : SplitRestCat) where
 
 
 
+-}

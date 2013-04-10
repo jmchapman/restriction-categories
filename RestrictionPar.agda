@@ -187,3 +187,49 @@ RestPartials = record {
   R2 = λ {A B C mf m'f'} → R2p {A}{B}{C}{mf}{m'f'}; 
   R3 = λ {A B C mf m'f'} → R3p {A}{B}{C}{mf}{m'f'}; 
   R4 = λ {A B C mf m'f'} → R4p {A}{B}{C}{mf}{m'f'} }
+
+-- every restriction in Par splits
+open Idems Par
+open Isos X
+
+restpIdem : ∀{A B}(f : Span A B) → Idem
+restpIdem {A}{B} f = record {E = A; e = restp f; law = R1p}
+
+--pullbackiso : ∀{X Y Z}{f : Hom X Z}{g : Hom Y Z}(p p' : Pullback f g) → 
+--                Iso (mor (proj₁ (prop p (sq p'))))
+  
+
+restpSplit : ∀{A B}(f : Span A B) → Split (restpIdem f)
+restpSplit {A}{B} f = let open Span f
+  in record { 
+  B    = A'; 
+  s    = record {A' = A'; mhom = iden; fhom = mhom; m∈ = iso idiso }; 
+  r    = record {A' = A'; mhom = mhom; fhom = iden; m∈ = m∈ }; 
+  law1 = let open Pullback (proj₁ (pul (iden {A'}) (iso idiso)))
+             open Square sq
+  
+             myp : Pullback (iden {A'}) (iden {A'})
+             myp = trivialpul (iden {A'})
+             
+             lem : h ≅ k
+             lem = proof 
+                   h 
+                   ≅⟨ sym idl ⟩ 
+                   comp iden h
+                   ≅⟨ scom ⟩
+                   comp iden k
+                   ≅⟨ idl ⟩
+                   k 
+                   ∎
+         in quotient 
+           _ 
+           _ 
+           (PMap.mor (proj₁ (Pullback.prop myp sq)))
+           (pullbackiso myp (proj₁ (pul (iden {A'}) (iso idiso))))
+           refl
+           (proof 
+            comp mhom h 
+            ≅⟨ cong (comp mhom) lem ⟩ 
+            comp mhom k 
+            ∎);
+  law2 = {!!} }

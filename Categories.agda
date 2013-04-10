@@ -306,7 +306,6 @@ module Idems (X : Cat) where
     field imap : Hom E E'
           mlaw : comp e' (comp imap e) ≅ imap
 
-  -- I can prove this I guess...
   split≅ : {ide ide' : Idem}{f f' : SplitMap ide ide'} →
            SplitMap.imap f ≅ SplitMap.imap f' → f ≅ f'
   split≅ {ide}{ide'}{f}{f'} p = 
