@@ -232,4 +232,23 @@ restpSplit {A}{B} f = let open Span f
             ≅⟨ cong (comp mhom) lem ⟩ 
             comp mhom k 
             ∎);
-  law2 = {!!} }
+  law2 = 
+   let open Pullback (proj₁ (pul mhom m∈)) 
+       open Square sq
+       myp : Pullback mhom mhom 
+       myp = monic→pullback (mon m∈)
+   in quotient 
+     _ 
+     _ 
+     (PMap.mor (proj₁ (Pullback.prop myp sq))) 
+     (pullbackiso myp (proj₁ (pul mhom m∈))) 
+     refl 
+     (proof 
+      comp iden h 
+      ≅⟨ idl ⟩
+      h
+      ≅⟨ mon m∈ scom ⟩ 
+      k
+      ≅⟨ sym idl ⟩
+      comp iden k 
+      ∎) }
