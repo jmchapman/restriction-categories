@@ -2,6 +2,7 @@
 module Categories where
 
 open import Relation.Binary.HeterogeneousEquality
+open import Equality
 open ≅-Reasoning renaming (begin_ to proof_)
 open import Data.Product
 open import Function
@@ -305,6 +306,30 @@ module Idems (X : Cat) where
     field imap : Hom E E'
           mlaw : comp e' (comp imap e) ≅ imap
 
+  -- I can prove this I guess...
+  split≅ : {ide ide' : Idem}{f f' : SplitMap ide ide'} →
+           SplitMap.imap f ≅ SplitMap.imap f' → f ≅ f'
+  split≅ {ide}{ide'}{f}{f'} p = 
+    let open Idem ide
+        open Idem ide' renaming (E to E'; e to e')
+        open SplitMap f
+        open SplitMap f' renaming (imap to imap'; mlaw to mlaw') 
+    in cong₂ {_} {_} {_} {Hom E E'}
+         {λ imap₁ → comp e' (comp imap₁ e) ≅ imap₁}
+         {λ _ _ → SplitMap ide ide'} (λ x y → record { imap = x; mlaw = y })
+         p 
+         (fixtypes 
+           (proof 
+            comp e' (comp imap e) 
+            ≅⟨ mlaw ⟩ 
+            imap
+            ≅⟨ p ⟩ 
+            imap'
+            ≅⟨ sym mlaw' ⟩ 
+            comp e' (comp imap' e) 
+            ∎)
+           p)
+
   splitiden : {ide : Idem} → SplitMap ide ide
   splitiden {ide} = 
     let open Idem ide
@@ -357,12 +382,6 @@ module Idems (X : Cat) where
            ≅⟨ cong (comp imap') mlaw ⟩
            comp imap' imap
            ∎ } 
-
-  postulate split≅ : {ide ide' : Idem}{f f' : SplitMap ide ide'} →
-                     let open SplitMap f
-                         open SplitMap f' renaming (imap to imap'; 
-                                                    mlaw to mlaw') 
-                     in imap ≅ imap' → f ≅ f'
 
   splitidl : {ide ide' : Idem}{f : SplitMap ide ide'} → 
              splitcomp splitiden f ≅ f
