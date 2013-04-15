@@ -126,7 +126,7 @@ module Totals (X : RestCat) where
   open RestCat X
   open Lemmata X
   open Cat cat
-  open Monos cat
+  open Monos
 
   record Tot (A B : Obj) : Set where
     field hom : Hom A B 
@@ -161,15 +161,18 @@ module Totals (X : RestCat) where
       iden
       ∎}
 
-  Totals : Cat
-  Totals = record {
+  Total : Cat
+  Total = record {
     Obj  = Obj; 
     Hom  = Tot;
-    iden = record { hom = iden; tot = lemiii idmono };
+    iden = record { hom = iden; tot = lemiii (idmono cat) };
     comp = comptot;
     idl  = TotEq idl;
     idr  = TotEq idr;
     ass  = TotEq ass}
+
+  MonoTot : ∀{A B}(f : Tot A B) → Mono cat (hom f) → Mono Total f
+  MonoTot f p {C}{g}{h} q = TotEq (p (cong hom q))
 
 {-  
   TotalsR : RestCat
@@ -211,7 +214,7 @@ record RestFun (X Y : RestCat) : Set where
         frest : ∀{A B}{f : Hom (cat X) A B} → 
                 rest Y (HMap fun f) ≅ HMap fun (rest X f)
 
-F : ∀{X} → Fun (Totals.Totals X) (RestCat.cat X)
+F : ∀{X} → Fun (Totals.Total X) (RestCat.cat X)
 F {X} = record { 
   OMap  = id; 
   HMap  = hom; 
@@ -220,7 +223,7 @@ F {X} = record {
   where open Totals X
         open Tot
 
-RF : ∀{X} → RestFun (Trivial (Totals.Totals X)) X
+RF : ∀{X} → RestFun (Trivial (Totals.Total X)) X
 RF {X} = record { 
   fun   = F; 
   frest = λ {_ _ f} → tot f }
@@ -256,7 +259,131 @@ module MonicClass (X : SplitRestCat) where
   open Cat cat
   open Lemmata rcat
   open Idems cat
+  open Totals rcat
+  open Tot
 
+  record SRestIde {B E} (s : Tot B E) : Set where
+    field As    : Obj
+          fs    : Hom E As
+          rs    : Hom E B
+          law1s : comp (hom s) rs ≅ rest fs
+          law2s : comp rs (hom s) ≅ iden {B}
+
+  open Monos
+  open Isos Total
+
+  MXmon : ∀{B E}{s : Tot B E} → SRestIde s → Mono Total s
+  MXmon sride = {!!}
+
+  MXiso : ∀{B E}{s : Tot B E} → Iso s → SRestIde s
+  MXiso {_}{E}{s} (g , p , q) = record { 
+    As = E; 
+    fs = iden; 
+    rs = hom g; 
+    law1s =       
+      proof
+      comp (hom s) (hom g)
+      ≅⟨ cong hom p ⟩
+      iden
+      ≅⟨ sym (lemiii (idmono cat)) ⟩
+      rest iden
+      ∎; 
+    law2s = cong hom q } 
+  SRIdeProp : ∀{B E}{s : Tot B E} → (sride : SRestIde s) →
+    let open SRestIde sride
+    in comp s rs ≅ rest rs
+  SRIdeProp {_}{_}{s} sride = 
+    let open SRestIde sride
+    in 
+    proof
+    comp s rs
+    ≅⟨ law1s ⟩ 
+    rest fs
+    ≅⟨ sym lemi ⟩
+    rest (rest fs)
+    ≅⟨ cong rest (sym law1s) ⟩
+    rest (comp s rs)
+    ≅⟨ lemiv ⟩
+    rest (comp (rest s) rs)
+    ≅⟨ cong (λ y → rest (comp y rs)) (lemiii (smon {_} {SRIde→Split sride})) ⟩
+    rest (comp iden rs)
+    ≅⟨ cong rest idl ⟩
+    rest rs
+    ∎
+
+  MXcomp : ∀{B E E'}{s : Tot B E}{s' : Tot E E'} → SRestIde s → 
+           SRestIde s' → SRestIde (comptot s' s)
+  MXcomp {B}{E}{E'}{s}{s'} sride sride' =
+    let open SRestIde sride
+        open SRestIde sride' renaming (As to As';
+                                       fs to fs';
+                                       rs to rs';
+                                       law1s to law1s';
+                                       law2s to law2s')
+     in record { 
+       As = B; 
+       fs = comp (comp rs rs') (rest rs'); 
+       rs = comp rs rs'; 
+       law1s = {!
+         proof
+         comp (comp (hom s') (hom s)) (comp rs rs')
+         ≅⟨ ass ⟩
+         comp (hom s') (comp (hom s) (comp rs rs'))
+         ≅⟨ cong (comp (hom s')) (sym ass) ⟩
+         comp (hom s') (comp (comp (hom s) rs) rs')
+         ≅⟨ cong (λ y → comp (hom s') (comp y rs')) (SRIdeProp sride) ⟩
+         comp s' (comp (rest rs) rs')
+         ≅⟨ cong (comp s') R4 ⟩
+         comp s' (comp rs' (rest (comp rs rs')))
+         ≅⟨ sym ass ⟩
+         comp (comp s' rs') (rest (comp rs rs'))
+         ≅⟨ cong (λ y → comp y (rest (comp rs rs'))) (SRIdeProp sride') ⟩
+         comp (rest rs') (rest (comp rs rs'))
+         ≅⟨ R2 ⟩
+         comp (rest (comp rs rs')) (rest rs')
+         ≅⟨ R3 ⟩
+         rest (comp (comp rs rs') (rest rs'))
+         ∎; 
+!};
+       law2s = {!!}}
+{-
+         proof
+         comp (comp s' s) (comp rs rs')
+         ≅⟨ ass ⟩
+         comp s' (comp s (comp rs rs'))
+         ≅⟨ cong (comp s') (sym ass) ⟩
+         comp s' (comp (comp s rs) rs')
+         ≅⟨ cong (λ y → comp s' (comp y rs')) (SRIdeProp sride) ⟩
+         comp s' (comp (rest rs) rs')
+         ≅⟨ cong (comp s') R4 ⟩
+         comp s' (comp rs' (rest (comp rs rs')))
+         ≅⟨ sym ass ⟩
+         comp (comp s' rs') (rest (comp rs rs'))
+         ≅⟨ cong (λ y → comp y (rest (comp rs rs'))) (SRIdeProp sride') ⟩
+         comp (rest rs') (rest (comp rs rs'))
+         ≅⟨ R2 ⟩
+         comp (rest (comp rs rs')) (rest rs')
+         ≅⟨ R3 ⟩
+         rest (comp (comp rs rs') (rest rs'))
+         ∎; 
+       law2s = 
+         proof
+         comp (comp rs rs') (comp s' s)
+         ≅⟨ ass ⟩
+         comp rs (comp rs' (comp s' s))
+         ≅⟨ cong (comp rs) (sym ass) ⟩
+         comp rs (comp (comp rs' s') s)
+         ≅⟨ cong (λ y → comp rs (comp y s)) law2s' ⟩
+         comp rs (comp iden s)
+         ≅⟨ cong (comp rs) idl ⟩
+         comp rs s
+         ≅⟨ law2s ⟩
+         iden
+         ∎ } 
+-}
+
+
+{-
   record SRestIde {B E} (s : Hom B E) : Set where
     field As    : Obj
           fs    : Hom E As
@@ -264,8 +391,9 @@ module MonicClass (X : SplitRestCat) where
           law1s : comp s rs ≅ rest fs
           law2s : comp rs s ≅ iden {B}
 
+  open Totals rcat
   open Monos cat
-  open Isos cat
+  open Isos Total
 
   SRIde→Split : ∀{B E}{s : Hom B E} → (sride : SRestIde s) → 
                 let open SRestIde sride
@@ -303,6 +431,9 @@ module MonicClass (X : SplitRestCat) where
 
   MXmon : ∀{B E}{s : Hom B E} → SRestIde s → Mono s
   MXmon sride = smon {_} {SRIde→Split sride} 
+
+  MXiso' : ∀{B E}{s : Tot B E} → Iso s → SRestIde s
+  MXiso' {_}{E}{s} (g , p , q) = ? 
 
   MXiso : ∀{B E}{s : Hom B E} → Iso s → SRestIde s
   MXiso {_}{E}{s} (g , p , q) = record { 
@@ -376,7 +507,8 @@ module MonicClass (X : SplitRestCat) where
               open Square sq
            in SRestIde h 
   MXpul {A}{B}{E} f {s} sride = {!!}
-             
+
+-}             
   open import Stable
 
   MX : StableSys cat
@@ -385,7 +517,19 @@ module MonicClass (X : SplitRestCat) where
     mon = MXmon; 
     iso = MXiso; 
     com = MXcomp; 
-    pul = MXpul }
+    pul = {!!} }
+
+{-
+  MX' : StableSys (Total rcat)
+  MX' = 
+    let open Tot rcat 
+    in record { 
+    ∈ = SRestIde ∘ hom; 
+    mon = λ {_ _ s} → MonoTot rcat s ∘ (MXmon {s = hom s});
+    iso = {!!}; 
+    com = {!!}; 
+    pul = {!!} }
+-}
 
 
 
