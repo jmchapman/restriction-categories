@@ -271,7 +271,9 @@ module MonicClass (X : SplitRestCat) where
 
   open Monos
   open Isos Total
+  open Sections cat
 
+{-
   SRIde→Split : ∀{B E}{s : Tot B E} → (sride : SRestIde s) → 
                 let open SRestIde sride
                 in Split (record { E = E; e = rest fs; law = lemii })
@@ -284,7 +286,6 @@ module MonicClass (X : SplitRestCat) where
       law1 = law1s; 
       law2 = law2s }
 
-  open Sections cat
 
   MXmon : ∀{B E}{s : Tot B E} → SRestIde s → Mono Total s
   MXmon {_}{_}{s} sride {_}{g}{h} q = TotEq (smon (hom s) (SRestIde.rs sride , SRestIde.law2s sride) (cong hom q))
@@ -374,7 +375,7 @@ module MonicClass (X : SplitRestCat) where
          iden
          ∎}
 
-
+-}
 
   open import Pullbacks Total
 
@@ -416,7 +417,8 @@ module MonicClass (X : SplitRestCat) where
             tot = mp'};
           k = record { 
             hom = f';
-            tot = 
+            tot = {!!}};
+{-
               proof
               rest (comp r (comp f m'))
               ≅⟨ cong rest (sym idl) ⟩
@@ -443,8 +445,11 @@ module MonicClass (X : SplitRestCat) where
               rest m'
               ≅⟨ mp' ⟩
               iden
-              ∎ }; 
-          scom = TotEq (
+              ∎ ; 
+-}
+          scom = {!!}}
+{-
+TotEq (
             proof 
             comp f m' 
             ≅⟨ sym idr ⟩ 
@@ -469,7 +474,9 @@ module MonicClass (X : SplitRestCat) where
             comp (comp m r) (comp f m')
             ≅⟨ ass ⟩ 
             comp m f' 
-            ∎) }
+            ∎) 
+            }
+-}
     in (record { 
           sq = sq; 
           prop = λ sq' → 
@@ -484,17 +491,113 @@ module MonicClass (X : SplitRestCat) where
                 α : Hom D' D
                 α = comp r' x
 
+                αp2 : comp f' α ≅ y
+                αp2 = smon m (r , law2e) 
+                  (proof
+                   comp m (comp (comp r (comp f m')) (comp r' x))
+                   ≅⟨ cong (comp m) ass ⟩
+                   comp m (comp r (comp (comp f m') (comp r' x)))
+                   ≅⟨ sym ass ⟩
+                   comp (comp m r) (comp (comp f m') (comp r' x))
+                   ≅⟨ cong (λ y → comp y (comp (comp f m') (comp r' x))) law1e ⟩
+                   comp e (comp (comp f m') (comp r' x))
+                   ≅⟨ cong (comp e) ass ⟩
+                   comp e (comp f (comp m' (comp r' x)))
+                   ≅⟨ cong (comp e ∘ comp f) (sym ass) ⟩
+                   comp e (comp f (comp (comp m' r') x))
+                   ≅⟨ cong (λ y → comp e (comp f (comp y x))) law1e' ⟩
+                   comp e (comp f (comp (rest (comp e f)) x))
+                   ≅⟨ sym ass ⟩
+                   comp (comp e f) (comp (rest (comp e f)) x)
+                   ≅⟨ sym ass ⟩
+                   comp (comp (comp e f) (rest (comp e f))) x
+                   ≅⟨ cong (λ y → comp y x) R1 ⟩
+                   comp (comp e f) x
+                   ≅⟨ ass ⟩
+                   comp e (comp f x)
+                   ≅⟨ cong (comp e) (cong hom scom') ⟩
+                   comp e (comp m y)
+                   ≅⟨ cong (λ z → comp z (comp m y)) (sym law1e) ⟩
+                   comp (comp m r) (comp m y)
+                   ≅⟨ ass ⟩
+                   comp m (comp r (comp m y))
+                   ≅⟨ cong (comp m) (sym ass) ⟩
+                   comp m (comp (comp r m) y)
+                   ≅⟨ cong (λ z → comp m (comp z y)) law2e  ⟩
+                   comp m (comp iden y)
+                   ≅⟨ cong (comp m) idl ⟩
+                   comp m y
+                   ∎)
+
                 αp : comp m' α ≅ x
-                αp = {!!}
+                αp = 
+                  proof
+                  comp m' α
+                  ≅⟨ sym ass ⟩
+                  comp (comp m' r') x
+                  ≅⟨ cong (λ z → comp z x) law1e' ⟩
+                  comp (rest (comp e f)) x
+                  ≅⟨ R4 ⟩
+                  comp x (rest (comp (comp e f) x)) 
+                  ≅⟨ cong (comp x ∘ rest) ass ⟩
+                  comp x (rest (comp e (comp f x))) 
+                  ≅⟨ cong (comp x ∘ rest ∘ comp e) (cong hom scom') ⟩
+                  comp x (rest (comp e (comp m y))) 
+                  ≅⟨ cong (λ z → comp x (rest (comp z (comp m y)))) (sym law1e) ⟩
+                  comp x (rest (comp (comp m r) (comp m y))) 
+                  ≅⟨ cong (comp x ∘ rest) ass ⟩
+                  comp x (rest (comp m (comp r (comp m y)))) 
+                  ≅⟨ cong (comp x ∘ rest ∘ comp m) (sym ass) ⟩
+                  comp x (rest (comp m (comp (comp r m) y))) 
+                  ≅⟨ cong (λ z → comp x (rest (comp m (comp z y)))) law2e  ⟩
+                  comp x (rest (comp m (comp iden y))) 
+                  ≅⟨ cong (comp x ∘ rest ∘ comp m) idl ⟩
+                  comp x (rest (comp m y)) 
+                  ≅⟨ cong (comp x) lemiv ⟩
+                  comp x (rest (comp (rest m) y)) 
+                  ≅⟨ cong (λ z → comp x (rest (comp z y))) mp ⟩
+                  comp x (rest (comp iden y)) 
+                  ≅⟨ cong (comp x ∘ rest) idl ⟩
+                  comp x (rest y) 
+                  ≅⟨ cong (comp x) yp ⟩
+                  comp x iden 
+                  ≅⟨ idr ⟩
+                  x
+                  ∎
 
             in record { 
                  mor = record { 
-                 hom = α; 
-                 tot = {!!} }; 
-              prop1 = TotEq αp; 
-              prop2 = {!!} } , 
-               {!!} }) , 
-       {!!}
+                   hom = α; 
+                   tot = {!!}};
+{-
+                     proof
+                     rest (comp r' x)
+                     ≅⟨ cong rest (sym idl) ⟩
+                     rest (comp iden (comp r' x))
+                     ≅⟨ cong (λ y → rest (comp y (comp r' x))) (sym mp') ⟩
+                     rest (comp (rest m') (comp r' x))
+                     ≅⟨ sym lemiv ⟩
+                     rest (comp m' (comp r' x))
+                     ≅⟨ cong rest αp ⟩
+                     rest x
+                     ≅⟨ xp ⟩
+                     iden
+                     ∎ }; 
+-}
+                 prop1 = TotEq αp; 
+                 prop2 = TotEq αp2} ,
+               (λ umap' → 
+                let open PMap umap' renaming (mor to ut')
+                    open Tot ut' renaming (hom to u')
+                in TotEq (smon m' (r' , law2e') 
+                   (proof
+                    comp m' α
+                    ≅⟨ αp ⟩
+                    x
+                    ≅⟨ cong hom (sym prop1) ⟩
+                    comp m' u'
+                    ∎))) }) , 
+               record { As = B; fs = comp e f; rs = r'; law1s = law1e'; law2s = law2e' }
 
 {-
   open import Stable
