@@ -15,6 +15,7 @@ module PartialMaps (X : Cat)(M : StableSys X) where
     open import Pullbacks X
     open Monos X
     open import PullbacksLemmas X
+    open import PastingLemmas X
 
     record Span (A B : Obj) : Set where
       field A' : Obj

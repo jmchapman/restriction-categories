@@ -6,12 +6,13 @@ module RestrictionPar (X : Cat) (M : StableSys X) where
 open import Relation.Binary.HeterogeneousEquality
 open ≅-Reasoning renaming (begin_ to proof_)
 open import RestrictionCat
-open PartialCats X M
+open import PartialMaps X M
 open Cat X
 open import Pullbacks X
 open StableSys X M
 open import Data.Product
 open import PullbacksLemmas X
+open import PastingLemmas X
 
 restp : ∀{A B} → Span A B → Span A A
 restp mf = record { 
