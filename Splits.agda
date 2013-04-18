@@ -9,6 +9,7 @@ open ≅-Reasoning renaming (begin_ to proof_)
 open import Data.Product
 open Cat X
 open Idems
+open import Functors
 
 
 -- Definition of Split(X), which is the category where
@@ -46,6 +47,33 @@ split≅ {ide}{ide'}{f}{f'} p =
           comp e' (comp imap' e) 
           ∎)
          p)
+
+splitprop : {ide ide' : Idem X}(f : SplitMap ide ide') →
+            let open SplitMap f
+                open Idem X ide
+                open Idem X ide' renaming (e to e')
+            in comp imap e ≅ imap
+splitprop {ide}{ide'} f = 
+  let open SplitMap f
+      open Idem X ide
+      open Idem X ide' renaming (e to e'; law to law')
+  in 
+    proof
+    comp imap e
+    ≅⟨ cong (λ y → comp y e) (sym mlaw) ⟩
+    comp (comp e' (comp imap e)) e
+    ≅⟨ cong (λ y → comp y e) (sym ass) ⟩
+    comp (comp (comp e' imap) e) e
+    ≅⟨ ass ⟩
+    comp (comp e' imap) (comp e e)
+    ≅⟨ cong (comp (comp e' imap)) law ⟩
+    comp (comp e' imap) e
+    ≅⟨ ass ⟩
+    comp e' (comp imap e)
+    ≅⟨ mlaw ⟩
+    imap
+    ∎
+
 
 splitiden : {ide : Idem X} → SplitMap ide ide
 splitiden {ide} = 
@@ -152,8 +180,6 @@ SplitCat E =
     idr = splitidr;
     ass = split≅ ass }
 
-
-
 idemsplit : ∀(ide : Idem X)(E : IdemClass) → 
             let open IdemClass E
             in ∈ ide → Idem (SplitCat E)
@@ -172,3 +198,39 @@ everysplit ide E p = record {
     law1 = splitidl; 
     law2 = splitidl }
 
+postulate splitmap≅ : {ide ide' : Idem X}{sp sp' : SplitMap ide ide'} → 
+                      let open SplitMap sp
+                          open SplitMap sp' renaming (imap to imap'; mlaw to mlaw')
+                      in imap ≅ imap' → sp ≅ sp'
+
+{-
+module SubcatSplit where
+
+  Incl : (E : IdemClass) → Fun X (SplitCat E)
+  Incl E = 
+    let open IdemClass E
+    in record { 
+      OMap = λ A → 
+        record { E = A; e = iden; law = idl } , 
+        id∈; 
+      HMap = λ {A}{B} f → 
+        record { 
+          imap = f; 
+          mlaw = 
+            proof
+            comp iden (comp f iden)
+            ≅⟨ idl ⟩
+            comp f iden
+            ≅⟨ idr ⟩
+            f
+            ∎ }; 
+      fid = splitmap≅ refl ;
+      fcomp = splitmap≅ refl }
+
+  FullIncl : (E : IdemClass) → Full (Incl E)
+  FullIncl E {A}{B}{f} =
+    let open IdemClass E
+        open SplitMap f
+    in imap , 
+       splitmap≅ refl
+-}

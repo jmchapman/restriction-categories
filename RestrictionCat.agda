@@ -217,3 +217,96 @@ record SplitRestCat : Set where
                  Split (record { E = E; e = rest f; law = lemii})
 
 
+open import Splits
+
+restprop : {X : RestCat} → 
+           let open RestCat X
+               open Cat cat
+               open Idems cat
+           in {ide ide' : Idem}(f : SplitMap cat ide ide') →
+           let open SplitMap cat f
+               open Idem ide
+           in comp (rest imap) e ≅ comp e (rest imap)
+restprop {X}{ide}{_} f = 
+  let open RestCat X
+      open Cat cat
+      open Idems cat
+      open SplitMap cat f
+      open Idem ide
+  in 
+    proof
+    comp (rest imap) e
+    ≅⟨ R4 ⟩
+    comp e (rest (comp imap e))
+    ≅⟨ cong (comp e ∘ rest) (splitprop cat f) ⟩
+    comp e (rest imap)
+    ∎           
+
+RSplitCat : {X : RestCat}(E : IdemClass (RestCat.cat X)) → RestCat
+RSplitCat {X} E = 
+  let open RestCat X
+      open Cat cat
+      open IdemClass cat E
+      open Idems cat
+  in record { 
+    cat = SplitCat cat E; 
+    rest = λ {ide} {ide'} f → 
+      let open SplitMap cat f
+          open Idem (proj₁ ide)
+      in record { 
+        imap = comp (rest imap) e; 
+        mlaw = {!!}};
+{-
+          proof
+          comp e (comp (comp (rest imap) e) e)
+          ≅⟨ cong (comp e) ass ⟩
+          comp e (comp (rest imap) (comp e e))
+          ≅⟨ cong (comp e ∘ comp (rest imap)) law ⟩
+          comp e (comp (rest imap) e)
+          ≅⟨ cong (comp e) R4 ⟩
+          comp e (comp e (rest (comp imap e)))
+          ≅⟨ sym ass ⟩
+          comp (comp e e) (rest (comp imap e))
+          ≅⟨ cong (λ y → comp y (rest (comp imap e))) law ⟩
+          comp e (rest (comp imap e))
+          ≅⟨ sym R4 ⟩
+          comp (rest imap) e
+          ∎ 
+-} 
+    R1 = λ {ide}{_}{f} → 
+      let open SplitMap cat f
+          open Idem (proj₁ ide)
+      in splitmap≅ cat (
+         proof
+         comp imap (comp (rest imap) e)
+         ≅⟨ sym ass ⟩
+         comp (comp imap (rest imap)) e
+         ≅⟨ cong (λ y → comp y e) R1 ⟩
+         comp imap e
+         ≅⟨ splitprop cat f ⟩
+         imap
+         ∎); 
+    R2 = λ {ide}{_}{_}{g}{f} → 
+      let open SplitMap cat f
+          open Idem (proj₁ ide)
+          open SplitMap cat g renaming (imap to imap')
+      in splitmap≅ cat (
+           proof
+           comp (comp (rest imap') e) (comp (rest imap) e)
+           ≅⟨ cong (λ y → comp y (comp (rest imap) e)) (restprop g) ⟩
+           comp (comp e (rest imap')) (comp (rest imap) e)
+           ≅⟨ ass ⟩
+           comp e (comp (rest imap') (comp (rest imap) e))
+           ≅⟨ cong (comp e) (sym ass) ⟩
+           comp e (comp (comp (rest imap') (rest imap)) e)
+           ≅⟨ cong (λ y → comp e (comp y e)) R2 ⟩
+           comp e (comp (comp (rest imap) (rest imap')) e)
+           ≅⟨ cong (comp e) ass ⟩
+           comp e (comp (rest imap) (comp (rest imap') e))
+           ≅⟨ sym ass ⟩
+           comp (comp e (rest imap)) (comp (rest imap') e)
+           ≅⟨ cong (λ y → comp y (comp (rest imap') e)) (sym (restprop f)) ⟩
+           comp (comp (rest imap) e) (comp (rest imap') e)
+           ∎);
+    R3 = {!!}; 
+    R4 = {!!} }
