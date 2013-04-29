@@ -1,6 +1,6 @@
 open import RestrictionCat
 
-module MonicClasses (X : SplitRestCat) where
+module MonicClasses2 (X : SplitRestCat) where
 
   open import Categories
   open import Relation.Binary.HeterogeneousEquality
@@ -131,7 +131,7 @@ module MonicClasses (X : SplitRestCat) where
          iden
          ∎}
 
--}
+
 
   MXpul : ∀{A B C}(ft : Tot C B){mt : Tot A B} → SRestIde mt → 
           Σ (Pullback ft mt) λ p → 
@@ -369,20 +369,18 @@ module MonicClasses (X : SplitRestCat) where
     in record { sq = sq; prop = prop} ,
        record { As = B; fs = comp e f; rs = r'; law1s = law1e'; law2s = law2e' }
 
-{-
+
+
+-}
+
+
+
   open import Stable
 
   M : StableSys Total
   M = record { 
     ∈ = SRestIde; 
-    mon = MXmon;
-    iso = MXiso; 
-    com = MXcomp; 
-    pul = MXpul }
--}
-
-
-
-
-    
-
+    mon = {!!};
+    iso = {!!}; 
+    com = {!!}; 
+    pul = {!!} }

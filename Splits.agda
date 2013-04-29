@@ -51,7 +51,6 @@ split≅ {ide}{ide'}{f}{f'} p =
 splitprop : {ide ide' : Idem X}(f : SplitMap ide ide') →
             let open SplitMap f
                 open Idem X ide
-                open Idem X ide' renaming (e to e')
             in comp imap e ≅ imap
 splitprop {ide}{ide'} f = 
   let open SplitMap f
@@ -69,6 +68,27 @@ splitprop {ide}{ide'} f =
     ≅⟨ cong (comp (comp e' imap)) law ⟩
     comp (comp e' imap) e
     ≅⟨ ass ⟩
+    comp e' (comp imap e)
+    ≅⟨ mlaw ⟩
+    imap
+    ∎
+
+splitprop2 : {ide ide' : Idem X}(f : SplitMap ide ide') →
+             let open SplitMap f
+                 open Idem X ide' renaming (e to e')
+             in comp e' imap ≅ imap
+splitprop2 {ide}{ide'} f = 
+  let open SplitMap f
+      open Idem X ide
+      open Idem X ide' renaming (e to e'; law to law')
+  in 
+    proof
+    comp e' imap
+    ≅⟨ cong (comp e') (sym mlaw) ⟩
+    comp e' (comp e' (comp imap e))
+    ≅⟨ sym ass ⟩
+    comp (comp e' e') (comp imap e)
+    ≅⟨ cong (λ y → comp y (comp imap e)) law' ⟩
     comp e' (comp imap e)
     ≅⟨ mlaw ⟩
     imap
