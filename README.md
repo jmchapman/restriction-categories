@@ -1,5 +1,5 @@
-restriction-categories
-======================
+restriction-categories-irrelevant
+=================================
 
 This is a formalisation of Robin Cockett's
 (http://www.cpsc.ucalgary.ca/~robin/) course on restriction categories
@@ -13,3 +13,4 @@ Science in 2010, which covers some of the same material:
 http://cs.ioc.ee/ewscs/2010/index.php?page=cockett
 
 Authors: James Chapman, Tarmo Uustalu, Niccolò Veltri.
+
