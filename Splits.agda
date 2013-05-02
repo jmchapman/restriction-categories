@@ -17,24 +17,28 @@ open import Functors
 
 record IdemClass : Set where
   field ∈   : Idem X → Set
-        id∈ : ∀{X} → ∈ (record { E = X; e = iden; law = idl })
+        .id∈ : ∀{X} → ∈ (record { E = X; e = iden; law = idl })
 
 record SplitMap (ide ide' : Idem X) : Set where
   open Idem X ide
   open Idem X ide' renaming (E to E' ; e to e' ; law to law')
   field imap : Hom E E'
-        mlaw : comp e' (comp imap e) ≅ imap
+        .mlaw : comp e' (comp imap e) ≅ imap
 
-split≅ : {ide ide' : Idem X}{f f' : SplitMap ide ide'} →
+
+.split≅ : {ide ide' : Idem X}(f f' : SplitMap ide ide') →
          SplitMap.imap f ≅ SplitMap.imap f' → f ≅ f'
-split≅ {ide}{ide'}{f}{f'} p = 
+split≅ {ide}{ide'} f f' p = 
   let open Idem X ide
       open Idem X ide' renaming (E to E'; e to e')
       open SplitMap f
       open SplitMap f' renaming (imap to imap'; mlaw to mlaw') 
-  in cong₂ {_} {_} {_} {Hom E E'}
+  in cong₂ {_} {_} {_}     {Hom E E'}
        {λ imap₁ → comp e' (comp imap₁ e) ≅ imap₁}
-       {λ _ _ → SplitMap ide ide'} (λ x y → record { imap = x; mlaw = y })
+       {λ _ _ → SplitMap ide ide'} 
+       {imap}
+       {imap'}
+       (λ (x : Hom E E') y → record { imap = x; mlaw = y })
        p 
        (fixtypes 
          (proof 
@@ -48,7 +52,7 @@ split≅ {ide}{ide'}{f}{f'} p =
           ∎)
          p)
 
-splitprop : {ide ide' : Idem X}(f : SplitMap ide ide') →
+.splitprop : {ide ide' : Idem X}(f : SplitMap ide ide') →
             let open SplitMap f
                 open Idem X ide
             in comp imap e ≅ imap
@@ -73,7 +77,7 @@ splitprop {ide}{ide'} f =
     imap
     ∎
 
-splitprop2 : {ide ide' : Idem X}(f : SplitMap ide ide') →
+.splitprop2 : {ide ide' : Idem X}(f : SplitMap ide ide') →
              let open SplitMap f
                  open Idem X ide' renaming (e to e')
              in comp e' imap ≅ imap
@@ -148,13 +152,13 @@ splitcomp {ide}{ide'}{ide''} f' f =
          comp imap' imap
          ∎ } 
 
-splitidl : {ide ide' : Idem X}{f : SplitMap ide ide'} → 
+.splitidl : {ide ide' : Idem X}{f : SplitMap ide ide'} → 
            splitcomp splitiden f ≅ f
 splitidl {ide}{ide'}{f} = 
   let open SplitMap f
       open Idem X ide
       open Idem X ide' renaming (E to E' ; e to e' ; law to law')
-  in split≅ 
+  in split≅  (splitcomp splitiden f) f
      (proof 
       comp e' imap 
       ≅⟨ cong (comp e') (sym mlaw) ⟩ 
@@ -167,13 +171,13 @@ splitidl {ide}{ide'}{f} =
       imap 
       ∎)
 
-splitidr : {ide ide' : Idem X}{f : SplitMap ide ide'} → 
+.splitidr : {ide ide' : Idem X}{f : SplitMap ide ide'} → 
            splitcomp f splitiden ≅ f
 splitidr {ide}{ide'}{f} = 
   let open SplitMap f
       open Idem X ide
       open Idem X ide' renaming (E to E' ; e to e' ; law to law')
-  in split≅ 
+  in split≅ (splitcomp f splitiden) f
      (proof 
       comp imap e
       ≅⟨ cong (λ y → comp y e) (sym mlaw) ⟩ 
@@ -196,9 +200,12 @@ SplitCat E =
     Hom = λ {(ide , p) (ide' , p') → SplitMap ide ide'};
     iden = splitiden;
     comp = splitcomp;
-    idl = splitidl;
-    idr = splitidr;
-    ass = split≅ ass }
+    idl = λ{_}{_}{f} → splitidl {f = f} ;
+    idr = λ{_}{_}{f} → splitidr {f = f} ;
+    ass = λ{_}{_}{_}{_}{f}{g}{h} → split≅ 
+      (splitcomp (splitcomp f g) h)
+      (splitcomp f (splitcomp g h))
+      ass }
 
 idemsplit : ∀(ide : Idem X)(E : IdemClass) → 
             let open IdemClass E
@@ -218,7 +225,7 @@ everysplit ide E p = record {
     law1 = splitidl; 
     law2 = splitidl }
 
-postulate splitmap≅ : {ide ide' : Idem X}{sp sp' : SplitMap ide ide'} → 
+postulate .splitmap≅ : {ide ide' : Idem X}(sp sp' : SplitMap ide ide') → 
                       let open SplitMap sp
                           open SplitMap sp' renaming (imap to imap'; mlaw to mlaw')
                       in imap ≅ imap' → sp ≅ sp'

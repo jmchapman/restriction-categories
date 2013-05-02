@@ -12,12 +12,12 @@ record RestCat : Set where
   field cat  : Cat
   open  Cat cat
   field rest : ∀{A B} → Hom A B → Hom A A
-        R1   : ∀{A B}{f : Hom A B} → comp f (rest f) ≅ f 
-        R2   : ∀{A B C}{f : Hom A B}{g : Hom A C} →
+        .R1   : ∀{A B}{f : Hom A B} → comp f (rest f) ≅ f 
+        .R2   : ∀{A B C}{f : Hom A B}{g : Hom A C} →
                comp (rest f) (rest g) ≅ comp (rest g) (rest f)
-        R3   : ∀{A B C}{f : Hom A B}{g : Hom A C} →
+        .R3   : ∀{A B C}{f : Hom A B}{g : Hom A C} →
                comp (rest g) (rest f) ≅ rest (comp g (rest f))
-        R4   : ∀{A B C}{f : Hom A B}{g : Hom B C} →
+        .R4   : ∀{A B C}{f : Hom A B}{g : Hom B C} →
                comp (rest g) f ≅ comp f (rest (comp g f))
 
 
@@ -26,7 +26,7 @@ module Lemmata (X : RestCat) where
   open Cat cat
   open Monos cat
   
-  lemii : ∀{A B}{f : Hom A B} → comp (rest f) (rest f) ≅ rest f
+  .lemii : ∀{A B}{f : Hom A B} → comp (rest f) (rest f) ≅ rest f
   lemii {f = f} = 
     proof
     comp (rest f) (rest f) 
@@ -36,7 +36,7 @@ module Lemmata (X : RestCat) where
     rest f
     ∎
 
-  lemiii : ∀{A B}{f : Hom A B} → Mono f → rest f ≅ iden
+  .lemiii : ∀{A B}{f : Hom A B} → Mono f → rest f ≅ iden
   lemiii {f = f} p = p $
     proof
     comp f (rest f)
@@ -46,7 +46,7 @@ module Lemmata (X : RestCat) where
     comp f iden
     ∎
 
-  lemi : ∀{A B}{f : Hom A B} → rest (rest f) ≅ rest f
+  .lemi : ∀{A B}{f : Hom A B} → rest (rest f) ≅ rest f
   lemi {f = f} = 
     proof
     rest (rest f)
@@ -60,7 +60,7 @@ module Lemmata (X : RestCat) where
     rest f
     ∎
 
-  lemiv : ∀{A B C}{f : Hom A B}{g : Hom B C} → 
+  .lemiv : ∀{A B C}{f : Hom A B}{g : Hom B C} → 
           rest (comp g f) ≅ rest (comp (rest g) f)
   lemiv {f = f}{g = g} = 
     proof
@@ -83,7 +83,7 @@ module Lemmata (X : RestCat) where
   f ≤ g = comp g (rest f) ≅ f
 
   -- antisymmetry
-  ex1 : ∀{A B}(f g : Hom A B) → f ≤ g → g ≤ f → f ≅ g
+  .ex1 : ∀{A B}(f g : Hom A B) → f ≤ g → g ≤ f → f ≅ g
   ex1 f g p q = 
     proof 
     f 
@@ -131,20 +131,28 @@ module Totals (X : RestCat) where
 
   record Tot (A B : Obj) : Set where
     field hom : Hom A B 
-          tot : rest hom ≅ iden {A}
+          .tot : rest hom ≅ iden {A}
 
   open Tot
 
-  TotEq : ∀{A B}{f g : Tot A B} → hom f ≅ hom g → f ≅ g
-  TotEq {A}{B}{f}{g} p = cong₂
+  .TotEq : ∀{A B}(f g : Tot A B) → hom f ≅ hom g → f ≅ g
+  TotEq {A}{B} f g p = cong₂
     {_}
     {_}
     {_}
     {Hom A B}
     {λ hom → rest hom ≅ iden {A}}
     {λ _ _ → Tot A B}
-    (λ x y → record { hom = x; tot = y }) p 
+    {hom f}
+    {hom g}
+    {tot f}
+    {tot g}    
+    (λ x y → record { hom = x; tot = y }) 
+    p 
     (fixtypes (cong rest p) refl)
+
+  identot : ∀{A} → Tot A A
+  identot = record { hom = iden; tot = lemiii (idmono cat) } 
 
   comptot : ∀{A B C}(g : Tot B C)(f : Tot A B) → Tot A C
   comptot g f = record { 
@@ -166,30 +174,33 @@ module Totals (X : RestCat) where
   Total = record {
     Obj  = Obj; 
     Hom  = Tot;
-    iden = record { hom = iden; tot = lemiii (idmono cat) };
+    iden = identot;
     comp = comptot;
-    idl  = TotEq idl;
-    idr  = TotEq idr;
-    ass  = TotEq ass}
+    idl  = λ{_}{_}{f} → TotEq (comptot identot f) f idl;
+    idr  = λ{_}{_}{f} → TotEq (comptot f identot) f idr;
+    ass  = λ{_}{_}{_}{_}{f}{g}{h} → 
+      TotEq (comptot (comptot f g) h) (comptot f (comptot g h)) ass}
 
-  MonoTot : ∀{A B}(f : Tot A B) → Mono cat (hom f) → Mono Total f
-  MonoTot f p {C}{g}{h} q = TotEq (p (cong hom q))
+  .MonoTot : ∀{A B}(f : Tot A B) → Mono cat (hom f) → Mono Total f
+  MonoTot f p {C}{g}{h} q = TotEq g h (p (cong hom q))
 
-  IsoTot : ∀{A B}(f : Tot A B) → Iso cat (hom f) → Iso Total f
+  .IsoTot : ∀{A B}(f : Tot A B) → Iso cat (hom f) → Iso Total f
   IsoTot f (g , p , q) = 
     let open Tot f renaming (hom to fhom)
-    in (record { 
-      hom = g; 
-      tot = iso→mono cat (fhom , q , p) 
+        gt = record { 
+          hom = g; 
+          tot = iso→mono cat (fhom , q , p) 
                          (proof
                           comp g (rest g)
                           ≅⟨ R1 ⟩
                           g
                           ≅⟨ sym idr ⟩
                           comp g iden
-                          ∎) }) , 
-     TotEq p , 
-     TotEq q
+                          ∎) }
+
+    in gt  , 
+     TotEq (comptot f gt) identot p , 
+     TotEq (comptot gt f) identot q
 
 open import Functors
 
@@ -198,7 +209,7 @@ record RestFun (X Y : RestCat) : Set where
   open RestCat
   open Fun
   field fun   : Fun (cat X) (cat Y)
-        frest : ∀{A B}{f : Hom (cat X) A B} → 
+        .frest : ∀{A B}{f : Hom (cat X) A B} → 
                 rest Y (HMap fun f) ≅ HMap fun (rest X f)
 
 F : ∀{X} → Fun (Totals.Total X) (RestCat.cat X)
@@ -217,8 +228,8 @@ RF {X} = record {
   where open Totals X
         open Tot
 
-RFFaithful : ∀{X} → Faithful (F {X})
-RFFaithful {X} = TotEq
+.RFFaithful : ∀{X} → Faithful (F {X})
+RFFaithful {X} = λ {_} {_} {f} {g} → TotEq f g
   where open Totals X
         open Tot
 
@@ -236,7 +247,7 @@ record SplitRestCat : Set where
 
 open import Splits
 
-restprop : {X : RestCat} → 
+.restprop : {X : RestCat} → 
            let open RestCat X
                open Cat cat
                open Idems cat
@@ -305,43 +316,41 @@ RSplitCat {X} E =
     R1 = λ {ide}{_}{f} → 
       let open SplitMap cat f
           open Idem (proj₁ ide)
-      in splitmap≅ cat (
-         proof
-         comp imap (comp (rest imap) e)
-         ≅⟨ sym ass ⟩
-         comp (comp imap (rest imap)) e
-         ≅⟨ cong (λ y → comp y e) R1 ⟩
-         comp imap e
-         ≅⟨ splitprop cat f ⟩
-         imap
-         ∎); 
+      in splitmap≅ cat (splitcomp cat f (restsplitmap {X} f)) f
+           (proof
+            comp imap (comp (rest imap) e) ≅⟨ sym ass ⟩
+            comp (comp imap (rest imap)) e ≅⟨ cong (λ y → comp y e) R1 ⟩
+            comp imap e ≅⟨ splitprop cat f ⟩ (imap ∎)); 
     R2 = λ {ide}{_}{_}{g}{f} → 
       let open SplitMap cat f
           open Idem (proj₁ ide)
           open SplitMap cat g renaming (imap to imap')
-      in splitmap≅ cat (
-           proof
-           comp (comp (rest imap') e) (comp (rest imap) e)
-           ≅⟨ cong (λ y → comp y (comp (rest imap) e)) (restprop {X} g) ⟩
-           comp (comp e (rest imap')) (comp (rest imap) e)
-           ≅⟨ ass ⟩
-           comp e (comp (rest imap') (comp (rest imap) e))
-           ≅⟨ cong (comp e) (sym ass) ⟩
-           comp e (comp (comp (rest imap') (rest imap)) e)
-           ≅⟨ cong (λ y → comp e (comp y e)) R2 ⟩
-           comp e (comp (comp (rest imap) (rest imap')) e)
-           ≅⟨ cong (comp e) ass ⟩
-           comp e (comp (rest imap) (comp (rest imap') e))
-           ≅⟨ sym ass ⟩
-           comp (comp e (rest imap)) (comp (rest imap') e)
-           ≅⟨ cong (λ y → comp y (comp (rest imap') e)) (sym (restprop {X} f)) ⟩
-           comp (comp (rest imap) e) (comp (rest imap') e)
-           ∎);
+      in splitmap≅ cat (splitcomp cat (restsplitmap {X} g) 
+                                      (restsplitmap {X} f)) 
+                       (splitcomp cat (restsplitmap {X} f) 
+                                      (restsplitmap {X} g))
+           (proof
+            comp (comp (rest imap') e) (comp (rest imap) e) ≅⟨
+            cong (λ y → comp y (comp (rest imap) e)) (restprop {X} g) ⟩
+            comp (comp e (rest imap')) (comp (rest imap) e) ≅⟨ ass ⟩
+            comp e (comp (rest imap') (comp (rest imap) e)) ≅⟨
+            cong (comp e) (sym ass) ⟩
+            comp e (comp (comp (rest imap') (rest imap)) e) ≅⟨
+            cong (λ y → comp e (comp y e)) R2 ⟩
+            comp e (comp (comp (rest imap) (rest imap')) e) ≅⟨
+            cong (comp e) ass ⟩
+            comp e (comp (rest imap) (comp (rest imap') e)) ≅⟨ sym ass ⟩
+            comp (comp e (rest imap)) (comp (rest imap') e) ≅⟨
+            cong (λ y → comp y (comp (rest imap') e)) (sym (restprop {X} f)) ⟩
+            (comp (comp (rest imap) e) (comp (rest imap') e) ∎));
     R3 = λ {ide}{_}{_}{f}{g} → 
       let open SplitMap cat f
           open Idem (proj₁ ide)
           open SplitMap cat g renaming (imap to imap')
-      in splitmap≅ cat (
+      in splitmap≅ cat (splitcomp cat (restsplitmap {X} g) 
+                                      (restsplitmap {X} f))
+                       (restsplitmap {X} (splitcomp cat g 
+                                                        (restsplitmap {X} f))) (
         proof
         comp (comp (rest imap') e) (comp (rest imap) e)
         ≅⟨ ass ⟩
@@ -364,14 +373,15 @@ RSplitCat {X} E =
         comp (rest (comp imap' (comp e (rest imap)))) e
         ≅⟨ cong (λ y → comp (rest (comp imap' y)) e) (sym (restprop {X} f)) ⟩
         comp (rest (comp imap' (comp (rest imap) e))) e
-        ∎); 
+        ∎);
     R4 = λ {ide}{ide'}{ide''}{f}{g} → 
       let open SplitMap cat f
           open Idem (proj₁ ide)
           open Idem (proj₁ ide') renaming (e to e')
           open SplitMap cat g renaming (imap to imap')
       in 
-        splitmap≅ cat
+        splitmap≅ cat (splitcomp cat (restsplitmap {X} g) f)
+                      (splitcomp cat f (restsplitmap {X} (splitcomp cat g f)))
         (proof 
          comp (comp (rest imap') e') imap 
          ≅⟨ ass ⟩ 
@@ -387,7 +397,6 @@ RSplitCat {X} E =
          ≅⟨ ass ⟩
          comp imap (comp (rest (comp imap' imap)) e) 
          ∎) }
-
 
 
 
@@ -412,7 +421,7 @@ RestIdemsClass {X} =
       rest iden
       ∎ }
 
-RestIdemIsIdem : {X : RestCat} → 
+.RestIdemIsIdem : {X : RestCat} → 
                  let open RestCat X
                      open Cat cat
                      open Idems cat

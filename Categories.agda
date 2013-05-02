@@ -12,18 +12,19 @@ record Cat : Set where
         Hom  : Obj → Obj → Set
         iden : ∀{X} → Hom X X
         comp : ∀{X Y Z} → Hom Y Z → Hom X Y → Hom X Z
-        idl  : ∀{X Y}{f : Hom X Y} → comp iden f ≅ f
-        idr  : ∀{X Y}{f : Hom X Y} → comp f iden ≅ f
-        ass  : ∀{W X Y Z}{f : Hom Y Z}{g : Hom X Y}{h : Hom W X} → 
+        .idl  : ∀{X Y}{f : Hom X Y} → comp iden f ≅ f
+        .idr  : ∀{X Y}{f : Hom X Y} → comp f iden ≅ f
+        .ass  : ∀{W X Y Z}{f : Hom Y Z}{g : Hom X Y}{h : Hom W X} → 
                comp (comp f g) h ≅ comp f (comp g h)
+
 
 module Monos (X : Cat) where
   open Cat X
 
   Mono : ∀{A B} → Hom A B → Set
-  Mono f = ∀{C}{g h : Hom C _} → comp f g ≅ comp f h → g ≅ h
+  Mono f = ∀{C}{g h : Hom C _} → (comp f g ≅ comp f h) → g ≅ h
 
-  idmono : ∀{A} → Mono (iden {A})
+  .idmono : ∀{A} → Mono (iden {A})
   idmono {_}{_}{g}{h} p = 
     proof
     g 
@@ -35,7 +36,7 @@ module Monos (X : Cat) where
     h 
     ∎
 
-  compmonos : ∀{A B C}(f : Hom A B)(g : Hom B C) → Mono f → Mono g → 
+  .compmonos : ∀{A B C}(f : Hom A B)(g : Hom B C) → Mono f → Mono g → 
               Mono (comp g f)
   compmonos f g p q {D}{h1}{h2} r = p $ q $
     proof 
@@ -47,7 +48,6 @@ module Monos (X : Cat) where
     ≅⟨ ass ⟩ 
     comp g (comp f h2) 
     ∎
-
 
 module Epis (X : Cat) where
   open Cat X
@@ -62,10 +62,10 @@ module Isos (X : Cat) where
   Iso : ∀{A B} → Hom A B → Set
   Iso {A}{B} f = Σ (Hom B A) (λ g → comp f g ≅ iden {B} × comp g f ≅ iden {A})
 
-  idiso : ∀{A} → Iso (iden {A})
+  .idiso : ∀{A} → Iso (iden {A})
   idiso = iden , idl , idl
 
-  invuniq : ∀{A B}(f : Hom A B)(p q : Iso f) → proj₁ p ≅ proj₁ q
+  .invuniq : ∀{A B}(f : Hom A B)(p q : Iso f) → proj₁ p ≅ proj₁ q
   invuniq f (g , p , p') (g' , q , q') = 
     proof 
     g 
@@ -82,7 +82,7 @@ module Isos (X : Cat) where
     ∎
 
   open Monos X
-  iso→mono : ∀{A B}{f : Hom A B} → Iso f → Mono f
+  .iso→mono : ∀{A B}{f : Hom A B} → Iso f → Mono f
   iso→mono {_}{_}{f} (f' , p , p') {_}{g}{h} q = 
     proof 
     g 
@@ -102,7 +102,7 @@ module Isos (X : Cat) where
     h 
     ∎
 
-  compisos : ∀{A B C}{f : Hom A B}{g : Hom B C} → Iso f → Iso g → 
+  .compisos : ∀{A B C}{f : Hom A B}{g : Hom B C} → Iso f → Iso g → 
              Iso (comp g f)
   compisos {_}{_}{_} {f} {g} (f' , p , p') (g' , q , q') = 
     (comp f' g') , 
@@ -140,7 +140,7 @@ module Sections (X : Cat) where
   Sec : ∀{A B} → Hom A B → Set
   Sec {A}{B} s = Σ (Hom B A) λ r → comp r s ≅ iden {A}
 
-  smon : ∀{A B}(s : Hom A B) → Sec s → Mono s
+  .smon : ∀{A B}(s : Hom A B) → Sec s → Mono s
   smon s (r , q) {_}{g}{h} p = 
     proof
     g
@@ -166,20 +166,20 @@ module Idems (X : Cat) where
   record Idem : Set where
     field E : Obj
           e : Hom E E
-          law : comp e e ≅ e
+          .law : comp e e ≅ e
 
   record Split (ide : Idem) : Set where
     open Idem ide
     field B : Obj 
           s : Hom B E
           r : Hom E B
-          law1 : comp s r ≅ e
-          law2 : comp r s ≅ iden {B}
+          .law1 : comp s r ≅ e
+          .law2 : comp r s ≅ iden {B}
 
   open Epis X
   open Monos X
 
-  repi : ∀{e : Idem}{sp : Split e} → 
+  .repi : ∀{e : Idem}{sp : Split e} → 
          let open Split sp
          in
          Epi r
@@ -204,8 +204,8 @@ module Idems (X : Cat) where
     h 
     ∎
 
-{-
-  lemma : ∀(e : Idem)(sp sp' : Split e) → 
+
+  .lemma : ∀(e : Idem)(sp sp' : Split e) → 
           let open Isos X
               open Split sp
               open Split sp' renaming (B to B'; s to s'; r to r')
@@ -299,7 +299,7 @@ module Idems (X : Cat) where
         ≅⟨ idr ⟩ 
         s
         ∎)
--}
+
 
 _Op : Cat → Cat
 C Op = record {

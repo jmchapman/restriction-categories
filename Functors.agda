@@ -12,8 +12,8 @@ record Fun (C D : Cat) : Set where
   open Cat
   field OMap  : Obj C → Obj D
         HMap  : ∀{X Y} → Hom C X Y → Hom D (OMap X) (OMap Y)
-        fid   : ∀{X} → HMap (iden C {X}) ≅ iden D {OMap X}
-        fcomp : ∀{X Y Z}{f : Hom C Y Z}{g : Hom C X Y} → 
+        .fid   : ∀{X} → HMap (iden C {X}) ≅ iden D {OMap X}
+        .fcomp : ∀{X Y Z}{f : Hom C Y Z}{g : Hom C X Y} → 
                 HMap (comp C f g) ≅ comp D (HMap f) (HMap g)
 
 IdF : ∀ C → Fun C C
@@ -22,7 +22,7 @@ IdF C = record{OMap = id;HMap = id;fid = refl;fcomp = refl}
 open Fun
 open Cat
 
-○fid : {C D E : Cat} (F : Fun D E)(G : Fun C D){X : Obj C} →
+.○fid : {C D E : Cat} (F : Fun D E)(G : Fun C D){X : Obj C} →
        HMap F (HMap G (iden C {X})) ≅ iden E {OMap F (OMap G X)}
 ○fid {C}{D}{E} F G =  
   proof
@@ -33,7 +33,7 @@ open Cat
   iden E 
   ∎ 
 
-○fcomp : {C D E : Cat} (F : Fun D E)(G : Fun C D)
+.○fcomp : {C D E : Cat} (F : Fun D E)(G : Fun C D)
   {X Y Z : Obj C} {f : Hom C Y Z}{g : Hom C X Y} →
   (HMap F ∘ HMap G) (comp C f g) 
   ≅ 
