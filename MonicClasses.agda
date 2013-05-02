@@ -21,8 +21,8 @@ module MonicClasses (X : SplitRestCat) where
     field As    : Obj
           fs    : Hom E As
           rs    : Hom E B
-          law1s : comp (hom s) rs ≅ rest fs
-          law2s : comp rs (hom s) ≅ iden {B}
+          .law1s : comp (hom s) rs ≅ rest fs
+          .law2s : comp rs (hom s) ≅ iden {B}
 
   open Monos
   open Isos Total
@@ -41,10 +41,11 @@ module MonicClasses (X : SplitRestCat) where
       r = rs; 
       law1 = law1s; 
       law2 = law2s }
+-}
 
+  .MXmon : ∀{B E}{s : Tot B E} → SRestIde s → Mono Total s
+  MXmon {_}{_}{s} sride {_}{g}{h} q = TotEq g h (smon (hom s) (SRestIde.rs sride , SRestIde.law2s sride) (cong hom q))
 
-  MXmon : ∀{B E}{s : Tot B E} → SRestIde s → Mono Total s
-  MXmon {_}{_}{s} sride {_}{g}{h} q = TotEq (smon (hom s) (SRestIde.rs sride , SRestIde.law2s sride) (cong hom q))
 
   MXiso : ∀{B E}{s : Tot B E} → Iso s → SRestIde s
   MXiso {_}{E}{s} (g , p , q) = record { 
@@ -60,8 +61,9 @@ module MonicClasses (X : SplitRestCat) where
       rest iden
       ∎; 
     law2s = cong hom q }
+
  
-  SRIdeProp : ∀{B E}{s : Tot B E} → (sride : SRestIde s) →
+  .SRIdeProp : ∀{B E}{s : Tot B E} → (sride : SRestIde s) →
     let open SRestIde sride
     in comp (hom s) rs ≅ rest rs
   SRIdeProp {_}{_}{s} sride = 
@@ -82,6 +84,7 @@ module MonicClasses (X : SplitRestCat) where
     ≅⟨ cong rest idl ⟩
     rest rs
     ∎
+
 
   MXcomp : ∀{B E E'}{s : Tot B E}{s' : Tot E E'} → SRestIde s → 
            SRestIde s' → SRestIde (comptot s' s)
@@ -131,8 +134,6 @@ module MonicClasses (X : SplitRestCat) where
          iden
          ∎}
 
--}
-
   MXpul : ∀{A B C}(ft : Tot C B){mt : Tot A B} → SRestIde mt → 
           Σ (Pullback ft mt) λ p → 
           let open Pullback p
@@ -157,7 +158,7 @@ module MonicClasses (X : SplitRestCat) where
                                                  r to r';
                                                  law1 to law1e';
                                                  law2 to law2e')
-
+        .mp' : _
         mp' = lemiii (smon m' ((r' , law2e')))
         
         mt' : Tot D C
@@ -168,7 +169,7 @@ module MonicClasses (X : SplitRestCat) where
         f' : Hom D A
         f' = comp r (comp f m')
   
-        fp' : rest f' ≅ iden
+        .fp' : rest f' ≅ iden
         fp' =
           proof
           rest (comp r (comp f m'))
@@ -203,7 +204,7 @@ module MonicClasses (X : SplitRestCat) where
           hom = f';
           tot = fp'}        
 
-        sqscom : comp f m' ≅ comp m f'
+        .sqscom : comp f m' ≅ comp m f'
         sqscom = 
             proof 
             comp f m' 
@@ -236,10 +237,10 @@ module MonicClasses (X : SplitRestCat) where
           W = D; 
           h = mt';
           k = ft';
-          scom = TotEq sqscom}
+          scom = TotEq (comptot ft mt') (comptot mt ft') sqscom}
 
         prop : (sq' : Square ft mt) →
-               Σ (PMap sq' sq) λ u → (u' : PMap sq' sq) → PMap.mor u ≅  PMap.mor u'
+               Σ' (PMap sq' sq) λ u → (u' : PMap sq' sq) → PMap.mor u ≅  PMap.mor u'
         prop sq' = 
           let open Square sq' renaming (W to D';
                                         h to xt;
@@ -252,7 +253,7 @@ module MonicClasses (X : SplitRestCat) where
               α : Hom D' D
               α = comp r' x
 
-              αprop2 : comp f' α ≅ y
+              .αprop2 : comp f' α ≅ y
               αprop2 = smon m (r , law2e) 
                   (proof
                    comp m (comp (comp r (comp f m')) (comp r' x))
@@ -290,7 +291,7 @@ module MonicClasses (X : SplitRestCat) where
                    comp m y
                    ∎)
 
-              αprop : comp m' α ≅ x
+              .αprop : comp m' α ≅ x
               αprop = 
                   proof
                   comp m' α
@@ -326,7 +327,7 @@ module MonicClasses (X : SplitRestCat) where
                   x
                   ∎
 
-              αp : rest α ≅ iden
+              .αp : rest α ≅ iden
               αp =
                      proof
                      rest (comp r' x)
@@ -350,36 +351,33 @@ module MonicClasses (X : SplitRestCat) where
               αpmap : PMap sq' sq
               αpmap = record {
                 mor = αt;
-                prop1 = TotEq αprop;
-                prop2 = TotEq αprop2}
-
-           in αpmap , 
-              (λ umap' → 
-               let open PMap umap' renaming (mor to ut')
-                   open Tot ut' renaming (hom to u')
-               in TotEq (smon m' (r' , law2e') 
-                  (proof
-                   comp m' α
-                   ≅⟨ αprop ⟩
-                   x
-                   ≅⟨ cong hom (sym prop1) ⟩
-                   comp m' u'
-                   ∎)))   
-
+                prop1 = TotEq (comptot mt' αt) xt αprop;
+                prop2 = TotEq (comptot ft' αt) yt αprop2}
+          in αpmap ,,
+               (λ umap' →
+                  let open PMap umap' renaming (mor to ut')
+                      open Tot ut' renaming (hom to u')
+                  in TotEq αt ut'
+                     (smon m' (r' , law2e')
+                      (proof
+                       comp m' α 
+                       ≅⟨ αprop ⟩
+                       x 
+                       ≅⟨ cong hom (sym prop1) ⟩
+                       comp m' u'
+                       ∎)))
     in record { sq = sq; prop = prop} ,
-       record { As = B; fs = comp e f; rs = r'; law1s = law1e'; law2s = law2e' }
+       record { As = B; fs = comp e f; rs = r'; law1s = law1e'; law2s = law2e'}
 
-{-
   open import Stable
 
   M : StableSys Total
   M = record { 
     ∈ = SRestIde; 
     mon = MXmon;
-    iso = MXiso; 
+    iso = λ {_}{_}{s} → MXiso {s = s};
     com = MXcomp; 
     pul = MXpul }
--}
 
 
 

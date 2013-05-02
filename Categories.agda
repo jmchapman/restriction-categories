@@ -60,7 +60,7 @@ module Isos (X : Cat) where
   open Cat X
 
   Iso : ∀{A B} → Hom A B → Set
-  Iso {A}{B} f = Σ (Hom B A) (λ g → comp f g ≅ iden {B} × comp g f ≅ iden {A})
+  Iso {A}{B} f = Σ (Hom B A) (λ g → (comp f g ≅ iden {B}) × (comp g f ≅ iden {A}))
 
   .idiso : ∀{A} → Iso (iden {A})
   idiso = iden , idl , idl
@@ -210,7 +210,7 @@ module Idems (X : Cat) where
               open Split sp
               open Split sp' renaming (B to B'; s to s'; r to r')
           in
-          Σ (Hom B B') λ α → Iso α × comp α r ≅ r' × comp s' α ≅ s
+          Σ (Hom B B') λ α → Iso α × (comp α r ≅ r') × comp s' α ≅ s
   lemma ide sp sp' =  
     let open Isos X
         open Idem ide

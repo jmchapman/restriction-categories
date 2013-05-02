@@ -3,12 +3,13 @@ module PullbacksLemmas (X : Cat) where
 open import Relation.Binary.HeterogeneousEquality
 open ≅-Reasoning renaming (begin_ to proof_)
 open import Data.Product
+open import Equality
 open Cat X
 open Monos X
 open import Pullbacks X
 open import Function
 
-pullbackmonic : ∀{X Y Z}{f : Hom X Z}{g : Hom Y Z} → Mono g → 
+.pullbackmonic : ∀{X Y Z}{f : Hom X Z}{g : Hom Y Z} → Mono g → 
                 (q : Pullback f g) → Mono (Square.h (Pullback.sq q))
 pullbackmonic {X}{Y}{Z}{f}{g} p q {A}{f₁}{f₂} r = 
   let open Pullback q
@@ -61,9 +62,9 @@ pullbackmonic {X}{Y}{Z}{f}{g} p q {A}{f₁}{f₂} r =
   in 
      proof 
      f₁ 
-     ≅⟨ sym (proj₂ u (record { mor = f₁; prop1 = refl; prop2 = refl })) ⟩ 
-     mor (proj₁ u)
-     ≅⟨ proj₂ u (record { mor = f₂; prop1 = sym r; prop2 = sym lem}) ⟩ 
+     ≅⟨ sym (snd u (record { mor = f₁; prop1 = refl; prop2 = refl })) ⟩ 
+     mor (fst u)
+     ≅⟨ snd u (record { mor = f₂; prop1 = sym r; prop2 = sym lem}) ⟩ 
      f₂ 
      ∎
 
@@ -80,7 +81,7 @@ monic→pullback {X}{Z}{f} p = record {
                       comp iden (k sq')
                       ≅⟨ idl ⟩ 
                       k sq'
-                      ∎}) , 
+                      ∎}) ,, 
                  (λ u' → 
                       proof 
                       h sq'
@@ -96,7 +97,7 @@ monic→pullback {X}{Z}{f} p = record {
 easysquare : ∀{X Z}(f : Hom X Z) → Square f f
 easysquare {X}{Z} f  = record { W = X; h = iden; k = iden; scom = refl }
 
-pullback→mono : ∀{X Z}{f : Hom X Z} → 
+.pullback→mono : ∀{X Z}{f : Hom X Z} → 
                 ((sq' : Square f f) → 
                  Σ (PMap sq' (easysquare f)) 
                    λ u → (u' : PMap sq' (easysquare f)) → 
@@ -154,7 +155,7 @@ iso→pullback {X}{Y}{Z}{f}{g} (g' , p , q) = record {
                       comp iden (k sq') 
                       ≅⟨ idl ⟩ 
                       k sq' 
-                      ∎ }) , 
+                      ∎ }) ,,
                   (λ u' →                      
                      proof 
                      h sq' 
