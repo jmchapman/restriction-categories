@@ -122,7 +122,9 @@ open Square
 open PMap
 
 iso→pullback : ∀{X Y Z}{f : Hom X Z}{g : Hom Y Z} → Iso g → Pullback f g
-iso→pullback {X}{Y}{Z}{f}{g} (g' , p , q) = record { 
+iso→pullback {X}{Y}{Z}{f}{g} giso = 
+  let open Iso giso renaming (inv to g'; rinv to p; linv to q)
+  in record { 
   sq = record { 
     W = X;
     h = iden;

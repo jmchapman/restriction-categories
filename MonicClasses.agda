@@ -48,7 +48,9 @@ module MonicClasses (X : SplitRestCat) where
 
 
   MXiso : ∀{B E}{s : Tot B E} → Iso s → SRestIde s
-  MXiso {_}{E}{s} (g , p , q) = record { 
+  MXiso {_}{E}{s} siso = 
+    let open Iso siso renaming (inv to g; rinv to p; linv to q)
+    in record { 
     As = E; 
     fs = iden; 
     rs = hom g; 

@@ -19,28 +19,15 @@ module Completeness (X : SplitRestCat) where
   open import Pullbacks cat
   open Lemmata
 
-  record SRestIde {B E} (s : Tot B E) : Set where
-    field As    : Obj
-          fs    : Hom E As
-          rs    : Hom E B
-          law1s : comp (hom s) rs ≅ rest fs
-          law2s : comp rs (hom s) ≅ iden {B}
-
-  M : StableSys Total
-  M = record { 
-    ∈ = SRestIde; 
-    mon = {!!};
-    iso = {!!}; 
-    com = {!!}; 
-    pul = {!!} }
+  open import MonicClasses X
 
   open import PartialMaps Total M
   open Idems cat
   open Sections cat
   open Monos cat
-  open Isos cat
+  open Isos
 
-  totcomprest : {A C : Obj}(f : Hom A C) → (sp : Split (record { E = A; e = rest f; law = lemii rcat })) →
+  .totcomprest : {A C : Obj}(f : Hom A C) → (sp : Split (record { E = A; e = rest f; law = lemii rcat })) →
                  let open Split sp
                  in rest (comp f s) ≅ iden {B}
   totcomprest f sp = 
@@ -94,15 +81,15 @@ module Completeness (X : SplitRestCat) where
       fid = λ {A} → 
             let open Split (rsplit (iden {A}))
                 
-                isos : Iso s
-                isos = r , 
+                isos : Iso cat s
+                isos = r ,, 
                        (proof
                         comp s r
                         ≅⟨ law1 ⟩
                         rest (iden {A})
                         ≅⟨ lemiii rcat idmono ⟩
                         iden
-                        ∎) , 
+                        ∎) ,, 
                        law2
 
                 stot : Tot B A
@@ -112,16 +99,16 @@ module Completeness (X : SplitRestCat) where
               _ 
               _ 
               (record { hom = s; tot = lemiii rcat (smon s (r , law2)) })
-              (proj₁ (IsoTot stot isos) ,
-               TotEq (
+              (Iso.inv Total (IsoTot stot isos) ,,
+               TotEq _ _ (
                  proof
                  comp s r
                  ≅⟨ law1 ⟩
                  rest (iden {A})
                  ≅⟨ lemiii rcat idmono ⟩
                  iden
-                 ∎) , 
-               TotEq law2) 
-              (TotEq idl) 
-              (TotEq refl);
+                 ∎) ,, 
+               TotEq _ _ law2 ) 
+              (TotEq _ _ idl) 
+              (TotEq _ _ refl);
       fcomp = {!!} }

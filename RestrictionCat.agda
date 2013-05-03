@@ -185,11 +185,12 @@ module Totals (X : RestCat) where
   MonoTot f p {C}{g}{h} q = TotEq g h (p (cong hom q))
 
   .IsoTot : ∀{A B}(f : Tot A B) → Iso cat (hom f) → Iso Total f
-  IsoTot f (g , p , q) = 
-    let open Tot f renaming (hom to fhom)
+  IsoTot f fiso = 
+    let open Iso cat fiso renaming (inv to g; rinv to p; linv to q) 
+        open Tot f renaming (hom to fhom)
         gt = record { 
           hom = g; 
-          tot = iso→mono cat (fhom , q , p) 
+          tot = iso→mono cat (fhom ,, q ,, p) 
                          (proof
                           comp g (rest g)
                           ≅⟨ R1 ⟩
@@ -198,8 +199,8 @@ module Totals (X : RestCat) where
                           comp g iden
                           ∎) }
 
-    in gt  , 
-     TotEq (comptot f gt) identot p , 
+    in gt  ,, 
+     TotEq (comptot f gt) identot p ,,
      TotEq (comptot gt f) identot q
 
 open import Functors

@@ -2,6 +2,7 @@ open import Categories
 module PastingLemmas (X : Cat) where
   open import Relation.Binary.HeterogeneousEquality
   open ≅-Reasoning renaming (begin_ to proof_)
+  open import Equality
   open import Data.Product
   open Cat X
   open import Pullbacks X
@@ -15,7 +16,8 @@ module PastingLemmas (X : Cat) where
   bigsquare {_}{_}{_}{_}{f}{g} p {f'} q = 
     let open Square (sq p)
         open Square (sq q) renaming (W to W'; h to h'; k to k'; scom to scom')
-
+  
+        .scombs : _
         scombs =
           proof
           comp (comp f f') h' 
@@ -42,6 +44,7 @@ module PastingLemmas (X : Cat) where
   smallsquare {_}{_}{_}{_}{f}{g}{f'} r = 
     let open Square r 
 
+        .scomss : _
         scomss =
           proof 
           comp f (comp f' h) 
@@ -63,45 +66,47 @@ module PastingLemmas (X : Cat) where
   lem1 {_}{_}{_}{_}{f}{g} p {f'} q = 
     let         
         prop : (sq' : Square (comp f f') g) →
-                Σ (PMap sq' (bigsquare p q)) λ u → (u' : PMap sq' (bigsquare p q)) → PMap.mor u ≅  PMap.mor u'
+                Σ' (PMap sq' (bigsquare p q)) λ u → (u' : PMap sq' (bigsquare p q)) → PMap.mor u ≅  PMap.mor u'
         prop r = 
           let open Square (sq p)
               open Square (sq q) renaming (W to W'; h to h'; k to k'; scom to scom')
               open Square r renaming (W to W''; h to h''; k to k''; scom to scom'')
 
-              u : Σ (PMap (smallsquare r) (sq p)) 
+              u : Σ' (PMap (smallsquare r) (sq p)) 
                   (λ u → (u' : PMap (smallsquare r) (sq p)) →  mor u ≅ mor u')
               u = prop p (smallsquare r)
        
+              .scomm' : _
               scomm' =
                  proof comp f' h'' 
-                 ≅⟨ sym (prop1 (proj₁ u)) ⟩ 
-                 comp h (mor (proj₁ u))
+                 ≅⟨ sym (prop1 (fst u)) ⟩ 
+                 comp h (mor (fst u))
                  ∎
 
               m' : Square f' h
               m' = record { 
                 W    = W''; 
                 h    = h''; 
-                k    = mor (proj₁ u);
+                k    = mor (fst u);
                 scom = scomm' }
 
-              u' : Σ (PMap m' (sq q)) 
+              u' : Σ' (PMap m' (sq q)) 
                    (λ u₁ → (u' : PMap m' (sq q)) → mor u₁ ≅ mor u')
               u' = prop q m'
   
+              .prop2u' : _
               prop2u' =
                 proof
-                comp (comp k k') (mor (proj₁ u')) 
+                comp (comp k k') (mor (fst u')) 
                 ≅⟨ ass ⟩ 
-                comp k (comp k' (mor (proj₁ u')))
-                ≅⟨ cong (comp k) (prop2 (proj₁ u')) ⟩ 
-                comp k (mor (proj₁ u))
-                ≅⟨ prop2 (proj₁ u) ⟩ 
+                comp k (comp k' (mor (fst u')))
+                ≅⟨ cong (comp k) (prop2 (fst u')) ⟩ 
+                comp k (mor (fst u))
+                ≅⟨ prop2 (fst u) ⟩ 
                 k''
                 ∎
   
-              prop1p2 : (u'' : PMap r (bigsquare p q)) → comp h (comp k' (mor u'')) ≅ comp f' h''
+              .prop1p2 : (u'' : PMap r (bigsquare p q)) → comp h (comp k' (mor u'')) ≅ comp f' h''
               prop1p2 u'' =
                   proof
                   comp h (comp k' (mor u'')) 
@@ -115,7 +120,7 @@ module PastingLemmas (X : Cat) where
                   comp f' h'' 
                   ∎
 
-              prop2p2 : (u'' : PMap r (bigsquare p q)) → comp k (comp k' (mor u'')) ≅ k''
+              .prop2p2 : (u'' : PMap r (bigsquare p q)) → comp k (comp k' (mor u'')) ≅ k''
               prop2p2 u'' =
                   proof
                   comp k (comp k' (mor u'')) 
@@ -136,14 +141,14 @@ module PastingLemmas (X : Cat) where
               p1 u'' = record { 
                 mor = mor u''; 
                 prop1 = prop1 u''; 
-                prop2 = sym (proj₂ u (p2 u''))}
+                prop2 = sym (snd u (p2 u''))}
           in 
           record { 
-            mor   = (mor (proj₁ u'));
-            prop1 = prop1 (proj₁ u'); 
+            mor   = (mor (fst u'));
+            prop1 = prop1 (fst u'); 
             prop2 = prop2u' }
-          , 
-          λ u'' → proj₂ u' (p1 u'')
+          ,, 
+          λ u'' → snd u' (p1 u'')
 
     in record { 
       sq   = bigsquare p q; 
@@ -199,7 +204,7 @@ module PastingLemmas (X : Cat) where
                                     h to h'''; 
                                     k to k'''; 
                                     scom to scom''')
-        u : Σ (PMap (m2 p sq') (sq r)) 
+        u : Σ' (PMap (m2 p sq') (sq r)) 
             λ u → (u' : PMap (m2 p sq') (sq r)) → mor u ≅  mor u'
         u = prop r (m2 p sq')
 
@@ -216,33 +221,33 @@ module PastingLemmas (X : Cat) where
             ≅⟨ Square.scom (m2 p sq') ⟩
             comp g (comp k k''') 
             ∎ }
-        u' : Σ (PMap m' (sq p)) 
+        u' : Σ' (PMap m' (sq p)) 
                λ u' → (u'' : PMap m' (sq p)) → mor u' ≅  mor u''
         u' = prop p m'
 
         k'u : PMap m' (sq p)
         k'u = record { 
-          mor = comp k' (mor (proj₁ u)); 
+          mor = comp k' (mor (fst u)); 
           prop1 = 
             proof 
-            comp h (comp k' (mor (proj₁ u))) 
+            comp h (comp k' (mor (fst u))) 
             ≅⟨ sym ass ⟩
-            comp (comp h k') (mor (proj₁ u)) 
-            ≅⟨ cong (λ f → comp f (mor (proj₁ u))) (sym q) ⟩ 
-            comp (comp f' h'') (mor (proj₁ u)) 
+            comp (comp h k') (mor (fst u)) 
+            ≅⟨ cong (λ f → comp f (mor (fst u))) (sym q) ⟩ 
+            comp (comp f' h'') (mor (fst u)) 
             ≅⟨ ass ⟩ 
-            comp f' (comp h'' (mor (proj₁ u))) 
-            ≅⟨ cong (comp f') (prop1 (proj₁ u)) ⟩ 
+            comp f' (comp h'' (mor (fst u))) 
+            ≅⟨ cong (comp f') (prop1 (fst u)) ⟩ 
             comp f' h''' 
             ∎; 
           prop2 = 
             proof 
-            comp k (comp k' (mor (proj₁ u))) 
+            comp k (comp k' (mor (fst u))) 
             ≅⟨ sym ass ⟩ 
-            comp (comp k k') (mor (proj₁ u)) 
-            ≅⟨ cong (λ f → comp f (mor (proj₁ u))) (sym q') ⟩ 
-            comp k'' (mor (proj₁ u))
-            ≅⟨ prop2 (proj₁ u) ⟩ 
+            comp (comp k k') (mor (fst u)) 
+            ≅⟨ cong (λ f → comp f (mor (fst u))) (sym q') ⟩ 
+            comp k'' (mor (fst u))
+            ≅⟨ prop2 (fst u) ⟩ 
             comp k k''' 
             ∎}
         
@@ -253,18 +258,18 @@ module PastingLemmas (X : Cat) where
           prop2 = refl}
 
     in record { 
-      mor = mor (proj₁ u);
-      prop1 = prop1 (proj₁ u); 
+      mor = mor (fst u);
+      prop1 = prop1 (fst u); 
       prop2 = 
         proof
-        comp k' (mor (proj₁ u)) 
-        ≅⟨ sym (proj₂ u' k'u) ⟩
-        mor (proj₁ u')
-        ≅⟨ proj₂ u' pk'' ⟩
+        comp k' (mor (fst u)) 
+        ≅⟨ sym (snd u' k'u) ⟩
+        mor (fst u')
+        ≅⟨ snd u' pk'' ⟩
         k''' 
         ∎ }
-      , 
-       λ u'' → proj₂ u (record { 
+      ,, 
+       λ u'' → snd u (record { 
          mor = mor u''; 
          prop1 = prop1 u''; 
          prop2 = proof 

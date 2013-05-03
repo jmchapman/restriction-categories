@@ -3,6 +3,7 @@ open import Categories
 open import Stable
 open import Relation.Binary.HeterogeneousEquality
 open ≅-Reasoning renaming (begin_ to proof_)
+open import Equality
 open import Data.Product
 open import Function
 
@@ -50,14 +51,14 @@ module PartialMaps (X : Cat)(M : StableSys X) where
         fhom = comp (fhom m'f') (k y); 
         m∈ = com (proj₂ x) (m∈ mf)}
 
-    idlspan : {X Y : Obj} {mf : Span X Y} → compspan idspan mf ≅ mf
+    .idlspan : {X Y : Obj} {mf : Span X Y} → compspan idspan mf ≅ mf
     idlspan {mf = mf} =                    
       let open Pullback
           open Square
           open Span mf
       in quotient
         _ 
-        _ 
+        mf 
         (h (sq (proj₁ (pul fhom  (iso idiso))))) 
         (pullbackiso (trivialpul fhom) 
                      (proj₁ (pul fhom 
@@ -66,21 +67,21 @@ module PartialMaps (X : Cat)(M : StableSys X) where
         (scom (sq (proj₁ (pul fhom
                               (iso idiso)))))
 
-    idrspan : {X Y : Obj} {mf : Span X Y} → compspan mf idspan ≅ mf
+    .idrspan : {X Y : Obj} {mf : Span X Y} → compspan mf idspan ≅ mf
     idrspan {mf = mf} =
       let open Pullback
           open Square
           open Span mf
       in quotient
       _ 
-      _ 
+      mf 
       (k (sq (proj₁ (pul iden m∈)))) 
       (pullbackiso (sympul (trivialpul mhom))
                    (proj₁ (pul iden m∈)))
       (sym (scom (sq (proj₁ (pul iden m∈))))) 
       refl
 
-    assspan : {W X Y Z : Obj} {m''f'' : Span Y Z} {m'f' : Span X Y} {mf : Span W X} →
+    .assspan : {W X Y Z : Obj} {m''f'' : Span Y Z} {m'f' : Span X Y} {mf : Span W X} →
               compspan (compspan m''f'' m'f') mf ≅ compspan m''f'' (compspan m'f' mf)
     assspan {m''f'' = m''f''} {m'f' = m'f'} {mf = mf} = 
       let open Span mf renaming (mhom to m; fhom to f)
@@ -140,7 +141,7 @@ module PartialMaps (X : Cat)(M : StableSys X) where
               ∎ }
 
           pu : PMap sqb' sq''
-          pu = proj₁ (prop'' sqb')
+          pu = fst (prop'' sqb')
 
           open PMap pu renaming (mor to u)
 
@@ -159,7 +160,7 @@ module PartialMaps (X : Cat)(M : StableSys X) where
               ∎ }
 
           pu' : PMap sqb''' sq
-          pu' = proj₁ (prop sqb''')
+          pu' = fst (prop sqb''')
 
           open PMap pu' renaming (mor to u'; 
                                   prop1 to prop1'; 
@@ -179,7 +180,7 @@ module PartialMaps (X : Cat)(M : StableSys X) where
           open Pullback u'pul renaming (sq to u'sq ; prop to u'prop)
 
           pα : PMap u'sq usq
-          pα = proj₁ (uprop u'sq)
+          pα = fst (uprop u'sq)
 
           open PMap pα renaming (mor to α; 
                                  prop1 to prop1α; 
@@ -219,6 +220,8 @@ module PartialMaps (X : Cat)(M : StableSys X) where
       Hom = Span;
       iden = idspan;                
       comp = compspan;
-      idl = idlspan;
-      idr = idrspan;
-      ass = assspan}
+      idl = λ {X}{Y}{mf} → idlspan {mf = mf};
+      idr = λ {X}{Y}{mf} → idrspan {mf = mf};
+      ass = λ {_}{_}{_}{_}{m''f''}{m'f'}{mf} →  assspan {m''f'' = m''f''}
+                                                        {m'f' = m'f'}
+                                                        {mf = mf}}

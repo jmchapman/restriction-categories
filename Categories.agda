@@ -59,14 +59,20 @@ module Epis (X : Cat) where
 module Isos (X : Cat) where
   open Cat X
 
-  Iso : ∀{A B} → Hom A B → Set
-  Iso {A}{B} f = Σ (Hom B A) (λ g → (comp f g ≅ iden {B}) × (comp g f ≅ iden {A}))
+  record Iso {A B : Obj} (f : Hom A B) : Set where
+    constructor _,,_,,_
+    field inv  : Hom B A
+          .rinv : comp f inv ≅ iden {B}
+          .linv : comp inv f ≅ iden {A}
 
-  .idiso : ∀{A} → Iso (iden {A})
-  idiso = iden , idl , idl
+  idiso : ∀{A} → Iso (iden {A})
+  idiso = iden ,, idl ,, idl
 
-  .invuniq : ∀{A B}(f : Hom A B)(p q : Iso f) → proj₁ p ≅ proj₁ q
-  invuniq f (g , p , p') (g' , q , q') = 
+  .invuniq : ∀{A B}(f : Hom A B)(p q : Iso f) → Iso.inv p ≅ Iso.inv q
+  invuniq f piso qiso =
+    let open Iso piso renaming (inv to g; rinv to p; linv to p') 
+        open Iso qiso renaming (inv to g'; rinv to q; linv to q') 
+    in
     proof 
     g 
     ≅⟨ sym idr ⟩ 
@@ -81,9 +87,12 @@ module Isos (X : Cat) where
     g'
     ∎
 
+
   open Monos X
   .iso→mono : ∀{A B}{f : Hom A B} → Iso f → Mono f
-  iso→mono {_}{_}{f} (f' , p , p') {_}{g}{h} q = 
+  iso→mono {_}{_}{f} f'iso {_}{g}{h} q =
+    let open Iso f'iso renaming (inv to f'; rinv to p; linv to p')
+    in
     proof 
     g 
     ≅⟨ sym idl ⟩ 
@@ -104,8 +113,11 @@ module Isos (X : Cat) where
 
   .compisos : ∀{A B C}{f : Hom A B}{g : Hom B C} → Iso f → Iso g → 
              Iso (comp g f)
-  compisos {_}{_}{_} {f} {g} (f' , p , p') (g' , q , q') = 
-    (comp f' g') , 
+  compisos {_}{_}{_} {f} {g} piso qiso = 
+    let open Iso piso renaming (inv to f'; rinv to p; linv to p') 
+        open Iso qiso renaming (inv to g'; rinv to q; linv to q') 
+    in 
+    (comp f' g') ,, 
     (proof 
      comp (comp g f) (comp f' g') 
      ≅⟨ ass ⟩ 
@@ -118,7 +130,7 @@ module Isos (X : Cat) where
      comp g g' 
      ≅⟨ q ⟩ 
      iden 
-     ∎) , 
+     ∎) ,, 
     (proof 
      comp (comp f' g') (comp g f) 
      ≅⟨ ass ⟩ 
@@ -223,7 +235,7 @@ module Idems (X : Cat) where
     in comp r' s 
        , 
        (comp r s' 
-        , 
+        ,, 
         (proof 
          comp (comp r' s) (comp r s') 
          ≅⟨ ass ⟩ 
@@ -245,7 +257,7 @@ module Idems (X : Cat) where
          ≅⟨ law2' ⟩
          iden 
          ∎) 
-        , 
+        ,,
         (proof 
          comp (comp r s') (comp r' s) 
          ≅⟨ ass ⟩

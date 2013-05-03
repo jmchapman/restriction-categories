@@ -123,7 +123,7 @@ module Pullbacks (X : Cat) where
           iden
           ∎
 
-    in mor u₁ , isoproof1 , isoproof2
+    in mor u₁ ,, isoproof1 ,, isoproof2
     where open Square
 
   trivialpul : ∀{X Y}(f : Hom X Y) → Pullback f iden
