@@ -135,18 +135,8 @@ module Totals (X : RestCat) where
 
   open Tot
 
-  TotEq' : ∀{A B}{f g : Hom A B} → f ≅ g → 
-           .(p : rest f ≅ iden {A}).(q : rest g ≅ iden {A}) →
-           _≅_ {A = Tot A B}
-               (record {hom = f; tot = p}) 
-               {B = Tot A B}
-               (record {hom = g; tot = q})
-  TotEq' refl p q = refl
-
   .TotEq : ∀{A B}(f g : Tot A B) → hom f ≅ hom g → f ≅ g
-  TotEq {A}{B} f g p = TotEq' p (tot f) (tot g) 
-
-    {- cong₂
+  TotEq {A}{B} f g p = cong₂
     {_}
     {_}
     {_}
@@ -159,7 +149,7 @@ module Totals (X : RestCat) where
     {tot g}    
     (λ x y → record { hom = x; tot = y }) 
     p 
-    (fixtypes (cong rest p) refl) -}
+    (fixtypes (cong rest p) refl)
 
   identot : ∀{A} → Tot A A
   identot = record { hom = iden; tot = lemiii (idmono cat) } 
@@ -186,11 +176,10 @@ module Totals (X : RestCat) where
     Hom  = Tot;
     iden = identot;
     comp = comptot;
-    idl  = λ{_}{_}{f} → TotEq'  idl (tot (comptot identot f)) (tot f);
-    idr  = λ{_}{_}{f} → TotEq' idr (tot (comptot f identot)) (tot f);
+    idl  = λ{_}{_}{f} → TotEq (comptot identot f) f idl;
+    idr  = λ{_}{_}{f} → TotEq (comptot f identot) f idr;
     ass  = λ{_}{_}{_}{_}{f}{g}{h} → 
-      TotEq' ass (tot (comptot (comptot f g) h)) 
-                 (tot (comptot f (comptot g h)))}
+      TotEq (comptot (comptot f g) h) (comptot f (comptot g h)) ass}
 
   .MonoTot : ∀{A B}(f : Tot A B) → Mono cat (hom f) → Mono Total f
   MonoTot f p {C}{g}{h} q = TotEq g h (p (cong hom q))

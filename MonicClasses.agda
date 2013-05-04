@@ -44,7 +44,7 @@ module MonicClasses (X : SplitRestCat) where
 -}
 
   .MXmon : ∀{B E}{s : Tot B E} → SRestIde s → Mono Total s
-  MXmon {_}{_}{s} sride {_}{g}{h} q = TotEq' (smon (hom s) (SRestIde.rs sride , SRestIde.law2s sride) (cong hom q)) (tot g) (tot h)
+  MXmon {_}{_}{s} sride {_}{g}{h} q = TotEq g h (smon (hom s) (SRestIde.rs sride , SRestIde.law2s sride) (cong hom q))
 
 
   MXiso : ∀{B E}{s : Tot B E} → Iso s → SRestIde s
@@ -239,7 +239,7 @@ module MonicClasses (X : SplitRestCat) where
           W = D; 
           h = mt';
           k = ft';
-          scom = TotEq' sqscom (tot (comptot ft mt')) (tot (comptot mt ft'))}
+          scom = TotEq (comptot ft mt') (comptot mt ft') sqscom}
 
         prop : (sq' : Square ft mt) →
                Σ' (PMap sq' sq) λ u → (u' : PMap sq' sq) → PMap.mor u ≅  PMap.mor u'
@@ -353,13 +353,13 @@ module MonicClasses (X : SplitRestCat) where
               αpmap : PMap sq' sq
               αpmap = record {
                 mor = αt;
-                prop1 = TotEq' αprop (tot (comptot mt' αt)) (tot xt);
-                prop2 = TotEq' αprop2 (tot (comptot ft' αt)) (tot yt)}
+                prop1 = TotEq (comptot mt' αt) xt αprop;
+                prop2 = TotEq (comptot ft' αt) yt αprop2}
           in αpmap ,,
                (λ umap' →
                   let open PMap umap' renaming (mor to ut')
-                      open Tot ut' renaming (hom to u'; tot to u'tot)
-                  in TotEq'
+                      open Tot ut' renaming (hom to u')
+                  in TotEq αt ut'
                      (smon m' (r' , law2e')
                       (proof
                        comp m' α 
@@ -367,8 +367,7 @@ module MonicClasses (X : SplitRestCat) where
                        x 
                        ≅⟨ cong hom (sym prop1) ⟩
                        comp m' u'
-                       ∎))
-                       (tot αt) u'tot)
+                       ∎)))
     in record { sq = sq; prop = prop} ,
        record { As = B; fs = comp e f; rs = r'; law1s = law1e'; law2s = law2e'}
 
