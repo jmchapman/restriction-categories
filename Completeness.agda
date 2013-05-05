@@ -12,6 +12,7 @@ module Completeness (X : SplitRestCat) where
   open import Functors
   open SplitRestCat X
   open RestCat rcat
+
   open Cat cat
   open Totals rcat
   open Tot
@@ -49,6 +50,7 @@ module Completeness (X : SplitRestCat) where
       iden
       ∎ 
 
+{-
   totretract : {A C : Obj}(f : Hom A C) → (sp : Split (record { E = A; e = rest f; law = lemii rcat })) →
                  let open Split sp
                  in rest r ≅ iden {A}
@@ -64,51 +66,67 @@ module Completeness (X : SplitRestCat) where
       ≅⟨ {!!} ⟩
       iden
       ∎
- 
+-} 
+
+  HMap : ∀{A C}(f : Hom A C) → Span A C
+  HMap {A}{C} f =
+    let open Split (rsplit f)
+
+        mhom : Tot B A
+        mhom = record { hom = s; tot = lemiii rcat (smon s (r , law2)) }
+  
+        fhom : Tot B C
+        fhom = record { hom = comp f s; tot = totcomprest f (rsplit f)}
+
+        m∈ : SRestIde mhom
+        m∈ = record { As = C; fs = f; rs = r; law1s = law1; law2s = law2 }
+
+    in record { 
+      A' = B; 
+      mhom = mhom;
+      fhom = fhom;
+      m∈ = m∈ }
+
+  .fid : ∀{A} → HMap (iden {A}) ≅ idspan {A}
+  fid {A} = 
+    let open Split (rsplit (iden {A}))
+                                 
+        isos : Iso cat s
+        isos = r ,, 
+               (proof
+                comp s r
+                ≅⟨ law1 ⟩
+                rest (iden {A})
+                ≅⟨ lemiii rcat idmono ⟩
+                iden
+                ∎) ,, 
+               law2
+
+        stot : Tot B A
+        stot = record { hom = s; tot = lemiii rcat (smon s (r , law2)) }
+
+      in quotient 
+        _ 
+        _ 
+        (record { hom = s; tot = lemiii rcat (smon s (r , law2)) })
+        (Iso.inv Total (IsoTot stot isos) ,,
+        TotEq _ _ (
+          proof
+          comp s r
+          ≅⟨ law1 ⟩
+          rest (iden {A})
+          ≅⟨ lemiii rcat idmono ⟩
+          iden
+          ∎) ,, 
+        TotEq _ _ law2 ) 
+        (TotEq _ _ idl) 
+        (TotEq _ _ refl)
 
   Funct : Fun cat Par
   Funct = 
     let open StableSys Total M
     in record { 
       OMap = λ A → A; 
-      HMap = λ {A} {C} f → 
-        let open Split (rsplit f)
-        in record { 
-          A' = B; 
-          mhom = record { hom = s; tot = lemiii rcat (smon s (r , law2)) }; 
-          fhom = record { hom = comp f s; tot = totcomprest f (rsplit f)}; 
-          m∈ = record { As = C; fs = f; rs = r; law1s = law1; law2s = law2 } }; 
-      fid = λ {A} → 
-            let open Split (rsplit (iden {A}))
-                
-                isos : Iso cat s
-                isos = r ,, 
-                       (proof
-                        comp s r
-                        ≅⟨ law1 ⟩
-                        rest (iden {A})
-                        ≅⟨ lemiii rcat idmono ⟩
-                        iden
-                        ∎) ,, 
-                       law2
-
-                stot : Tot B A
-                stot = record { hom = s; tot = lemiii rcat (smon s (r , law2)) }
-
-            in quotient 
-              _ 
-              _ 
-              (record { hom = s; tot = lemiii rcat (smon s (r , law2)) })
-              (Iso.inv Total (IsoTot stot isos) ,,
-               TotEq _ _ (
-                 proof
-                 comp s r
-                 ≅⟨ law1 ⟩
-                 rest (iden {A})
-                 ≅⟨ lemiii rcat idmono ⟩
-                 iden
-                 ∎) ,, 
-               TotEq _ _ law2 ) 
-              (TotEq _ _ idl) 
-              (TotEq _ _ refl);
-      fcomp = {!!} }
+      HMap = HMap;
+      fid = fid;
+      fcomp = {!!}}
