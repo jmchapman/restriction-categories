@@ -16,8 +16,8 @@ module Completeness (X : SplitRestCat) where
   open Cat cat
   open Totals rcat
   open Tot
-  open import Stable  
-  open import Pullbacks cat
+  open import Stable 
+  open import Pullbacks
   open Lemmata
 
   open import MonicClasses X
@@ -122,6 +122,76 @@ module Completeness (X : SplitRestCat) where
         (TotEq _ _ idl) 
         (TotEq _ _ refl)
 
+  .fcomp : ∀{A B C}{g : Hom B C}{f : Hom A B} → HMap (comp g f) ≅ compspan (HMap g) (HMap f)
+  fcomp {A}{B}{C}{g}{f} = 
+    let open Split (rsplit f) renaming (B to Af; 
+                                        s to mf; 
+                                        r to rf; 
+                                        law1 to law1f;
+                                        law2 to law2f)
+        open Split (rsplit g) renaming (B to Ag; 
+                                        s to mg; 
+                                        r to rg; 
+                                        law1 to law1g;
+                                        law2 to law2g)
+        open Span (HMap f) renaming (mhom to mft; fhom to fmft; m∈ to mf∈)
+        open Span (HMap g) renaming (mhom to mgt; fhom to gmgt; m∈ to mg∈)
+
+        open Pullback Total (proj₁ (MXpul fmft mg∈))
+        open Square Total sq renaming (h to mt'; k to ht)
+        open SRestIde (proj₂ (MXpul fmft mg∈)) renaming (rs to r')
+
+        open Tot mt' renaming (hom to m'; tot to mp')
+        open Tot fmft renaming (hom to fmf; tot to fmfp')
+
+        .law1gf : comp (comp mf m') (comp r' rf) ≅ rest (comp g f)
+        law1gf = 
+          proof
+          comp (comp mf m') (comp r' rf)
+          ≅⟨ ass ⟩
+          comp mf (comp m' (comp r' rf))
+          ≅⟨ cong (comp mf) (sym ass) ⟩
+          comp mf (comp (comp m' r') rf)
+          ≅⟨ cong (λ y → comp mf (comp y rf)) (Split.law1 (rsplit (comp (rest g) (comp f mf)))) ⟩
+          comp mf (comp (rest (comp (rest g) (comp f mf))) rf)
+          ≅⟨ cong (λ y → comp mf (comp y rf)) (sym (lemiv rcat)) ⟩
+          comp mf (comp (rest (comp g (comp f mf))) rf)
+          ≅⟨ cong (λ y → comp mf (comp (rest y) rf)) (sym ass) ⟩
+          comp mf (comp (rest (comp (comp g f) mf)) rf)
+          ≅⟨ sym ass ⟩
+          comp (comp mf (rest (comp (comp g f) mf))) rf
+          ≅⟨ cong (λ y → comp y rf) (sym R4) ⟩
+          comp (comp (rest (comp g f)) mf) rf
+          ≅⟨ ass ⟩
+          comp (rest (comp g f)) (comp  mf rf)
+          ≅⟨ cong (comp (rest (comp g f))) law1f ⟩
+          comp (rest (comp g f)) (rest f)
+          ≅⟨ R3 ⟩
+          rest (comp (comp g f) (rest f))
+          ≅⟨ cong rest ass ⟩
+          rest (comp g (comp f (rest f)))
+          ≅⟨ cong (rest ∘ comp g) R1 ⟩
+          rest (comp g f)
+          ∎
+
+        .law2gf : comp (comp r' rf) (comp mf m') ≅ iden {W}
+        law2gf =
+          proof 
+          comp (comp r' rf) (comp mf m')
+          ≅⟨ ass ⟩
+          comp r' (comp rf (comp mf m'))
+          ≅⟨ cong (comp r') (sym ass) ⟩
+          comp r' (comp (comp rf mf) m')
+          ≅⟨ cong (λ y → comp r' (comp y m')) law2f ⟩
+          comp r' (comp iden m')
+          ≅⟨ cong (comp r') idl ⟩
+          comp r' m'
+          ≅⟨ Split.law2 (rsplit (comp (rest g) (comp f mf))) ⟩
+          iden
+          ∎
+
+    in {!!}
+
   Funct : Fun cat Par
   Funct = 
     let open StableSys Total M
@@ -129,4 +199,4 @@ module Completeness (X : SplitRestCat) where
       OMap = λ A → A; 
       HMap = HMap;
       fid = fid;
-      fcomp = {!!}}
+      fcomp = fcomp}
