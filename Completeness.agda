@@ -206,6 +206,8 @@ module Completeness (X : SplitRestCat) where
                          (rsplit (comp g f))
                          fgsplit
 
+        u = proj₁ isosplit
+
         equat : comp (comp g mg) h ≅ comp (comp g f) (comp mf m')
         equat = 
           proof
@@ -230,10 +232,21 @@ module Completeness (X : SplitRestCat) where
 
     in quotient _ 
                 _ 
-                (record { hom = proj₁ isosplit; tot = lemiii rcat (iso→mono cat (proj₁ (proj₂ isosplit)) )})
-                (IsoTot (record { hom = proj₁ isosplit; tot = lemiii rcat (iso→mono cat (proj₁ (proj₂ isosplit))) }) (proj₁ (proj₂ isosplit))) 
+                (record { hom = u; tot = lemiii rcat (iso→mono cat (proj₁ (proj₂ isosplit)) )})
+                (IsoTot (record { hom = u; tot = lemiii rcat (iso→mono cat (proj₁ (proj₂ isosplit))) }) (proj₁ (proj₂ isosplit))) 
                 (TotEq _ _ (proj₂ (proj₂ (proj₂ isosplit)))) 
-                (TotEq _ _ {!proj₁ (proj₂ (proj₂ isosplit))!})
+                (TotEq _ 
+                       _ 
+                       (proof
+                        comp (comp (comp g mg) h) u
+                        ≅⟨ cong (λ y → comp y u) equat ⟩
+                        comp (comp (comp g f) (comp mf m')) u
+                        ≅⟨ ass ⟩
+                        comp (comp g f) (comp (comp mf m') u)
+                        ≅⟨ cong (comp (comp g f)) (proj₂ (proj₂ (proj₂ isosplit))) ⟩
+                        comp (comp g f) mgf
+                        ∎
+                        ))
 
 
 {-
