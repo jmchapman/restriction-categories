@@ -87,6 +87,7 @@ module Completeness (X : SplitRestCat) where
       fhom = fhom;
       m∈ = m∈ }
 
+{-
   .fid : ∀{A} → HMap (iden {A}) ≅ idspan {A}
   fid {A} = 
     let open Split (rsplit (iden {A}))
@@ -121,6 +122,7 @@ module Completeness (X : SplitRestCat) where
         TotEq _ _ law2 ) 
         (TotEq _ _ idl) 
         (TotEq _ _ refl)
+-}
 
   .fcomp : ∀{A B C}{g : Hom B C}{f : Hom A B} → HMap (comp g f) ≅ compspan (HMap g) (HMap f)
   fcomp {A}{B}{C}{g}{f} = 
@@ -134,6 +136,11 @@ module Completeness (X : SplitRestCat) where
                                         r to rg; 
                                         law1 to law1g;
                                         law2 to law2g)
+        open Split (rsplit (comp g f)) renaming (B to Agf; 
+                                        s to mgf; 
+                                        r to rgf; 
+                                        law1 to law1gf;
+                                        law2 to law2gf)
         open Span (HMap f) renaming (mhom to mft; fhom to fmft; m∈ to mf∈)
         open Span (HMap g) renaming (mhom to mgt; fhom to gmgt; m∈ to mg∈)
 
@@ -143,6 +150,7 @@ module Completeness (X : SplitRestCat) where
 
         open Tot mt' renaming (hom to m'; tot to mp')
         open Tot fmft renaming (hom to fmf; tot to fmfp')
+        open Tot ht renaming (hom to h; tot to hp)
 
         .law1gf : comp (comp mf m') (comp r' rf) ≅ rest (comp g f)
         law1gf = 
@@ -190,8 +198,45 @@ module Completeness (X : SplitRestCat) where
           iden
           ∎
 
-    in {!!}
+        fgsplit : Split (record { E = A ; e = rest (comp g f); law = lemii rcat})
+        fgsplit = record { B = W; s = comp mf m'; r = comp r' rf; law1 = law1gf; law2 = law2gf }
 
+        isosplit : Σ (Hom Agf W) λ u → Iso cat u × (comp u rgf ≅ comp r' rf) × comp (comp mf m') u ≅ mgf
+        isosplit = lemma (record { E = A ; e = rest (comp g f); law = lemii rcat}) 
+                         (rsplit (comp g f))
+                         fgsplit
+
+        equat : comp (comp g mg) h ≅ comp (comp g f) (comp mf m')
+        equat = 
+          proof
+          comp (comp g mg) h
+          ≅⟨ refl ⟩
+          comp (comp g mg) (comp rg (comp (comp f mf) m'))
+          ≅⟨ ass ⟩
+          comp g (comp mg (comp rg (comp (comp f mf) m')))
+          ≅⟨ cong (comp g) (sym ass) ⟩
+          comp g (comp (comp mg rg) (comp (comp f mf) m'))
+          ≅⟨ cong (λ y → comp g (comp y (comp (comp f mf) m'))) law1g ⟩
+          comp g (comp (rest g) (comp (comp f mf) m'))
+          ≅⟨ sym ass ⟩
+          comp (comp g (rest g)) (comp (comp f mf) m')
+          ≅⟨ cong (λ y → comp y (comp (comp f mf) m')) R1 ⟩
+          comp g (comp (comp f mf) m')
+          ≅⟨ cong (comp g) ass ⟩
+          comp g (comp f (comp mf m'))
+          ≅⟨ sym ass ⟩
+          comp (comp g f) (comp mf m')
+          ∎
+
+    in quotient _ 
+                _ 
+                (record { hom = proj₁ isosplit; tot = lemiii rcat (iso→mono cat (proj₁ (proj₂ isosplit)) )})
+                (IsoTot (record { hom = proj₁ isosplit; tot = lemiii rcat (iso→mono cat (proj₁ (proj₂ isosplit))) }) (proj₁ (proj₂ isosplit))) 
+                (TotEq _ _ (proj₂ (proj₂ (proj₂ isosplit)))) 
+                (TotEq _ _ {!proj₁ (proj₂ (proj₂ isosplit))!})
+
+
+{-
   Funct : Fun cat Par
   Funct = 
     let open StableSys Total M
@@ -200,3 +245,4 @@ module Completeness (X : SplitRestCat) where
       HMap = HMap;
       fid = fid;
       fcomp = fcomp}
+-}
