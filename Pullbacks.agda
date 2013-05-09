@@ -30,9 +30,9 @@ module Pullbacks (X : Cat) where
 
   .pullbackiso : ∀{X Y Z}{f : Hom X Z}{g : Hom Y Z}(p p' : Pullback f g) → 
                 Iso (mor (fst (prop p (sq p'))))
-  pullbackiso {X}{Y}{Z}{f}{g} p p' = 
-     mor u₁ ,, isoproof1 ,, isoproof2
-     where 
+   pullbackiso {X}{Y}{Z}{f}{g} p p' = 
+    mor u₁ ,, isoproof1 ,, isoproof2
+    where 
         open Square
         u   = prop p (sq p)
         u⁻¹ = prop p' (sq p')
