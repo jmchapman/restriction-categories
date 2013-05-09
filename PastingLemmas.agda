@@ -13,8 +13,14 @@ module PastingLemmas (X : Cat) where
   bigsquare : ∀{U X Y Z}{f : Hom X Z}{g : Hom Y Z}(p : Pullback f g) →
               {f' : Hom U X} → Pullback f' (Square.h (sq p)) → 
               Square (comp f f') g
-  bigsquare {_}{_}{_}{_}{f}{g} p {f'} q = 
-    let open Square (sq p)
+  bigsquare {_}{_}{_}{_}{f}{g} p {f'} q =  
+    record {
+      W = W';
+      h = h';
+      k = comp k k';
+      scom = scombs }
+    where
+        open Square (sq p)
         open Square (sq q) renaming (W to W'; h to h'; k to k'; scom to scom')
   
         .scombs : _
@@ -33,16 +39,17 @@ module PastingLemmas (X : Cat) where
           comp g (comp k k') 
           ∎
 
-    in record {
-      W = W';
-      h = h';
-      k = comp k k';
-      scom = scombs }
     
   smallsquare : ∀{U X Y Z}{f : Hom X Z}{g : Hom Y Z}{f' : Hom U X} → 
                 Square (comp f f') g → Square f g
   smallsquare {_}{_}{_}{_}{f}{g}{f'} r = 
-    let open Square r 
+    record { 
+      W    = W; 
+      h    = comp f' h; 
+      k    = k; 
+      scom = scomss } 
+     where
+        open Square r 
 
         .scomss : _
         scomss =
@@ -54,21 +61,25 @@ module PastingLemmas (X : Cat) where
           comp g k 
           ∎
 
-    in record { 
-      W    = W; 
-      h    = comp f' h; 
-      k    = k; 
-      scom = scomss } 
-
   lem1 : ∀{U X Y Z}{f : Hom X Z}{g : Hom Y Z}(p : Pullback f g) → 
          {f' : Hom U X} → Pullback f' (Square.h (sq p)) → 
          Pullback (comp f f') g
   lem1 {_}{_}{_}{_}{f}{g} p {f'} q = 
-    let         
-        prop : (sq' : Square (comp f f') g) →
+    record { 
+      sq   = bigsquare p q; 
+      prop = prop'}
+    where 
+        prop' : (sq' : Square (comp f f') g) →
                 Σ' (PMap sq' (bigsquare p q)) λ u → (u' : PMap sq' (bigsquare p q)) → PMap.mor u ≅  PMap.mor u'
-        prop r = 
-          let open Square (sq p)
+        prop' r = 
+          record { 
+            mor   = (mor (fst u'));
+            prop1 = prop1 (fst u'); 
+            prop2 = prop2u' }
+          ,, 
+          λ u'' → snd u' (p1 u'')
+          where
+              open Square (sq p)
               open Square (sq q) renaming (W to W'; h to h'; k to k'; scom to scom')
               open Square r renaming (W to W''; h to h''; k to k''; scom to scom'')
 
@@ -142,17 +153,7 @@ module PastingLemmas (X : Cat) where
                 mor = mor u''; 
                 prop1 = prop1 u''; 
                 prop2 = sym (snd u (p2 u''))}
-          in 
-          record { 
-            mor   = (mor (fst u'));
-            prop1 = prop1 (fst u'); 
-            prop2 = prop2u' }
-          ,, 
-          λ u'' → snd u' (p1 u'')
 
-    in record { 
-      sq   = bigsquare p q; 
-      prop = prop}
 
 
   m2 : ∀{U X Y Z}{f : Hom X Z}{g : Hom Y Z}{f' : Hom U X} → 

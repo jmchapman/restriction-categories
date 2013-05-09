@@ -12,7 +12,15 @@ open import Function
 .pullbackmonic : ∀{X Y Z}{f : Hom X Z}{g : Hom Y Z} → Mono g → 
                 (q : Pullback f g) → Mono (Square.h (Pullback.sq q))
 pullbackmonic {X}{Y}{Z}{f}{g} p q {A}{f₁}{f₂} r = 
-  let open Pullback q
+     proof 
+     f₁ 
+     ≅⟨ sym (snd u (record { mor = f₁; prop1 = refl; prop2 = refl })) ⟩ 
+     mor (fst u)
+     ≅⟨ snd u (record { mor = f₂; prop1 = sym r; prop2 = sym lem''}) ⟩ 
+     f₂ 
+     ∎
+     where
+      open Pullback q
       open Square sq
       open PMap
       m₁ : Square f g
@@ -46,8 +54,8 @@ pullbackmonic {X}{Y}{Z}{f}{g} p q {A}{f₁}{f₂} r =
           comp g (comp k f₂) 
           ∎} 
 
-      lem : Square.k m₁ ≅ Square.k m₂
-      lem = p $
+      lem'' : Square.k m₁ ≅ Square.k m₂
+      lem'' = p $
         proof 
         comp g (comp k f₁)
         ≅⟨ sym (Square.scom m₁) ⟩ 
@@ -59,14 +67,7 @@ pullbackmonic {X}{Y}{Z}{f}{g} p q {A}{f₁}{f₂} r =
         ∎
       u = prop m₁
 
-  in 
-     proof 
-     f₁ 
-     ≅⟨ sym (snd u (record { mor = f₁; prop1 = refl; prop2 = refl })) ⟩ 
-     mor (fst u)
-     ≅⟨ snd u (record { mor = f₂; prop1 = sym r; prop2 = sym lem}) ⟩ 
-     f₂ 
-     ∎
+
 
 monic→pullback : ∀{X Z}{f : Hom X Z} → Mono f → Pullback f f
 monic→pullback {X}{Z}{f} p = record { 
@@ -103,19 +104,18 @@ easysquare {X}{Z} f  = record { W = X; h = iden; k = iden; scom = refl }
                    λ u → (u' : PMap sq' (easysquare f)) → 
                          PMap.mor u ≅  PMap.mor u') → Mono f
 pullback→mono {X}{Z}{f} g {A}{f₁}{f₂} r = 
-  let m : Square f f
-      m = record { W = A; h = f₁; k = f₂; scom = r }
-      u = proj₁ (g m)
-  in
-     proof 
-     f₁ 
-     ≅⟨ sym (prop1 u) ⟩
-     comp iden (mor u) 
-     ≅⟨ prop2 u ⟩
-     f₂ 
-     ∎
+  proof 
+  f₁ 
+  ≅⟨ sym (prop1 u) ⟩
+  comp iden (mor u) 
+  ≅⟨ prop2 u ⟩
+  f₂ 
+  ∎
   where
   open PMap
+  m : Square f f
+  m = record { W = A; h = f₁; k = f₂; scom = r }
+  u = proj₁ (g m)
 
 open Isos X
 open Square
