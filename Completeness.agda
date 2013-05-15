@@ -28,6 +28,9 @@ module Completeness (X : SplitRestCat) where
   open Monos cat
   open Isos
 
+
+-- Functor definition
+
   .totcomprest : {A C : Obj}(f : Hom A C) → (sp : Split (record { E = A; e = rest f; law = lemii rcat })) →
                  let open Split sp
                  in rest (comp f s) ≅ iden {B}
@@ -50,24 +53,6 @@ module Completeness (X : SplitRestCat) where
       iden
       ∎ 
 
-{-
-  totretract : {A C : Obj}(f : Hom A C) → (sp : Split (record { E = A; e = rest f; law = lemii rcat })) →
-                 let open Split sp
-                 in rest r ≅ iden {A}
-  totretract f sp = 
-    let open Split sp
-    in 
-     proof
-      rest r
-      ≅⟨ {!!} ⟩
-      rest (comp r iden)
-      ≅⟨ {!!} ⟩
-      rest (comp (rest s) r)
-      ≅⟨ {!!} ⟩
-      iden
-      ∎
--} 
-
   HMap : ∀{A C}(f : Hom A C) → Span A C
   HMap {A}{C} f =
     let open Split (rsplit f)
@@ -87,7 +72,6 @@ module Completeness (X : SplitRestCat) where
       fhom = fhom;
       m∈ = m∈ }
 
-{-
   .fid : ∀{A} → HMap (iden {A}) ≅ idspan {A}
   fid {A} = 
     let open Split (rsplit (iden {A}))
@@ -122,7 +106,6 @@ module Completeness (X : SplitRestCat) where
         TotEq _ _ law2 ) 
         (TotEq _ _ idl) 
         (TotEq _ _ refl)
--}
 
   .fcomp : ∀{A B C}{g : Hom B C}{f : Hom A B} → HMap (comp g f) ≅ compspan (HMap g) (HMap f)
   fcomp {A}{B}{C}{g}{f} = 
@@ -208,7 +191,8 @@ module Completeness (X : SplitRestCat) where
 
         u = proj₁ isosplit
 
-        equat : comp (comp g mg) h ≅ comp (comp g f) (comp mf m')
+{-
+        .equat : comp (comp g mg) h ≅ comp (comp g f) (comp mf m')
         equat = 
           proof
           comp (comp g mg) h
@@ -229,6 +213,7 @@ module Completeness (X : SplitRestCat) where
           ≅⟨ sym ass ⟩
           comp (comp g f) (comp mf m')
           ∎
+-}
 
     in quotient _ 
                 _ 
@@ -238,8 +223,23 @@ module Completeness (X : SplitRestCat) where
                 (TotEq _ 
                        _ 
                        (proof
-                        comp (comp (comp g mg) h) u
-                        ≅⟨ cong (λ y → comp y u) equat ⟩
+
+                        comp (comp (comp g mg) (comp rg (comp (comp f mf) m'))) u
+                        ≅⟨ cong (λ y → comp y u) ass ⟩
+
+                        comp (comp g (comp mg (comp rg (comp (comp f mf) m')))) u
+                        ≅⟨ cong (λ y → comp (comp g y) u) (sym ass) ⟩
+                        comp (comp g (comp (comp mg rg) (comp (comp f mf) m'))) u
+                        ≅⟨ cong (λ y → comp (comp g (comp y (comp (comp f mf) m'))) u) law1g ⟩
+                        comp (comp g (comp (rest g) (comp (comp f mf) m'))) u
+                        ≅⟨ cong (λ y → comp y u) (sym ass) ⟩
+                        comp (comp (comp g (rest g)) (comp (comp f mf) m')) u
+                        ≅⟨ cong (λ y → comp (comp y (comp (comp f mf) m')) u) R1 ⟩
+                        comp (comp g (comp (comp f mf) m')) u
+                        ≅⟨ cong (λ y → comp (comp g y) u) ass ⟩
+                        comp (comp g (comp f (comp mf m'))) u
+                        ≅⟨ cong (λ y → comp y u) (sym ass) ⟩
+
                         comp (comp (comp g f) (comp mf m')) u
                         ≅⟨ ass ⟩
                         comp (comp g f) (comp (comp mf m') u)
@@ -248,14 +248,93 @@ module Completeness (X : SplitRestCat) where
                         ∎
                         ))
 
+  Funct : Fun cat Par
+  Funct = record { 
+    OMap = λ A → A; 
+    HMap = HMap;
+    fid = fid;
+    fcomp = fcomp}
+
+  HMap2 : ∀{A C} → Span A C → Hom A C
+  HMap2 {A}{C} sp = 
+    let open Span sp
+        open Tot fhom renaming (hom to g)
+        open SRestIde m∈
+    in comp g rs
+
+  .fid2 : ∀{A} → HMap2 (idspan {A}) ≅ iden {A}
+  fid2 {A} = idl
+
+  .fcomp2 : ∀{A B C}{sp' : Span B C}{sp : Span A B} → HMap2 (compspan sp' sp) ≅ comp (HMap2 sp') (HMap2 sp)
+  fcomp2 {A}{B}{C}{sp'}{sp} =
+    let open Span sp 
+        open Span sp' renaming (A' to A''; mhom to mhom'; fhom to fhom'; m∈ to m∈')
+        open Span (compspan sp' sp) renaming (A' to A'''; mhom to mhom''; fhom to fhom''; m∈ to m∈'')
+
+        open Tot mhom renaming (hom to mf)
+        open Tot mhom' renaming (hom to mg)
+        open Tot mhom'' renaming (hom to mfm')
+        open Tot fhom renaming (hom to f)
+        open Tot fhom' renaming (hom to g)
+        open Tot fhom'' renaming (hom to gh)
+
+        open SRestIde m∈ renaming (rs to rf)        
+        open SRestIde m∈' renaming (fs to e; rs to rg; law1s to law1g; law2s to law2g)        
+        open SRestIde m∈'' renaming (rs to r'rf)        
+
+        open Pullback Total (proj₁ (MXpul fhom m∈'))
+        open Square Total sq renaming (h to mt'; k to ht)
+        open SRestIde (proj₂ (MXpul fhom m∈')) renaming (fs to u; rs to r'; law1s to law1')
+
+        open Tot mt' renaming (hom to m'; tot to mp')
+        open Tot ht renaming (hom to h; tot to hp)
+
+    in 
+      proof 
+      comp gh r'rf 
+      ≅⟨ refl ⟩ 
+      comp (comp g h) r'rf 
+      ≅⟨ refl ⟩ 
+      comp (comp g (comp rg (comp f m'))) r'rf 
+      ≅⟨ refl ⟩ 
+      comp (comp g (comp rg (comp f m'))) (comp r' rf) 
+      ≅⟨ sym ass ⟩
+      comp (comp (comp g (comp rg (comp f m'))) r') rf
+      ≅⟨ cong (λ y → comp y rf) ass ⟩ 
+      comp (comp g (comp (comp rg (comp f m')) r')) rf
+      ≅⟨ cong (λ y → comp (comp g y) rf) ass ⟩ 
+      comp (comp g (comp rg (comp (comp f m') r'))) rf
+      ≅⟨ cong (λ y → comp (comp g (comp rg y)) rf) ass ⟩ 
+      comp (comp g (comp rg (comp f (comp m' r')))) rf
+      ≅⟨ cong (λ y → comp (comp g (comp rg (comp f y))) rf) law1' ⟩
+      comp (comp g (comp rg (comp f (rest (comp (rest e) f))))) rf
+      ≅⟨ cong (λ y → comp (comp g (comp rg y)) rf) (sym R4) ⟩
+      comp (comp g (comp rg (comp (rest (rest e)) f))) rf
+      ≅⟨ cong (λ y → comp (comp g (comp rg (comp y f))) rf) (lemi rcat) ⟩
+      comp (comp g (comp rg (comp (rest e) f))) rf
+      ≅⟨ cong (λ y → comp (comp g (comp rg (comp y f))) rf) (sym law1g) ⟩
+      comp (comp g (comp rg (comp (comp mg rg) f))) rf
+      ≅⟨ cong (λ y → comp (comp g (comp rg y)) rf) ass ⟩
+      comp (comp g (comp rg (comp mg (comp rg f)))) rf
+      ≅⟨ cong (λ y → comp (comp g y) rf) (sym ass) ⟩
+      comp (comp g (comp (comp rg mg) (comp rg f))) rf
+      ≅⟨ cong (λ y → comp (comp g (comp y (comp rg f))) rf) law2g ⟩
+      comp (comp g (comp iden (comp rg f))) rf
+      ≅⟨ cong (λ y → comp (comp g y) rf) idl ⟩
+      comp (comp g (comp rg f)) rf
+      ≅⟨ cong (λ y → comp y rf) (sym ass) ⟩
+      comp (comp (comp g rg) f) rf
+      ≅⟨ ass ⟩
+      comp (comp g rg) (comp f rf) 
+      ∎
 
 {-
-  Funct : Fun cat Par
-  Funct = 
-    let open StableSys Total M
-    in record { 
-      OMap = λ A → A; 
-      HMap = HMap;
-      fid = fid;
-      fcomp = fcomp}
+  Funct2 : Fun Par cat
+  Funct2 = record {
+    OMap = λ A → A; 
+    HMap = HMap2;
+    fid = fid2;
+    fcomp = fcomp2}
 -}
+
+
