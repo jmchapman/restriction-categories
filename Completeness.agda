@@ -263,9 +263,12 @@ module Completeness (X : SplitRestCat) where
     in comp g rs
 
   .fid2 : ∀{A} → HMap2 (idspan {A}) ≅ iden {A}
+--  abstract fid2 {A} = idl
   fid2 {A} = idl
 
   .fcomp2 : ∀{A B C}{sp' : Span B C}{sp : Span A B} → HMap2 (compspan sp' sp) ≅ comp (HMap2 sp') (HMap2 sp)
+--  abstract 
+--   fcomp2 {A}{B}{C}{sp'}{sp} =
   fcomp2 {A}{B}{C}{sp'}{sp} =
     let open Span sp 
         open Span sp' renaming (A' to A''; mhom to mhom'; fhom to fhom'; m∈ to m∈')
@@ -328,13 +331,11 @@ module Completeness (X : SplitRestCat) where
       comp (comp g rg) (comp f rf) 
       ∎
 
-{-
   Funct2 : Fun Par cat
   Funct2 = record {
     OMap = λ A → A; 
     HMap = HMap2;
     fid = fid2;
-    fcomp = fcomp2}
--}
+    fcomp = λ {_}{_}{_}{sp'}{sp} → fcomp2 {sp' = sp'} {sp = sp} }
 
 
