@@ -461,6 +461,89 @@ RestIdemIsIdem {X} {ide} {ide'} f =
 
 
 
+
+
+RIdeSplitCat : {X : RestCat} → SplitRestCat
+RIdeSplitCat {X} = 
+  let open RestCat X
+      open Cat
+      open Idems
+      open Lemmata
+      open IdemClass cat (RestIdemsClass {X})
+  in record { 
+    rcat = RSplitCat {X} (RestIdemsClass {X}); 
+    rsplit = λ {ide}{ide'} f → 
+      let open Idem cat (proj₁ ide)
+          open SplitMap cat f
+          open SplitMap cat (restsplitmap {X} f) renaming (imap to rimap; mlaw to rmlaw)
+
+          idsplit : Idem (SplitCat cat (RestIdemsClass {X}))
+          idsplit = record { 
+            E = ide;
+            e = restsplitmap {X} f; 
+            law = lemii (RSplitCat {X} (RestIdemsClass {X})) {ide}{ide'}{f} }
+      
+          .rf∈ : ∈ (record { E = E; e = rimap; law = RestIdemIsIdem {X} f })
+          rf∈ = 
+            proof 
+            comp cat (rest imap) e 
+            ≅⟨ cong (comp cat (rest imap)) (proj₂ ide) ⟩ 
+            comp cat (rest imap) (rest e) 
+            ≅⟨ R3 ⟩ 
+            rest (comp cat imap (rest e))
+            ≅⟨ cong (rest ∘ comp cat imap) (sym (proj₂ ide)) ⟩ 
+            rest (comp cat imap e)
+            ≅⟨ lemiv X ⟩ 
+            rest (comp cat (rest imap) e) 
+            ∎
+
+          rf : Σ' (Idem cat) ∈
+          rf = (record { E = E; e = rimap; law = RestIdemIsIdem {X} f } ,, rf∈)
+
+          spl : Split (SplitCat cat (RestIdemsClass {X})) (record { E = {!rf!}; e = {!!}; law = {!!} })
+          spl = {!!}
+
+      in {!!} }
+
+{-
+        
+      let open Idem cat (proj₁ ide)
+          open SplitMap cat f
+
+          .f∈ : ∈ (record { E = E; e = rest imap; law = lemii X })
+          f∈ = sym (lemi X)
+
+      in record {
+        B = ide; 
+        s = splitiden cat; 
+        r = splitiden cat; 
+        law1 = splitmap≅ cat _ _ {!!}; 
+        law2 = splitidl cat }}
+-}
+
+{-
+      let open SplitMap cat f 
+      in record { 
+             B = E; 
+             s = record { imap = rest imap; mlaw = {!E!} }; 
+             r = {!!}; 
+             law1 = {!!}; 
+             law2 = {!!} } }
+-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 {-
 RIdeSplitCat : {X : RestCat} → SplitRestCat
 RIdeSplitCat {X} = 

@@ -224,6 +224,12 @@ everysplit ide E p = record {
     r = splitiden; 
     law1 = splitidl; 
     law2 = splitidl }
+{-
+everysplit2 : ∀(ide ide': Idem X)(E : IdemClass) → 
+             let open IdemClass E
+             in (p : ∈ ide) → Split (SplitCat E) (record { E = ide , p; e = {!!}; law = {!!} })
+everysplit2 ide E p = {!!}
+-}
 
 postulate .splitmap≅ : {ide ide' : Idem X}(sp sp' : SplitMap ide ide') → 
                       let open SplitMap sp
