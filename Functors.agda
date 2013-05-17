@@ -17,7 +17,7 @@ record Fun (C D : Cat) : Set where
                 HMap (comp C f g) ≅ comp D (HMap f) (HMap g)
 
 IdF : ∀ C → Fun C C
-IdF C = record{OMap = id;HMap = id;fid = refl;fcomp = refl}
+IdF C = record {OMap = id; HMap = id; fid = refl; fcomp = refl}
 
 open Fun
 open Cat
@@ -59,3 +59,21 @@ Faithful {C} F = ∀{A B}{f g : Hom C A B} → HMap F f ≅ HMap F g → f ≅ g
 
 Full : ∀{C D} → Fun C D → Set
 Full {C} {D} F = ∀{A B}{f : Hom D (OMap F A) (OMap F B)} → Σ (Hom C A B) λ g → HMap F g ≅ f
+
+-- Equality for functors
+
+postulate Fun≅ : ∀{C D}{F G : Fun C D} → Fun.OMap F ≅ Fun.OMap G →
+                 (∀{X Y} → Fun.HMap F {X}{Y} ≅ Fun.HMap G {X}{Y}) → F ≅ G
+                 
+
+-- Cat of Cats
+
+CCat : Cat
+CCat = record {
+         Obj = Cat;
+         Hom = Fun;
+         iden = λ {C} → IdF C;
+         comp = _○_;
+         idl = refl;
+         idr = refl;
+         ass = refl }

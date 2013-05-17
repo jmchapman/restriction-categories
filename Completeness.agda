@@ -191,8 +191,7 @@ module Completeness (X : SplitRestCat) where
 
         u = proj₁ isosplit
 
-{-
-        .equat : comp (comp g mg) h ≅ comp (comp g f) (comp mf m')
+        equat : comp (comp g mg) h ≅ comp (comp g f) (comp mf m')
         equat = 
           proof
           comp (comp g mg) h
@@ -213,7 +212,6 @@ module Completeness (X : SplitRestCat) where
           ≅⟨ sym ass ⟩
           comp (comp g f) (comp mf m')
           ∎
--}
 
     in quotient _ 
                 _ 
@@ -223,23 +221,8 @@ module Completeness (X : SplitRestCat) where
                 (TotEq _ 
                        _ 
                        (proof
-
                         comp (comp (comp g mg) (comp rg (comp (comp f mf) m'))) u
-                        ≅⟨ cong (λ y → comp y u) ass ⟩
-
-                        comp (comp g (comp mg (comp rg (comp (comp f mf) m')))) u
-                        ≅⟨ cong (λ y → comp (comp g y) u) (sym ass) ⟩
-                        comp (comp g (comp (comp mg rg) (comp (comp f mf) m'))) u
-                        ≅⟨ cong (λ y → comp (comp g (comp y (comp (comp f mf) m'))) u) law1g ⟩
-                        comp (comp g (comp (rest g) (comp (comp f mf) m'))) u
-                        ≅⟨ cong (λ y → comp y u) (sym ass) ⟩
-                        comp (comp (comp g (rest g)) (comp (comp f mf) m')) u
-                        ≅⟨ cong (λ y → comp (comp y (comp (comp f mf) m')) u) R1 ⟩
-                        comp (comp g (comp (comp f mf) m')) u
-                        ≅⟨ cong (λ y → comp (comp g y) u) ass ⟩
-                        comp (comp g (comp f (comp mf m'))) u
-                        ≅⟨ cong (λ y → comp y u) (sym ass) ⟩
-
+                        ≅⟨ cong (λ y → comp y u) equat ⟩
                         comp (comp (comp g f) (comp mf m')) u
                         ≅⟨ ass ⟩
                         comp (comp g f) (comp (comp mf m') u)
@@ -253,7 +236,7 @@ module Completeness (X : SplitRestCat) where
     OMap = λ A → A; 
     HMap = HMap;
     fid = fid;
-    fcomp = fcomp}
+    fcomp = λ {_}{_}{_}{g}{f} → fcomp {g = g} {f = f}}
 
   HMap2 : ∀{A C} → Span A C → Hom A C
   HMap2 {A}{C} sp = 
@@ -338,4 +321,94 @@ module Completeness (X : SplitRestCat) where
     fid = fid2;
     fcomp = λ {_}{_}{_}{sp'}{sp} → fcomp2 {sp' = sp'} {sp = sp} }
 
+-- Iso proof
 
+  .HIso1 : ∀{A C}(sp : Span A C) → HMap (HMap2 sp) ≅ sp
+  HIso1 {A}{C} sp = 
+    let open Span sp renaming (mhom to nt; fhom to gt; m∈ to n∈)
+        open Tot nt renaming (hom to n)
+        open Tot gt renaming (hom to g; tot to gp)
+
+        open SRestIde n∈ renaming (rs to r; law1s to law1; law2s to law2)
+
+        open Span (HMap (HMap2 sp)) renaming (A' to A''; mhom to mt)
+        open Tot mt renaming (hom to m)
+
+        open SRestIde m∈ renaming (rs to r'; law1s to law1'; law2s to law2')
+
+        spl : Split (record { E = A; e = rest r; law = lemii rcat})
+        spl = record { 
+          B = A'; 
+          s = n; 
+          r = r; 
+          law1 = SRIdeProp n∈;
+          law2 = law2}
+
+        spl' : Split (record { E = A; e = rest r; law = lemii rcat})
+        spl' = record { 
+          B = A''; 
+          s = m; 
+          r = r'; 
+          law1 = 
+            proof
+            comp m r'
+            ≅⟨ law1' ⟩
+            rest (comp g r)
+            ≅⟨ lemiv rcat ⟩
+            rest (comp (rest g) r)
+            ≅⟨ cong (λ y → rest (comp y r)) gp ⟩
+            rest (comp iden r)
+            ≅⟨ cong rest idl ⟩
+            rest r
+            ∎;
+          law2 = law2'}
+
+        α : Hom A' A''
+        α = proj₁ (lemma (record { E = A; e = rest r; law = lemii rcat}) spl spl')
+
+        αt : Tot A' A''
+        αt = record { 
+          hom = α; 
+          tot = lemiii rcat (iso→mono cat (proj₁ (proj₂ (lemma (record { E = A; e = rest r; law = lemii rcat}) spl spl'))))}
+
+        equat : comp (comp (comp g r) m) α ≅ g
+        equat = 
+          proof
+          comp (comp (comp g r) m) α 
+          ≅⟨ ass ⟩
+          comp (comp g r) (comp m α) 
+          ≅⟨ cong (comp (comp g r)) (proj₂ (proj₂ (proj₂ (lemma (record { E = A; e = rest r; law = lemii rcat}) spl spl')))) ⟩
+          comp (comp g r) n 
+          ≅⟨ ass ⟩
+          comp g (comp r n) 
+          ≅⟨ cong (comp g) law2 ⟩
+          comp g iden
+          ≅⟨ idr ⟩
+          g
+          ∎
+
+    in sym (quotient sp 
+                (HMap (HMap2 sp)) 
+                αt 
+                (IsoTot αt (proj₁ (proj₂ (lemma (record { E = A; e = rest r; law = lemii rcat}) spl spl'))))
+                (TotEq _ nt (proj₂ (proj₂ (proj₂ (lemma (record { E = A; e = rest r; law = lemii rcat}) spl spl')))))
+                (TotEq _ gt equat))
+
+  .HIso2 : ∀{A C}(f : Hom A C) → HMap2 (HMap f) ≅ f
+  HIso2 {A}{C} f = 
+    let open Split (rsplit f)
+    in 
+      proof
+      comp (comp f s) r
+      ≅⟨ ass ⟩
+      comp f (comp s r)
+      ≅⟨ cong (comp f) law1 ⟩
+      comp f (rest f)
+      ≅⟨ R1 ⟩
+      f
+      ∎
+
+  IsoCompl : Iso CCat Funct
+  IsoCompl = Funct2 ,, 
+             Fun≅ refl (ext HIso1) ,, 
+             Fun≅ refl (ext HIso2)
