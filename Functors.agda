@@ -6,7 +6,7 @@ open import Function
 open import Categories
 open ≅-Reasoning renaming (begin_ to proof_)
 open import Data.Product
-
+open import Equality
 
 record Fun (C D : Cat) : Set where
   open Cat
@@ -58,7 +58,7 @@ Faithful : ∀{C D} → Fun C D → Set
 Faithful {C} F = ∀{A B}{f g : Hom C A B} → HMap F f ≅ HMap F g → f ≅ g
 
 Full : ∀{C D} → Fun C D → Set
-Full {C} {D} F = ∀{A B}{f : Hom D (OMap F A) (OMap F B)} → Σ (Hom C A B) λ g → HMap F g ≅ f
+Full {C} {D} F = ∀{A B}{f : Hom D (OMap F A) (OMap F B)} → Σ' (Hom C A B) λ g → HMap F g ≅ f
 
 -- Equality for functors
 

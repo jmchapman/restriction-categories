@@ -196,6 +196,57 @@ SplitCat : IdemClass → Cat
 SplitCat E = 
   let open IdemClass E
   in record {
+    Obj = Σ' (Idem X) ∈;
+    Hom = λ {(ide ,, p) (ide' ,, p') → SplitMap ide ide'};
+    iden = splitiden;
+    comp = splitcomp;
+    idl = λ{_}{_}{f} → splitidl {f = f} ;
+    idr = λ{_}{_}{f} → splitidr {f = f} ;
+    ass = λ{_}{_}{_}{_}{f}{g}{h} → split≅ 
+      (splitcomp (splitcomp f g) h)
+      (splitcomp f (splitcomp g h))
+      ass }
+
+postulate .splitmap≅ : {ide ide' : Idem X}(sp sp' : SplitMap ide ide') → 
+                      let open SplitMap sp
+                          open SplitMap sp' renaming (imap to imap'; mlaw to mlaw')
+                      in imap ≅ imap' → sp ≅ sp'
+
+module SubcatSplit where
+
+  Incl : (E : IdemClass) → Fun X (SplitCat E)
+  Incl E = 
+    let open IdemClass E
+    in record { 
+      OMap = λ A → 
+        record { E = A; e = iden; law = idl } ,, 
+        id∈; 
+      HMap = λ {A}{B} f → 
+        record { 
+          imap = f; 
+          mlaw = 
+            proof
+            comp iden (comp f iden)
+            ≅⟨ idl ⟩
+            comp f iden
+            ≅⟨ idr ⟩
+            f
+            ∎ }; 
+      fid = splitmap≅ _ _ refl ;
+      fcomp = splitmap≅ _ _ refl }
+
+  FullIncl : (E : IdemClass) → Full (Incl E)
+  FullIncl E {A}{B}{f} =
+    let open IdemClass E
+        open SplitMap f
+    in imap ,, 
+       splitmap≅ _ _ refl
+
+{-
+SplitCat : IdemClass → Cat
+SplitCat E = 
+  let open IdemClass E
+  in record {
     Obj = Σ (Idem X) ∈;
     Hom = λ {(ide , p) (ide' , p') → SplitMap ide ide'};
     iden = splitiden;
@@ -237,33 +288,6 @@ postulate .splitmap≅ : {ide ide' : Idem X}(sp sp' : SplitMap ide ide') →
                       in imap ≅ imap' → sp ≅ sp'
 
 {-
-module SubcatSplit where
+-}
 
-  Incl : (E : IdemClass) → Fun X (SplitCat E)
-  Incl E = 
-    let open IdemClass E
-    in record { 
-      OMap = λ A → 
-        record { E = A; e = iden; law = idl } , 
-        id∈; 
-      HMap = λ {A}{B} f → 
-        record { 
-          imap = f; 
-          mlaw = 
-            proof
-            comp iden (comp f iden)
-            ≅⟨ idl ⟩
-            comp f iden
-            ≅⟨ idr ⟩
-            f
-            ∎ }; 
-      fid = splitmap≅ refl ;
-      fcomp = splitmap≅ refl }
-
-  FullIncl : (E : IdemClass) → Full (Incl E)
-  FullIncl E {A}{B}{f} =
-    let open IdemClass E
-        open SplitMap f
-    in imap , 
-       splitmap≅ refl
 -}
