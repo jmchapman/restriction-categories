@@ -24,18 +24,4 @@ fixtypes : ∀{A}{a a' a'' a''' : A}{p : a ≅ a'}{q : a'' ≅ a'''} →
            a ≅ a'' → a' ≅ a''' → p ≅ q
 fixtypes refl refl = ≡-to-≅ (proof-irrelevance _ _)
 
-record R (A : Set)(P : Set) : Set where
-  constructor _!_
-  field a : A
-        .p : P
-
-open R
-
-
-lem' : ∀{A : Set}{B : Set}{a a' : A}.(b : B).(b' : B) → a ≅ a' → 
-       a ! b ≅ a' ! b'
-lem' b b' refl = refl
-
-lem : ∀{A B} → (r r' : R A B) →  a r ≅ a r' → r ≅ r'
-lem {A}{B} r r' q = lem' (p r) (p r') q
 

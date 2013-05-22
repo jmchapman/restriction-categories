@@ -11,7 +11,7 @@ open import Sets
 open import Function
 open import Relation.Binary.HeterogeneousEquality
 open import Equality
-open import Data.Product hiding (map) renaming (proj₁ to fst; proj₂ to snd)
+open import Data.Product hiding (map)
 open ≅-Reasoning renaming (begin_ to proof_)
 open import RestrictionCat
 
@@ -59,6 +59,7 @@ dbindlater : ∀{X Y}(f : X → ∞ (Delay Y))(dx : Delay X) →
 dbindlater f (now x) = later∼ (♯ {!!})
 dbindlater f (later x) = later∼ (♯ trans∼ (dbindlater f (♭ x)) (later∼ (♯ refl∼)))
 -}
+
 data _↓_ {X : Set} : Delay X → X → Set where
   now↓ : ∀{y} → now y ↓ y
   later↓ : ∀{dy y} → (♭ dy) ↓ y → later dy ↓ y
@@ -103,9 +104,10 @@ map = Fun.HMap (TFun DelayM)
 str : ∀{X Y} → X × Delay Y → Delay (X × Y)
 str (x , dy) = map (λ y → (x , y)) dy
 
-drest : ∀{X Y} → (X → Delay Y) → X → Delay X
-drest f x = map fst (str (x , f x))
+--str : ∀{X Y} → Delay X × Delay Y → Delay (X × Y)
 
+drest : ∀{X Y} → (X → Delay Y) → X → Delay X
+drest f x = map proj₁ (str (x , f x))
 
 open Cat (Kl DelayM)
 
@@ -113,19 +115,17 @@ data _R_ {X : Set} : Delay X → Delay X → Set where
   nowR : ∀{x} → now x R now x
   later2 : ∀{dx dx'} → ∞ (♭ dx R ♭ dx') → later (♯ (later dx)) R later dx'
 
-
-
 lemma : ∀{X}(dx : Delay X) → dbind (λ _ → dx) dx R dx
 lemma (now x) = nowR
-lemma (later x) = {!!}
+lemma (later x) = {!later!}
 
 dR1 : ∀{X Y}{f : X → Delay Y}(x : X) → (dbind f ∘ (drest f)) x ≅ f x
 dR1 {f = f} x = 
   let open Monad DelayM 
   in  proof
-      dbind f (dbind (now ∘ fst) (dbind (λ y → now (x , y)) (f x)))
+      dbind f (dbind (now ∘ proj₁) (dbind (λ y → now (x , y)) (f x)))
       ≅⟨ cong (λ f' → dbind f (f' (f x)))
-              (sym (law3 {f = λ y → now (x , y)} {g = now ∘ fst})) ⟩
+              (sym (law3 {f = λ y → now (x , y)} {g = now ∘ proj₁})) ⟩
       dbind f (dbind (λ _ → now x) (f x))
       ≅⟨ cong (λ f' → f' (f x)) (sym (law3 {f = λ _ → now x} {g = f})) ⟩
       dbind (λ _ → f x) (f x)
@@ -143,3 +143,4 @@ DelayR = record {
   R3   = {!!}; 
   R4   = {!!} }
 -}
+
