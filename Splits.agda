@@ -235,12 +235,17 @@ module SubcatSplit where
       fid = splitmap≅ _ _ refl ;
       fcomp = splitmap≅ _ _ refl }
 
+  FaithfulIncl : (E : IdemClass) → Faithful (Incl E)
+  FaithfulIncl E refl = refl
+
   FullIncl : (E : IdemClass) → Full (Incl E)
   FullIncl E {A}{B}{f} =
     let open IdemClass E
         open SplitMap f
     in imap ,, 
        splitmap≅ _ _ refl
+
+
 
 {-
 SplitCat : IdemClass → Cat
