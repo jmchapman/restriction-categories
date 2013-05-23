@@ -6,7 +6,7 @@ open import Function
 open import Categories
 open ≅-Reasoning renaming (begin_ to proof_)
 open import Data.Product
-open import Equality
+open import Utilities
 
 record Fun (C D : Cat) : Set where
   open Cat
@@ -65,7 +65,6 @@ Full {C} {D} F = ∀{A B}{f : Hom D (OMap F A) (OMap F B)} → Σ' (Hom C A B) �
 postulate Fun≅ : ∀{C D}{F G : Fun C D} → Fun.OMap F ≅ Fun.OMap G →
                  (∀{X Y} → Fun.HMap F {X}{Y} ≅ Fun.HMap G {X}{Y}) → F ≅ G
                  
-
 -- Cat of Cats
 
 CCat : Cat

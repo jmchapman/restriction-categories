@@ -1,10 +1,11 @@
-open import RestrictionCat
+open import SplitRestCats
 
 module MonicClasses (X : SplitRestCat) where
 
   open import Categories
+  open import RestrictionCat
   open import Relation.Binary.HeterogeneousEquality
-  open import Equality
+  open import Utilities
   open ≅-Reasoning renaming (begin_ to proof_)
   open import Function
   open import Data.Product
@@ -13,7 +14,7 @@ module MonicClasses (X : SplitRestCat) where
   open RestCat rcat
   open Cat cat
   open Lemmata rcat
-  open Idems cat
+  open import Categories.Idems cat
   open Totals rcat
   open Tot
 
@@ -24,10 +25,10 @@ module MonicClasses (X : SplitRestCat) where
           .law1s : comp (hom s) rs ≅ rest fs
           .law2s : comp rs (hom s) ≅ iden {B}
 
-  open Monos
-  open Isos Total
-  open Sections cat
-  open import Pullbacks Total
+  open import Categories.Monos
+  open import Categories.Isos Total
+  open import Categories.Sections cat
+  open import Categories.Pullbacks Total
 
 {-
   SRIde→Split : ∀{B E}{s : Tot B E} → (sride : SRestIde s) → 

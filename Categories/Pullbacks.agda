@@ -1,9 +1,9 @@
 open import Categories
-module Pullbacks (X : Cat) where
+module Categories.Pullbacks (X : Cat) where
   open import Relation.Binary.HeterogeneousEquality
   open ≅-Reasoning renaming (begin_ to proof_)
   open import Data.Product
-  open import Equality
+  open import Utilities
   open Cat X
 
   record Square {X Y Z}(f : Hom X Z)(g : Hom Y Z) : Set where
@@ -26,7 +26,7 @@ module Pullbacks (X : Cat) where
                  Σ' (PMap sq' sq) λ u → (u' : PMap sq' sq) → mor u ≅  mor u'
   open Pullback
 
-  open Isos X
+  open import Categories.Isos X
 
   .pullbackiso : ∀{X Y Z}{f : Hom X Z}{g : Hom Y Z}(p p' : Pullback f g) → 
                 Iso (mor (fst (prop p (sq p'))))

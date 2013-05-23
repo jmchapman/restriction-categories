@@ -6,10 +6,10 @@ module Stable (X : Cat) where
   open import Data.Product
   open import Function
   open Cat X
-  open import Pullbacks X
-  open Monos X
-  open Isos X
-  open import PullbacksLemmas X
+  open import Categories.Pullbacks X
+  open import Categories.Monos X
+  open import Categories.Isos X
+  open import Categories.Pullbacks.PullbacksLemmas X
 
   record StableSys : Set where
     open Pullback

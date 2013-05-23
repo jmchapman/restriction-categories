@@ -1,5 +1,5 @@
 {-# OPTIONS --type-in-type #-}
-module Equality where
+module Utilities where
 
 open import Relation.Binary.HeterogeneousEquality
 open import Data.Unit

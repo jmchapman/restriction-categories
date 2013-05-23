@@ -1,11 +1,12 @@
 
-open import RestrictionCat
+open import SplitRestCats
 
 module Completeness (X : SplitRestCat) where
 
   open import Categories
+  open import RestrictionCat
   open import Relation.Binary.HeterogeneousEquality
-  open import Equality
+  open import Utilities
   open ≅-Reasoning renaming (begin_ to proof_)
   open import Function
   open import Data.Product
@@ -17,16 +18,16 @@ module Completeness (X : SplitRestCat) where
   open Totals rcat
   open Tot
   open import Stable 
-  open import Pullbacks
+  open import Categories.Pullbacks
   open Lemmata
 
   open import MonicClasses X
 
   open import PartialMaps Total M
-  open Idems cat
-  open Sections cat
-  open Monos cat
-  open Isos
+  open import Categories.Idems cat
+  open import Categories.Sections cat
+  open import Categories.Monos cat
+  open import Categories.Isos
 
 
 -- Functor definition

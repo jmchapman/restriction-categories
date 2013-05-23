@@ -1,8 +1,8 @@
 {-# OPTIONS --type-in-type #-}
 
-module PartialMaybe where
+module RestrictionMaybe where
 open import Relation.Binary.HeterogeneousEquality
-open import Equality
+open import Utilities
 open import Function
 open import Categories
 open import Data.Maybe

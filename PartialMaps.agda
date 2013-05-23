@@ -3,7 +3,7 @@ open import Categories
 open import Stable
 open import Relation.Binary.HeterogeneousEquality
 open ≅-Reasoning renaming (begin_ to proof_)
-open import Equality
+open import Utilities
 open import Data.Product
 open import Function
 
@@ -12,11 +12,11 @@ module PartialMaps (X : Cat)(M : StableSys X) where
 
     open Cat X
     open StableSys X M
-    open Isos X
-    open import Pullbacks X
-    open Monos X
-    open import PullbacksLemmas X
-    open import PastingLemmas X
+    open import Categories.Isos X
+    open import Categories.Pullbacks X
+    open import Categories.Monos X
+    open import Categories.Pullbacks.PullbacksLemmas X
+    open import Categories.Pullbacks.PastingLemmas X
 
     record Span (A B : Obj) : Set where
       field A' : Obj

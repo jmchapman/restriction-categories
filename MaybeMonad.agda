@@ -5,7 +5,7 @@ open import Monads
 open import Sets
 open import Data.Maybe
 open import Relation.Binary.HeterogeneousEquality
-open import Equality
+open import Utilities
 open import Function
 
 mbind : {X Y : Set} → (X → Maybe Y) → Maybe X → Maybe Y

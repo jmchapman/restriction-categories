@@ -1,12 +1,12 @@
 open import Categories
-module PullbacksLemmas (X : Cat) where
+module Categories.Pullbacks.PullbacksLemmas (X : Cat) where
 open import Relation.Binary.HeterogeneousEquality
 open ≅-Reasoning renaming (begin_ to proof_)
 open import Data.Product
-open import Equality
+open import Utilities
 open Cat X
-open Monos X
-open import Pullbacks X
+open import Categories.Monos X
+open import Categories.Pullbacks X
 open import Function
 
 .pullbackmonic : ∀{X Y Z}{f : Hom X Z}{g : Hom Y Z} → Mono g → 
@@ -117,7 +117,7 @@ pullback→mono {X}{Z}{f} g {A}{f₁}{f₂} r =
   where
   open PMap
 
-open Isos X
+open import Categories.Isos X
 open Square
 open PMap
 

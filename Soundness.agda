@@ -1,19 +1,19 @@
 {-# OPTIONS --type-in-type #-}
 open import Categories
 open import Stable
-module RestrictionPar (X : Cat) (M : StableSys X) where
+module Soundness (X : Cat) (M : StableSys X) where
 
 open import Relation.Binary.HeterogeneousEquality
 open ≅-Reasoning renaming (begin_ to proof_)
 open import RestrictionCat
 open import PartialMaps X M
 open Cat X
-open import Pullbacks X
+open import Categories.Pullbacks X
 open StableSys X M
 open import Data.Product
-open import PullbacksLemmas X
-open import PastingLemmas X
-open import Equality
+open import Categories.Pullbacks.PullbacksLemmas X
+open import Categories.Pullbacks.PastingLemmas X
+open import Utilities
 
 restp : ∀{A B} → Span A B → Span A A
 restp mf = record { 
@@ -96,6 +96,8 @@ R2p {mf = mf} {m'f' = m'f'} =
      comp m h
      ∎)
 
+import Categories.Isos
+
 .R3p : ∀{A B C}{mf : Span A B}{m'f' : Span A C} →
       compspan (restp m'f') (restp mf) ≅ restp (compspan m'f' (restp mf))
 R3p {mf = mf} {m'f' = m'f'} = 
@@ -107,7 +109,7 @@ R3p {mf = mf} {m'f' = m'f'} =
 
       open Pullback p
       open Square sq
-      open Isos X
+      open Categories.Isos X
 
   in quotient 
     _ 
@@ -191,8 +193,8 @@ RestPartials = record {
   R4 = λ {A B C mf m'f'} → R4p {A}{B}{C}{mf}{m'f'} }
 
 -- every restriction in Par splits
-open Idems Par
-open Isos X
+open import Categories.Idems Par
+open Categories.Isos X
 
 restpIdem : ∀{A B}(f : Span A B) → Idem
 restpIdem {A}{B} f = record {E = A; e = restp f; law = R1p}

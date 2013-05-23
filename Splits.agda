@@ -4,11 +4,11 @@ open import Categories
 module Splits (X : Cat) where
 
 open import Relation.Binary.HeterogeneousEquality
-open import Equality
+open import Utilities
 open ≅-Reasoning renaming (begin_ to proof_)
 open import Data.Product
 open Cat X
-open Idems
+open import Categories.Idems
 open import Functors
 
 
