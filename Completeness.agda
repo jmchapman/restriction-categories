@@ -411,5 +411,5 @@ module Completeness (X : SplitRestCat) where
 
   IsoCompl : Iso CCat Funct
   IsoCompl = Funct2 ,, 
-             Fun≅ refl (ext HIso1) ,, 
-             Fun≅ refl (ext HIso2)
+             Fun≅ refl HIso1 ,, 
+             Fun≅ refl HIso2
