@@ -61,12 +61,29 @@ Full : ∀{C D} → Fun C D → Set
 Full {C} {D} F = ∀{A B}{f : Hom D (OMap F A) (OMap F B)} → Σ' (Hom C A B) λ g → HMap F g ≅ f
 
 -- Equality for functors
+.Fun≅ : ∀{C D}{F G : Fun C D} → Fun.OMap F ≅ Fun.OMap G →
+       (∀{X Y}(f : Hom C X Y) → Fun.HMap F f ≅ Fun.HMap G f) → F ≅ G
+Fun≅ {C}{D}{F}{G} p q = cong₄
+  {Obj C → Obj D}
+  {λ OMap → ∀{X Y} → Hom C X Y → Hom D (OMap X) (OMap Y)}
+  {λ OMap HMap → ∀{X} → HMap (iden C {X}) ≅ iden D {OMap X}}
+  {λ OMap HMap → ∀{X Y Z}{f : Hom C Y Z}{g : Hom C X Y} → HMap (comp C f g) ≅ comp D (HMap f) (HMap g)}
+  {Fun C D}
+  {Fun.OMap F}
+  {Fun.OMap G} 
+  p
+  {Fun.HMap F}
+  {Fun.HMap G} 
+  (iext (λ X → iext (λ Y → ext q)))
+  {Fun.fid F}
+  {Fun.fid G}  
+  (iext (λ X → fixtypes' (q (iden C))))
+  {Fun.fcomp F}
+  {Fun.fcomp G} 
+  (iext (λ X → iext (λ Y → iext (λ Z → iext (λ f → iext (λ g → fixtypes' (q (comp C f g))))))))
+  λ w x y z → record{OMap = w;HMap = x;fid = y; fcomp = z} 
 
-postulate Fun≅ : ∀{C D}{F G : Fun C D} → Fun.OMap F ≅ Fun.OMap G →
-                 (∀{X Y} → Fun.HMap F {X}{Y} ≅ Fun.HMap G {X}{Y}) → F ≅ G
-                 
 -- Cat of Cats
-
 CCat : Cat
 CCat = record {
          Obj = Cat;
