@@ -149,7 +149,8 @@ module Totals (X : RestCat) where
     {tot g}    
     (λ x y → record { hom = x; tot = y }) 
     p 
-    (fixtypes (cong rest p) refl)
+    (fixtypes'' refl)
+--    (fixtypes (cong rest p) refl)
 
   identot : ∀{A} → Tot A A
   identot = record { hom = iden; tot = lemiii (idmono cat) } 

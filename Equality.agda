@@ -24,4 +24,10 @@ fixtypes : ∀{A}{a a' a'' a''' : A}{p : a ≅ a'}{q : a'' ≅ a'''} →
            a ≅ a'' → a' ≅ a''' → p ≅ q
 fixtypes refl refl = ≡-to-≅ (proof-irrelevance _ _)
 
+fixtypes' : ∀{A}{a a' a'' a''' : A}{p : a ≅ a'}{q : a'' ≅ a'''} →
+            a ≅ a'' → p ≅ q
+fixtypes' {p = p}{q = q} r = fixtypes r (trans (sym p) (trans r q))
 
+fixtypes'' : ∀{A}{a a' a'' a''' : A}{p : a ≅ a'}{q : a'' ≅ a'''} →
+            a' ≅ a''' → p ≅ q
+fixtypes'' {p = p}{q = q} r = fixtypes (trans p (trans r (sym q))) r 

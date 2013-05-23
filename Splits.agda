@@ -40,6 +40,8 @@ split≅ {ide}{ide'} f f' p =
        {imap'}
        (λ (x : Hom E E') y → record { imap = x; mlaw = y })
        p 
+       (fixtypes'' p)
+{-
        (fixtypes 
          (proof 
           comp e' (comp imap e) 
@@ -51,7 +53,7 @@ split≅ {ide}{ide'} f f' p =
           comp e' (comp imap' e) 
           ∎)
          p)
-
+-}
 .splitprop : {ide ide' : Idem X}(f : SplitMap ide ide') →
             let open SplitMap f
                 open Idem X ide
