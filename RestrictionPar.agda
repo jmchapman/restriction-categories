@@ -13,6 +13,7 @@ open StableSys X M
 open import Data.Product
 open import PullbacksLemmas X
 open import PastingLemmas X
+open import Equality
 
 restp : ∀{A B} → Span A B → Span A A
 restp mf = record { 
@@ -22,7 +23,7 @@ restp mf = record {
   m∈ = m∈ }
   where open Span mf
 
-R1p : ∀{A B} → {mf : Span A B} → compspan mf (restp mf) ≅ mf
+.R1p : ∀{A B} → {mf : Span A B} → compspan mf (restp mf) ≅ mf
 R1p {mf = mf} = 
   let open Span mf
   
@@ -49,7 +50,7 @@ R1p {mf = mf} =
      ≅⟨ cong (comp fhom) (mon m∈ scom) ⟩ 
      comp fhom k ∎)
   
-R2p : ∀{A B C}{mf : Span A B}{m'f' : Span A C} → 
+.R2p : ∀{A B C}{mf : Span A B}{m'f' : Span A C} → 
       compspan (restp mf) (restp m'f') ≅ compspan (restp m'f') (restp mf)
 R2p {mf = mf} {m'f' = m'f'} =
   let open Span mf renaming (mhom to m; fhom to f)
@@ -68,7 +69,7 @@ R2p {mf = mf} {m'f' = m'f'} =
       open Square sq' renaming (W to W'; h to h'; k to k'; scom to scom')
 
       pu : PMap sq sq'
-      pu = proj₁ (prop' sq)
+      pu = fst (prop' sq)
 
       open PMap pu renaming (mor to u)
   in quotient 
@@ -95,7 +96,7 @@ R2p {mf = mf} {m'f' = m'f'} =
      comp m h
      ∎)
 
-R3p : ∀{A B C}{mf : Span A B}{m'f' : Span A C} →
+.R3p : ∀{A B C}{mf : Span A B}{m'f' : Span A C} →
       compspan (restp m'f') (restp mf) ≅ restp (compspan m'f' (restp mf))
 R3p {mf = mf} {m'f' = m'f'} = 
   let open Span mf renaming (mhom to m; fhom to f)
@@ -126,7 +127,7 @@ R3p {mf = mf} {m'f' = m'f'} =
      comp m' k 
      ∎)
 
-R4p : ∀{A B C}{mf : Span A B}{m'f' : Span B C} →
+.R4p : ∀{A B C}{mf : Span A B}{m'f' : Span B C} →
       compspan (restp m'f') mf ≅ compspan mf (restp (compspan m'f' mf))
 R4p {mf = mf} {m'f' = m'f'} = 
   let open Span mf renaming (mhom to m; fhom to f)
@@ -150,7 +151,7 @@ R4p {mf = mf} {m'f' = m'f'} =
       open Square sq' renaming (W to W'; h to h'; k to k'; scom to scom')
 
       pu : PMap sq'' sq'
-      pu = proj₁ (prop' sq'')
+      pu = fst (prop' sq'')
 
       open PMap pu renaming (mor to u)
 
@@ -225,7 +226,7 @@ restpSplit {A}{B} f = let open Span f
          in quotient 
            _ 
            _ 
-           (PMap.mor (proj₁ (Pullback.prop myp sq)))
+           (PMap.mor (fst (Pullback.prop myp sq)))
            (pullbackiso myp (proj₁ (pul (iden {A'}) (iso idiso))))
            refl
            (proof 
@@ -241,7 +242,7 @@ restpSplit {A}{B} f = let open Span f
    in quotient 
      _ 
      _ 
-     (PMap.mor (proj₁ (Pullback.prop myp sq))) 
+     (PMap.mor (fst (Pullback.prop myp sq))) 
      (pullbackiso myp (proj₁ (pul mhom m∈))) 
      refl 
      (proof 
