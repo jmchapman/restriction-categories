@@ -1,5 +1,5 @@
 {-# OPTIONS --type-in-type #-}
-module MaybeMonad where
+module Monads.Maybe where
 
 open import Monads
 open import Sets

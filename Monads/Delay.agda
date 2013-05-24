@@ -1,5 +1,5 @@
 {-# OPTIONS --type-in-type #-}
-module DelayMonad where
+module Monads.Delay where
 
 open import Coinduction
 open import Monads

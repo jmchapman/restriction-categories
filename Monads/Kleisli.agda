@@ -1,4 +1,4 @@
-module Kleisli where
+module Monads.Kleisli where
 
 open import Categories
 open import Monads

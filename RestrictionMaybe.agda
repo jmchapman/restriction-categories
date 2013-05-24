@@ -9,9 +9,9 @@ open import Data.Maybe
 open import RestrictionCat
 
 open import Monads
-open import Kleisli
+open import Monads.Kleisli
 open import Sets
-open import MaybeMonad
+open import Monads.Maybe
 
 rest : ∀{X Y} → (X → Maybe Y) → X → Maybe X
 rest f x with f x

@@ -4,7 +4,7 @@ open import Coinduction
 open import Categories
 open import Monads
 open import Functors
-open import Kleisli
+open import Monads.Kleisli
 open import Sets
 open import Function
 open import Relation.Binary.HeterogeneousEquality
@@ -12,7 +12,7 @@ open import Utilities
 open import Data.Product hiding (map)
 open ≅-Reasoning renaming (begin_ to proof_)
 open import RestrictionCat
-open import DelayMonad
+open import Monads.Delay
 
 map = Fun.HMap (TFun DelayM)
 
