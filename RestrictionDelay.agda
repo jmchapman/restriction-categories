@@ -14,13 +14,6 @@ open ≅-Reasoning renaming (begin_ to proof_)
 open import RestrictionCat
 open import Monads.Delay
 
-map = Fun.HMap (TFun DelayM)
-
-str : ∀{X Y} → X × Delay Y → Delay (X × Y)
-str (x , dy) = map (λ y → (x , y)) dy
-
---str : ∀{X Y} → Delay X × Delay Y → Delay (X × Y)
-
 drest : ∀{X Y} → (X → Delay Y) → X → Delay X
 drest f x = map proj₁ (str (x , f x))
 

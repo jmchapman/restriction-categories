@@ -7,6 +7,8 @@ open import Sets
 open import Function
 open import Relation.Binary.HeterogeneousEquality
 open import Utilities
+open import Functors
+open import Data.Product hiding (map)
 
 data Delay (X : Set) : Set where
   now : X → Delay X
@@ -15,6 +17,8 @@ data Delay (X : Set) : Set where
 dbind : ∀{X Y} → (X → Delay Y) → Delay X → Delay Y
 dbind f (now x)   = f x
 dbind f (later x) = later (♯ dbind f (♭ x))
+
+-- strong bisimilarity
 
 data _∼_ {X : Set} : Delay X → Delay X → Set where
   now∼ : ∀{x} → now x ∼ now x
@@ -91,3 +95,7 @@ DelayM = record {
   law2 = refl; 
   law3 = ext (quotient ∘ dlaw3) }
 
+map = Fun.HMap (TFun DelayM)
+
+str : ∀{X Y} → X × Delay Y → Delay (X × Y)
+str (x , dy) = map (λ y → (x , y)) dy
