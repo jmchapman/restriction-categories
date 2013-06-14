@@ -39,3 +39,35 @@ RFFaithful {X} = λ {_} {_} {f} {g} → TotEq f g
   where open Totals X
         open Tot
 
+-- Cat of Restriction Cats
+
+open RestFun
+open RestCat
+open Fun 
+
+IdRF : ∀{C} → RestFun C C
+IdRF {C} = record { 
+  fun = IdF (cat C); 
+  frest = refl }
+
+_○R_ : ∀{C D E} → RestFun D E → RestFun C D → RestFun C E
+_○R_ {C}{D}{E} F G = record { 
+  fun = fun F ○ fun G; 
+  frest = λ {A}{B}{f} → 
+    proof
+    rest E (HMap (fun F) (HMap (fun G) f))
+    ≅⟨ frest F ⟩
+    HMap (fun F) (rest D (HMap (fun G) f))
+    ≅⟨ cong (HMap (fun F)) (frest G) ⟩
+    HMap (fun F) (HMap (fun G) (rest C f))
+    ∎}
+
+RCCat : Cat
+RCCat = record {
+         Obj = RestCat;
+         Hom = RestFun;
+         iden = IdRF;
+         comp = _○R_;
+         idl = refl;
+         idr = refl;
+         ass = refl }
