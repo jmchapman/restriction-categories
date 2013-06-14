@@ -516,3 +516,8 @@ module Completeness (X : SplitRestCat) where
   IsoCompl = Funct2 ,, 
              Fun≅ refl HIso1 ,, 
              Fun≅ refl HIso2
+
+  RIsoCompl : Iso RCCat RFunct
+  RIsoCompl = RFunct2 ,, 
+              RFun≅ (Fun≅ refl HIso1) ,, 
+              RFun≅ (Fun≅ refl HIso2)
