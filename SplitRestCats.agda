@@ -96,7 +96,7 @@ RSplitCat {X} E =
     R1 = λ {ide}{_}{f} → 
       let open SplitMap cat f
           open Idem (fst ide)
-      in splitmap≅ cat (splitcomp cat f (restsplitmap {X} f)) f
+      in split≅ cat (splitcomp cat f (restsplitmap {X} f)) f
            (proof
             comp imap (comp (rest imap) e) ≅⟨ sym ass ⟩
             comp (comp imap (rest imap)) e ≅⟨ cong (λ y → comp y e) R1 ⟩
@@ -105,7 +105,7 @@ RSplitCat {X} E =
       let open SplitMap cat f
           open Idem (fst ide)
           open SplitMap cat g renaming (imap to imap')
-      in splitmap≅ cat (splitcomp cat (restsplitmap {X} g) 
+      in split≅ cat (splitcomp cat (restsplitmap {X} g) 
                                       (restsplitmap {X} f)) 
                        (splitcomp cat (restsplitmap {X} f) 
                                       (restsplitmap {X} g))
@@ -127,7 +127,7 @@ RSplitCat {X} E =
       let open SplitMap cat f
           open Idem (fst ide)
           open SplitMap cat g renaming (imap to imap')
-      in splitmap≅ cat (splitcomp cat (restsplitmap {X} g) 
+      in split≅ cat (splitcomp cat (restsplitmap {X} g) 
                                       (restsplitmap {X} f))
                        (restsplitmap {X} (splitcomp cat g 
                                                         (restsplitmap {X} f))) (
@@ -160,7 +160,7 @@ RSplitCat {X} E =
           open Idem (fst ide') renaming (e to e')
           open SplitMap cat g renaming (imap to imap')
       in 
-        splitmap≅ cat (splitcomp cat (restsplitmap {X} g) f)
+        split≅ cat (splitcomp cat (restsplitmap {X} g) f)
                       (splitcomp cat f (restsplitmap {X} (splitcomp cat g f)))
         (proof 
          comp (comp (rest imap') e') imap 
@@ -330,6 +330,13 @@ RIdeSplitCat {X} =
         B = rf;
         s = s;
         r = r;
-        law1 = splitmap≅ cat (splitcomp cat s r) (restsplitmap {X} f) law1; 
-        law2 = splitmap≅ cat (splitcomp cat r s) (splitiden cat {record { E = E; e = comp (rest imap) e; law = RestIdemIsIdem {X} f }}) law1}}
+        law1 = split≅ cat (splitcomp cat s r) (restsplitmap {X} f) law1; 
+        law2 = split≅ cat (splitcomp cat r s) (splitiden cat {record { E = E; e = comp (rest imap) e; law = RestIdemIsIdem {X} f }}) law1}}
 
+
+open import RestrictionFunctors
+
+RIncl : ∀{X} → RestFun X  (RSplitCat {X} (RestIdemsClass {X}))
+RIncl {X} = record { 
+  fun = Incl (RestCat.cat X) (RestIdemsClass {X});
+  frest = λ {A} {B} {f} → split≅ (RestCat.cat X) _ _ (Cat.idr (RestCat.cat X)) }

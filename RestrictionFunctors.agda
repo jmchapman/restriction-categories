@@ -71,3 +71,5 @@ RCCat = record {
          idl = refl;
          idr = refl;
          ass = refl }
+
+postulate .RFun≅ : ∀{C D}{F G : RestFun C D} → RestFun.fun F ≅ RestFun.fun G → F ≅ G
