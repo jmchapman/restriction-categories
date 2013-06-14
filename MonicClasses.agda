@@ -15,7 +15,7 @@ module MonicClasses (X : SplitRestCat) where
   open Cat cat
   open Lemmata rcat
   open import Categories.Idems cat
-  open Totals rcat
+  open import Totals rcat
   open Tot
 
   record SRestIde {B E} (s : Tot B E) : Set where
