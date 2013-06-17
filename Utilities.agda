@@ -25,11 +25,11 @@ data Reveal_is_ {A : Set} (x : Hidden A) (y : A) : Set where
 cong₃ : {A : Set}
         {B : A → Set}
         {C : (a : A) → B a → Set}
-        {D : Set}
+        {D : (a : A)(b : B a) → C a b → Set}
         {a a' : A} → a ≅ a' → 
         {b : B a}{b' : B a'} → b ≅ b' → 
         {c : C a b}{c' : C a' b'} → c ≅ c' → 
-        (f : (a : A)(b : B a) → C a b → D) → f a b c ≅ f a' b' c'
+        (f : (a : A)(b : B a)(c : C a b) → D a b c) → f a b c ≅ f a' b' c'
 cong₃ refl refl refl f = refl
 
 cong₄ : {A : Set}

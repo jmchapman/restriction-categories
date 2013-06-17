@@ -71,5 +71,36 @@ RCCat = record {
          idl = refl;
          idr = refl;
          ass = refl }
+{-
+record RestFun (X Y : RestCat) : Set where
+  open Cat
+  open RestCat
+  open Fun
+  field fun   : Fun (cat X) (cat Y)
+        .frest : ∀{A B}{f : Hom (cat X) A B} → 
+                rest Y (HMap fun f) ≅ HMap fun (rest X f)
+-}
 
-postulate .RFun≅ : ∀{C D}{F G : RestFun C D} → RestFun.fun F ≅ RestFun.fun G → F ≅ G
+
+.RFun≅ : ∀{C D}{F G : RestFun C D} → RestFun.fun F ≅ RestFun.fun G → F ≅ G
+RFun≅ {C}{D}{F}{G} p  = 
+  let
+    open Cat
+    open RestCat
+    open Fun
+  in cong₂ 
+    {A = Fun (cat C) (cat D)}
+    {B = λ fun₁ → {A B : _} {f : Hom (cat C) A B} →
+           rest D (HMap fun₁ f) ≅ HMap fun₁ (rest C f)}
+    {C = λ _ _ → RestFun C D}
+    {u = RestFun.frest F}
+    {v = RestFun.frest G}
+    (λ x y → record { fun = x; frest = y }) 
+    p
+    (iext (λ X → iext (λ Y → iext (λ f → fixtypes 
+      (cong₃ 
+        (cong (λ F → OMap F X) p)
+        (cong (λ F → OMap F Y) p) 
+        (cong (λ F → HMap F f) p) 
+        (λ x y z → rest D {x} {y} z)) 
+      (cong (λ F → HMap F (rest C f)) p)))))

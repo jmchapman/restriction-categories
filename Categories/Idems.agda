@@ -23,7 +23,7 @@ module Categories.Idems (X : Cat) where
     {A = Obj}
     {B = λ E → Hom E E}
     {C = λ E e → comp e e ≅ e}
-    {D = Idem}
+    {D = λ _ _ _ → Idem}
     p 
     q 
     {c = Idem.law ide}
