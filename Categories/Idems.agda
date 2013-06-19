@@ -15,10 +15,21 @@ module Categories.Idems (X : Cat) where
           e : Hom E E
           .law : comp e e ≅ e
 
-  postulate idem≅ : ∀{ide ide' : Idem} → 
+  .idem≅ : ∀{ide ide' : Idem} → 
                     let open Idem ide
                         open Idem ide' renaming (E to E'; e to e')
                     in E ≅ E' → e ≅ e' → ide ≅ ide'
+  idem≅ {ide} {ide'} p q = cong₃ 
+    {A = Obj}
+    {B = λ E → Hom E E}
+    {C = λ E e → comp e e ≅ e}
+    {D = λ _ _ _ → Idem}
+    p 
+    q 
+    {c = Idem.law ide}
+    (fixtypes (trans (Idem.law ide) (trans q (sym (Idem.law ide')))) 
+              q) 
+    (λ x y z → record { E = x; e = y; law = z })
 
   record Split (ide : Idem) : Set where
     open Idem ide
