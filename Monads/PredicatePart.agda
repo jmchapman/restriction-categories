@@ -1,5 +1,5 @@
 {-# OPTIONS --type-in-type #-}
-module PredicatePart where
+module Monads.PredicatePart where
 
 open import Utilities
 open import Function
