@@ -70,6 +70,11 @@ PredParMonad = record {
 prop : Set → Set
 prop X = ∀{p q : X} → p ≅ q
 
+postulate ⇔ : ∀{X Y} → prop X → prop Y → (X → Y) → (Y → X) → X ≅ Y
+
+postulate ⇔m : ∀{X X' Y}{f : X → Y}{g : X' → Y} → prop X → prop X' → 
+               (h : X → X') → (X' → X) → f ≅ g ∘ h → f ≅ g
+
 pT' : Set → Set
 pT' X = Σ Set (λ D → (prop D) × (D → X))
 
@@ -97,11 +102,19 @@ ext' : {A : Set}{B B' : A → A → Set}{f : ∀{a a' : A} → B a a'}
 ext' p = λ {a}{b} → p a b
 -}
 
+⊤prop : ∀{x y : ⊤} → x ≅ y
+⊤prop = refl
+
 plaw1' : ∀{X} → pbind' (pη' {X}) ≅ iden {pT' X}
 plaw1' {X} = ext (λ x → 
-  prod≅ (iso≅ proj₁ ((λ y → y , _) ,, refl ,, refl)) 
-        (prod≅' {!!}
-                (isoext ((λ y → y , _) ,, refl ,, refl) (λ {_} → refl))))
+  let pr : prop (proj₁ x)
+      pr {p}{q} = (proj₁ (proj₂ x)) {p}{q}
+
+      pr' : prop (Σ (proj₁ x) (λ _ → ⊤))
+      pr' {p}{q} = dprod≅ (pr {proj₁ p}{proj₁ q}) ⊤prop
+  in prod≅ (⇔ pr' pr proj₁ (λ y → y , tt))
+           (prod≅' {!!}
+                   (⇔m pr' pr proj₁ (λ y → y , tt) refl)))
 
 
 
