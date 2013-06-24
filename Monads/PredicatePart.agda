@@ -72,8 +72,13 @@ prop X = ∀{p q : X} → p ≅ q
 
 postulate ⇔ : ∀{X Y} → prop X → prop Y → (X → Y) → (Y → X) → X ≅ Y
 
-postulate ⇔m : ∀{X X' Y}{f : X → Y}{g : X' → Y} → prop X → prop X' → 
-               (h : X → X') → (X' → X) → f ≅ g ∘ h → f ≅ g
+arg≅ : ∀{X Y}{f : X → Y}{x y : X} → x ≅ y → f x ≅ f y
+arg≅ refl = refl
+
+⇔m : ∀{X X' Y}{f : X → Y}{g : X' → Y} → prop X → prop X' → 
+     (h : X → X') → (X' → X) → f ≅ g ∘ h → f ≅ g
+⇔m p q h h' r with ⇔ p q h h'
+⇔m {g = g} p q h h' r | refl = trans r (ext (λ x → arg≅ {_}{_}{g} p))
 
 pT' : Set → Set
 pT' X = Σ Set (λ D → (prop D) × (D → X))
@@ -95,15 +100,20 @@ prod≅' : {A A' B B' : Set}{x : A × B}{y : A' × B'} → proj₁ x ≅ proj₁
          proj₂ x ≅ proj₂ y → x ≅ y
 prod≅' refl refl = refl
 
-{-
-ext' : {A : Set}{B B' : A → A → Set}{f : ∀{a a' : A} → B a a'}
-       {g : ∀{a a' : A} → B' a a'} → 
-       (∀ a b → f {a}{b} ≅ g {a}{b}) → ∀{a b} → f {a}{b} ≅ g {a}{b}
-ext' p = λ {a}{b} → p a b
--}
-
 ⊤prop : ∀{x y : ⊤} → x ≅ y
 ⊤prop = refl
+
+{-
+ext' : {A A' : Set}{B : A → A → Set}{B' : A' → A' → Set}
+       {f : ∀{a a' : A} → B a a'}{g : ∀{a a' : A'} → B' a a'} → 
+       (∀ a a' b b' → f {a}{b} ≅ g {a'}{b'}) → 
+       ∀{a a' b b'} → f {a}{b} ≅ g {a'}{b'}
+ext' p = λ {a}{a'}{b}{b'} → p a a' b b'
+
+prop-irr : ∀{X Y} → (p : prop X) → (q : prop Y) → 
+           ∀{x}{x'}{y}{y'} → p {x}{x'} ≅ q {y}{y'}
+prop-irr {X}{Y} p q = {!!}
+-}
 
 plaw1' : ∀{X} → pbind' (pη' {X}) ≅ iden {pT' X}
 plaw1' {X} = ext (λ x → 
@@ -115,9 +125,6 @@ plaw1' {X} = ext (λ x →
   in prod≅ (⇔ pr' pr proj₁ (λ y → y , tt))
            (prod≅' {!!}
                    (⇔m pr' pr proj₁ (λ y → y , tt) refl)))
-
-
-
 
 
 
