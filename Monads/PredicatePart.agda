@@ -15,9 +15,130 @@ open import Sets
 open Cat Sets
 open Categories.Isos Sets
 
+-- various products equality proofs
+
 prod≅ : {A : Set}{B : A → Set}{x y : Σ A B} → proj₁ x ≅ proj₁ y →
         proj₂ x ≅ proj₂ y → x ≅ y
 prod≅ refl refl = refl
+
+prod≅' : {A A' B B' : Set}{x : A × B}{y : A' × B'} → 
+         proj₁ x ≅ proj₁ y → proj₂ x ≅ proj₂ y → x ≅ y
+prod≅' refl refl = refl
+
+dprod≅ : ∀{A}{B : A → Set}{x y : Σ A B} → proj₁ x ≅ proj₁ y →
+         (∀(a : A)(b b' : B a) → b ≅ b') → x ≅ y
+dprod≅ {_}{_}{.a , b}{a , b'} refl q = prod≅ refl (q a b b')
+
+-- squash type
+
+prop : Set → Set
+prop X = ∀(p q : X) → p ≅ q
+
+⊤prop : ∀{x y : ⊤} → x ≅ y
+⊤prop = refl
+
+-- equality for the squash type
+
+postulate ⇔ : ∀{X Y} → prop X → prop Y → (X → Y) → (Y → X) → X ≅ Y
+
+⇔m : ∀{X X' Y}{f : X → Y}{g : X' → Y} → prop X → prop X' → 
+     (h : X → X') → (X' → X) → f ≅ g ∘ h → f ≅ g
+⇔m p q h h' r with ⇔ p q h h'
+⇔m {g = g} p q h h' r | refl = trans r (ext (λ x → cong g (p (h x) x)))
+
+⇔p : ∀{X X'}(p : prop X)(q : prop X')(h : X → X') → (X' → X) → p ≅ q
+⇔p p q h h' with ⇔ p q h h'
+⇔p {X}{.X} p q h h' | refl = ext (λ x → 
+  ext (λ y → ≡-to-≅ (proof-irrelevance (p x y) (q x y))))
+
+-- predicate partiality monad
+
+pT : Set → Set
+pT X = Σ Set (λ D → (prop D) × (D → X))
+
+pη : ∀{X} → X → pT X
+pη x = ⊤ , (λ p q → refl) , (λ _ → x)
+
+pbind : ∀{X Y}(f : X → pT Y) → pT X → pT Y
+pbind f (D , p , g) = 
+  (Σ D (proj₁ ∘ f ∘ g)) , 
+  (λ {(d , d') (e , e') → 
+    dprod≅ (p d e) (λ l l' l'' → proj₁ (proj₂ (f (g l))) l' l'')}) ,
+  (λ {(d , d') → proj₂ (proj₂ (f (g d))) d'})
+
+plaw1 : ∀{X} → pbind (pη {X}) ≅ iden {pT X}
+plaw1 = ext (λ x → 
+  let pr : prop (proj₁ x)
+      pr p q = (proj₁ (proj₂ x)) p q
+
+      pr' : prop (Σ (proj₁ x) (λ _ → ⊤))
+      pr' p q = dprod≅ (pr (proj₁ p) (proj₁ q)) (λ _ _ _ → ⊤prop)
+  in prod≅ (⇔ pr' pr proj₁ (λ y → y , _))
+           (prod≅' (⇔p pr' pr proj₁ (λ y → y , _))
+                   (⇔m pr' pr proj₁ (λ y → y , _) refl)))
+
+plaw2 : ∀{X Y}{f : X → pT Y} → (pbind f) ∘ pη ≅ f
+plaw2 {f = f} = ext (λ x → 
+  let pr : prop (proj₁ (f x))
+      pr p q = (proj₁ (proj₂ (f x))) p q
+
+      pr' : prop (Σ ⊤ (λ _ → proj₁ (f x)))
+      pr' p q = dprod≅ ⊤prop (λ _ y y' → pr y y')
+  in prod≅ (⇔ pr' pr proj₂ (λ y → _ , y)) 
+        (prod≅' (⇔p pr' pr proj₂ (λ y → _ , y)) 
+                (⇔m pr' pr proj₂ ((λ y → _ , y)) refl)))
+
+prf : ∀{X Y}(f : X → pT Y)(x : X) → prop (proj₁ (f x))
+prf f x p q = (proj₁ (proj₂ (f x))) p q
+
+plaw3 : ∀{X Y Z}{f : X → (pT Y)}{g : Y → (pT Z)} →
+        pbind (comp (pbind g) f) ≅ comp (pbind g) (pbind f)
+plaw3 {X}{Y}{Z}{f}{g} = ext (λ x → 
+  let pr : prop (proj₁ x)
+      pr p q = (proj₁ (proj₂ x)) p q
+
+      pr' : prop (proj₁ (pbind (comp (pbind g) f) x))
+      pr' p q = 
+        dprod≅ (pr (proj₁ p) (proj₁ q)) 
+               (λ d y y' → 
+                 dprod≅ (prf f ((proj₂ (proj₂ x)) d) (proj₁ y) (proj₁ y')) 
+                        (λ a z z' → 
+                          prf g (proj₂ (proj₂ (f (proj₂ (proj₂ x) d))) a) z z'))
+
+      pr'' : prop (proj₁ (comp (pbind g) (pbind f) x))
+      pr'' p q = 
+        dprod≅ 
+          (dprod≅ (pr (proj₁ (proj₁ p)) (proj₁ (proj₁ q))) 
+                  (λ d y y' → prf f (proj₂ (proj₂ x) d) y y')) 
+          (λ a z z' → prf g (proj₂ (proj₂ (pbind f x)) a) z z')
+  in prod≅ (⇔ pr' 
+              pr''
+              (λ {(d , d' , d'') → (d , d') , d''})
+              (λ {((d , d') , d'') → d , d' , d''})) 
+           (prod≅' (⇔p pr' 
+                       pr'' 
+                       (λ {(d , d' , d'') → (d , d') , d''}) 
+                       (λ {((d , d') , d'') → d , d' , d''})) 
+                   (⇔m pr' 
+                       pr'' 
+                       (λ {(d , d' , d'') → (d , d') , d''}) 
+                       (λ {((d , d') , d'') → d , d' , d''}) 
+                       refl)))
+
+PredPar : Monad Sets
+PredPar = record {
+  T = pT; 
+  η = pη;
+  bind = pbind; 
+  law1 = plaw1;
+  law2 = plaw2;
+  law3 = λ {_}{_}{_}{f}{g} → plaw3 {f = f} {g = g} }
+
+
+
+{-
+
+-- old approach using symmetric monoidal categories 
 
 postulate iso≅ : ∀{X Y}(f : Hom X Y) → Iso f → X ≅ Y
 
@@ -64,71 +185,7 @@ PredParMonad = record {
   law2 = plaw2; 
   law3 = λ {_}{_}{_}{f}{g} → plaw3 {f = f} {g = g} }
 
-
--- new version with prop
-
-prop : Set → Set
-prop X = ∀{p q : X} → p ≅ q
-
-postulate ⇔ : ∀{X Y} → prop X → prop Y → (X → Y) → (Y → X) → X ≅ Y
-
-arg≅ : ∀{X Y}{f : X → Y}{x y : X} → x ≅ y → f x ≅ f y
-arg≅ refl = refl
-
-⇔m : ∀{X X' Y}{f : X → Y}{g : X' → Y} → prop X → prop X' → 
-     (h : X → X') → (X' → X) → f ≅ g ∘ h → f ≅ g
-⇔m p q h h' r with ⇔ p q h h'
-⇔m {g = g} p q h h' r | refl = trans r (ext (λ x → arg≅ {_}{_}{g} p))
-
-pT' : Set → Set
-pT' X = Σ Set (λ D → (prop D) × (D → X))
-
-pη' : ∀{X} → X → pT' X
-pη' x = ⊤ , (λ {p}{q} → refl) , (λ _ → x)
-
-dprod≅ : ∀{A}{B : A → Set}{x y : Σ A (λ a → B a)} → proj₁ x ≅ proj₁ y →
-         (∀{a}{b b' : B a} → b ≅ b') → x ≅ y
-dprod≅ {A}{B}{a , b}{.a , b'} refl q = prod≅ refl q
-
-pbind' : ∀{X Y}(f : X → pT' Y) → pT' X → pT' Y
-pbind' f (D , p , g) = (Σ D (proj₁ ∘ f ∘ g)) , 
-                        (λ {q}{q'} → 
-                          dprod≅ p (λ {d} → proj₁ (proj₂ (f (g d))))) , 
-                        (λ {(d , d') → proj₂ (proj₂ (f (g d))) d'})
-
-prod≅' : {A A' B B' : Set}{x : A × B}{y : A' × B'} → proj₁ x ≅ proj₁ y →
-         proj₂ x ≅ proj₂ y → x ≅ y
-prod≅' refl refl = refl
-
-⊤prop : ∀{x y : ⊤} → x ≅ y
-⊤prop = refl
-
-{-
-ext' : {A A' : Set}{B : A → A → Set}{B' : A' → A' → Set}
-       {f : ∀{a a' : A} → B a a'}{g : ∀{a a' : A'} → B' a a'} → 
-       (∀ a a' b b' → f {a}{b} ≅ g {a'}{b'}) → 
-       ∀{a a' b b'} → f {a}{b} ≅ g {a'}{b'}
-ext' p = λ {a}{a'}{b}{b'} → p a a' b b'
-
-prop-irr : ∀{X Y} → (p : prop X) → (q : prop Y) → 
-           ∀{x}{x'}{y}{y'} → p {x}{x'} ≅ q {y}{y'}
-prop-irr {X}{Y} p q = {!!}
 -}
-
-plaw1' : ∀{X} → pbind' (pη' {X}) ≅ iden {pT' X}
-plaw1' {X} = ext (λ x → 
-  let pr : prop (proj₁ x)
-      pr {p}{q} = (proj₁ (proj₂ x)) {p}{q}
-
-      pr' : prop (Σ (proj₁ x) (λ _ → ⊤))
-      pr' {p}{q} = dprod≅ (pr {proj₁ p}{proj₁ q}) ⊤prop
-  in prod≅ (⇔ pr' pr proj₁ (λ y → y , tt))
-           (prod≅' {!!}
-                   (⇔m pr' pr proj₁ (λ y → y , tt) refl)))
-
-
-
-
 
 {-
 open import Data.Maybe
