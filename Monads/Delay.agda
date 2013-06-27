@@ -24,38 +24,25 @@ data _∼_ {X : Set} : Delay X → Delay X → Set where
   now∼ : ∀{x} → now x ∼ now x
   later∼ : ∀{dy dy'} → ∞ (♭ dy ∼ ♭ dy') → later dy ∼ later dy'
 
-refl∼ : ∀{X}(dx : Delay X) → dx ∼ dx
-refl∼ (now x)   = now∼
-refl∼ (later x) = later∼ (♯ refl∼ (♭ x))
+refl∼ : ∀{X}{dx : Delay X} → dx ∼ dx
+refl∼ {X}{now x}   = now∼
+refl∼ {X}{later x} = later∼ (♯ refl∼)
 
 trans∼ : ∀{X}{dx dx' dx'' : Delay X} → dx ∼ dx' → dx' ∼ dx'' → dx ∼ dx''
 trans∼ now∼ now∼ = now∼
 trans∼ (later∼ p) (later∼ q) = later∼ (♯ trans∼ (♭ p) (♭ q))
 
-dbindlater : ∀{X Y}(f : X → ∞ (Delay Y))(dx : Delay X)(dz : Delay Y) → 
-             later (♯ (dbind (♭ ∘ f) dx)) ∼ dz →
-             dbind (later ∘ f) dx ∼ dz
-dbindlater f (now x) (now y) ()
-dbindlater f (now x) (later y) (later∼ p) = later∼ p
-dbindlater f (later x) (now y) ()
-dbindlater f (later x) (later y) (later∼ p) = 
-  later∼ (♯ dbindlater f (♭ x) (♭ y) (trans∼ (later∼ (♯ refl∼ (dbind (♭ ∘ f) (♭ x)))) (♭ p)))
+dbindlater' : ∀{X Y}(f : X → ∞ (Delay Y))(dx : Delay X)(dz : Delay Y) → 
+              later (♯ (dbind (♭ ∘ f) dx)) ∼ dz →
+              dbind (later ∘ f) dx ∼ dz
+dbindlater' f (now x) (now y) ()
+dbindlater' f (now x) (later y) (later∼ p) = later∼ p
+dbindlater' f (later x) (now y) ()
+dbindlater' f (later x) (later y) (later∼ p) = later∼ (♯ dbindlater' f (♭ x) (♭ y) (trans∼ (later∼ (♯ refl∼)) (♭ p)))
 
-{-
-dbindlater : ∀{X Y}(f : X → ∞ (Delay Y))(dx : Delay X)(dz : Delay Y) → 
-             dbind (♭ ∘ f) dx ∼ dz →
-             dbind (later ∘ f) dx ∼ later (♯ dz)
-dbindlater f (now x) dz p = later∼ (♯ p)
-dbindlater f (later x) (later dz) (later∼ p) = 
-  later∼ (♯ trans∼ (dbindlater f (♭ x) (♭ dz) (♭ p)) (later∼ (♯ refl∼ (♭ dz))))
--}
--- later∼ (♯ (dbindlater f (♭ x) (♭ z) (♭ p)))
-{-
 dbindlater : ∀{X Y}(f : X → ∞ (Delay Y))(dx : Delay X) → 
              dbind (later ∘ f) dx ∼ later (♯ (dbind (♭ ∘ f) dx))
-dbindlater f (now x) = later∼ (♯ {!!})
-dbindlater f (later x) = later∼ (♯ trans∼ (dbindlater f (♭ x)) (later∼ (♯ refl∼)))
--}
+dbindlater f dx = dbindlater' f dx _ (later∼ (♯ refl∼))
 
 data _↓_ {X : Set} : Delay X → X → Set where
   now↓ : ∀{y} → now y ↓ y
@@ -67,13 +54,33 @@ data _≈_ {X : Set} : Delay X → Delay X → Set where
 
 postulate quotient : ∀{X}{dx dx' : Delay X} → dx ≈ dx' → dx ≅ dx'
 
+∼↓ : ∀{X}{dx dy : Delay X}{x : X} → dx ∼ dy → dx ↓ x → dy ↓ x
+∼↓ {X} {now .y} {now y} now∼ q = q
+∼↓ {X} {later dx} {later dy} (later∼ p) (later↓ q) = later↓ (∼↓ (♭ p) q)
+
+unique↓ : ∀{X}{dx : Delay X}{x y : X} → dx ↓ x → dx ↓ y → x ≅ y
+unique↓ now↓ now↓ = refl
+unique↓ (later↓ p) (later↓ q) = unique↓ p q
+
+≈↓ : ∀{X}{dx dy : Delay X}{x : X} → dx ≈ dy → dx ↓ x → dy ↓ x
+≈↓ (↓≈ now↓ q) now↓ = q
+≈↓ (↓≈ (later↓ p) r) (later↓ q) with unique↓ q p 
+≈↓ (↓≈ (later↓ p) r) (later↓ q) | refl = r
+≈↓ (later≈ p) (later↓ q) = later↓ (≈↓ (♭ p) q)
+
 refl≈ : ∀{X}{dx : Delay X} → dx ≈ dx
 refl≈ {dx = now x}    = ↓≈ now↓ now↓
 refl≈ {dx = later dx} = later≈ (♯ refl≈)
-{-
-trans≈ : ∀{X}{dx dx' dx'' : Delay X} → dx ≈ dx' → dx' ≈ dx'' → dx ≈ dx''
-trans≈ p q = {!!}
--}
+
+laterlem' : ∀{X}{dx dz : Delay X} → later (♯ dx) ∼ dz → dx ≈ dz
+laterlem' {X}{now x}{later dz} (later∼ p) = ↓≈ now↓ (later↓ (∼↓ (♭ p) now↓))
+laterlem' {X}{later dx}{later dz} (later∼ p) = later≈ (♯ laterlem' (trans∼ (later∼ (♯ refl∼)) (♭ p)))
+
+laterlem : ∀{X}{dx : Delay X} → dx ≈ later (♯ dx)
+laterlem = laterlem' (later∼ (♯ refl∼))
+
+
+
 dlaw1 : ∀{X}(dx : Delay X) → dbind now dx ≈ dx
 dlaw1 (now x) = refl≈
 dlaw1 (later dx) = later≈ (♯ dlaw1 (♭ dx))
