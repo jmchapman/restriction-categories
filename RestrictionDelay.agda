@@ -20,7 +20,6 @@ drest f x = map proj₁ (str (x , f x))
 
 open Cat (Kl DelayM)
 
-
 dbind↓' : ∀{X}{dx dz : Delay X}{y : X} → dbind (λ _ → dx) dx ∼ dz → dz ↓ y → 
           dx ↓ y
 dbind↓' {X}{now x} now∼ q = q
@@ -65,16 +64,15 @@ lemma = lemma' refl≈
 dR1 : ∀{X Y}{f : X → Delay Y}(x : X) → (dbind f ∘ (drest f)) x ≅ f x
 dR1 {f = f} x = 
   let open Monad DelayM 
-  in  proof
-      dbind f (dbind (now ∘ proj₁) (dbind (λ y → now (x , y)) (f x)))
-      ≅⟨ cong (λ f' → dbind f (f' (f x)))
-              (sym (law3 {f = λ y → now (x , y)} {g = now ∘ proj₁})) ⟩
-      dbind f (dbind (λ _ → now x) (f x))
-      ≅⟨ cong (λ f' → f' (f x)) (sym (law3 {f = λ _ → now x} {g = f})) ⟩
-      dbind (λ _ → f x) (f x)
-      ≅⟨ quotient (sym≈ (lemma {_}{f x})) ⟩
-      f x 
-      ∎
+  in proof
+     dbind f (dbind (now ∘ proj₁) (dbind (λ y → now (x , y)) (f x)))
+     ≅⟨ cong (λ f' → dbind f (f' (f x))) (sym law3) ⟩
+     dbind f (dbind (λ _ → now x) (f x))
+     ≅⟨ cong (λ f' → f' (f x)) (sym law3) ⟩
+     dbind (λ _ → f x) (f x)
+     ≅⟨ quotient (sym≈ (lemma {_}{f x})) ⟩
+     f x 
+     ∎
 
 dR2 : ∀{X Y Z}{f : X → Delay Y}{g : X → Delay Z}(x : X) → 
       (dbind (drest f) ∘ (drest g)) x ≅ (dbind (drest g) ∘ (drest f)) x
@@ -108,14 +106,57 @@ dR2 {f = f}{g = g} x =
      (dbind (now ∘ proj₁) (dbind (λ y → now (x , y)) (f x)))
      ∎
 
+dR3 : ∀{X Y Z}{f : X → Delay Y}{g : X → Delay Z}(x : X) → 
+      (dbind (drest g) ∘ (drest f)) x ≅ drest (dbind g ∘ (drest f)) x
+dR3 {X}{Y}{Z}{f}{g} x = 
+  let open Monad DelayM 
+  in proof
+     dbind
+     (λ y →
+        dbind (now ∘ proj₁)
+        (dbind (λ z → now (y , z)) (g y)))
+     (dbind (now ∘ proj₁) (dbind (λ y → now (x , y)) (f x)))
+     ≅⟨ cong (λ f' → dbind (drest g) (f' (f x))) (sym law3) ⟩ 
+     dbind (drest g) (dbind (λ _ → now x) (f x))
+     ≅⟨ cong (λ f' → f' (f x)) (sym law3) ⟩ 
+     dbind 
+       (λ _ → dbind (now ∘ proj₁) (dbind (λ y → now (x , y)) (g x)))
+       (f x)
+     ≅⟨ cong (λ z → dbind (λ _ → z) (f x)) (cong (λ f' → f' (g x)) (sym law3)) ⟩
+     dbind (λ _ → (dbind (λ _ → now x) (g x))) (f x)
+     ≅⟨ cong (λ h → h (f x)) law3 ⟩
+     dbind (λ _ → now x) (dbind (λ _ → g x) (f x))
+     ≅⟨ cong (λ h → dbind (λ _ → now x) (h (f x))) law3 ⟩
+     dbind (λ _ → now x) (dbind g (dbind (λ _ → now x) (f x)))
+     ≅⟨ cong (λ f' → f' (dbind g (dbind (λ _ → now x) (f x)))) law3 ⟩
+     dbind (now ∘ proj₁)
+       (dbind (λ y → now (x , y))
+         (dbind g (dbind (λ _ → now x) (f x))))
+     ≅⟨ cong 
+          (λ f' → 
+            dbind (now ∘ proj₁) 
+              (dbind (λ y → now (x , y)) (dbind g (f' (f x))))) 
+          law3 ⟩
+     dbind (now ∘ proj₁)
+      (dbind (λ y → now (x , y))
+       (dbind g
+        (dbind (now ∘ proj₁)
+         (dbind (λ y → now (x , y)) (f x)))))
+     ∎
+
 DelayR : RestCat
 DelayR = record { 
   cat  = Kl DelayM; 
   rest = drest; 
   R1   = λ {_}{_}{f} → ext (dR1 {f = f});
   R2   = λ {_}{_}{_}{f}{g} → ext (dR2 {f = f} {g = g}); 
-  R3   = {!!}; 
+  R3   = λ {_}{_}{_}{f}{g} → ext (dR3 {f = f} {g = g}); 
   R4   = {!!} }
+
+
+
+
+
 
 
 
