@@ -117,19 +117,6 @@ dbindlater : ∀{X Y}{f : X → ∞ (Delay Y)}(dx : Delay X) →
              dbind (later ∘ f) dx ∼ later (♯ (dbind (♭ ∘ f) dx))
 dbindlater dx = dbindlater' dx _ (later∼ (♯ refl∼))
 
-dbindnowsym' : ∀{X Y Z}{x : X}(dy : Delay Y)(dz : Delay Z)(dx : Delay X) → 
-               dbind (λ _ → dbind (λ _ → now x) dz) dy ∼ dx →
-               dbind (λ _ → dbind (λ _ → now x) dy) dz ∼ dx 
-dbindnowsym' dy (now z) dx p = p
-dbindnowsym' dy (later dz) dx p with trans∼ (sym∼ (dbindlater dy)) p
-dbindnowsym' dy (later dz) (later dx) p | later∼ q = 
-  later∼ (♯ (dbindnowsym' dy (♭ dz) (♭ dx) (♭ q)))
-
-dbindnowsym : ∀{X Y Z}{x : X}(dy : Delay Y)(dz : Delay Z) → 
-              dbind (λ _ → dbind (λ _ → now x) dy) dz ∼ 
-              dbind (λ _ → dbind (λ _ → now x) dz) dy
-dbindnowsym dy dz = dbindnowsym' dy dz _ refl∼
-
 dlaw1 : ∀{X}(dx : Delay X) → dbind now dx ≈ dx
 dlaw1 (now x) = refl≈
 dlaw1 (later dx) = later≈ (♯ dlaw1 (♭ dx))
