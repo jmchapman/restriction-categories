@@ -1,4 +1,4 @@
-{-# OPTIONS --type-in-type #-}
+
 module RestrictionCat where
 
 open import Categories
@@ -7,9 +7,10 @@ open import Utilities
 open ≅-Reasoning renaming (begin_ to proof_)
 open import Function
 open import Data.Product
+open import Level
 
-record RestCat : Set where
-  field cat  : Cat
+record RestCat {a b} : Set (suc (a ⊔ b)) where
+  field cat  : Cat {a}{b}
   open  Cat cat
   field rest : ∀{A B} → Hom A B → Hom A A
         .R1   : ∀{A B}{f : Hom A B} → comp f (rest f) ≅ f 
@@ -21,7 +22,7 @@ record RestCat : Set where
                comp (rest g) f ≅ comp f (rest (comp g f))
 
 
-module Lemmata (X : RestCat) where
+module Lemmata {a b}(X : RestCat {a}{b}) where
   open RestCat X
   open Cat cat
   open import Categories.Monos cat
@@ -105,7 +106,7 @@ module Lemmata (X : RestCat) where
 
 
 
-Trivial : Cat → RestCat
+Trivial : ∀{a b} → Cat {a}{b} → RestCat
 Trivial C = record { 
   cat  = C; 
   rest = λ _ → iden; 

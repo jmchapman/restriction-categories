@@ -1,4 +1,4 @@
-{-# OPTIONS --type-in-type #-}
+
 module Functors where
 
 open import Relation.Binary.HeterogeneousEquality

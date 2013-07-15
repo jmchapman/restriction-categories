@@ -1,4 +1,4 @@
-{-# OPTIONS --type-in-type #-}
+
 module Monads.Maybe where
 
 open import Monads

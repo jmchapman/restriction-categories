@@ -5,8 +5,8 @@ open import Monads
 open import Relation.Binary.HeterogeneousEquality
 open ≅-Reasoning renaming (begin_ to proof_)
 
-Kl : ∀{C} → Monad C → Cat
-Kl {C} M = record{
+Kl : ∀{a b}{C : Cat {a}{b}} → Monad C → Cat {a}{b}
+Kl {a}{b}{C} M = record{
   Obj  = Obj;
   Hom  = λ X Y → Hom X (T Y);
   iden = η;
@@ -33,5 +33,5 @@ Kl {C} M = record{
     ≅⟨ ass ⟩
     comp (bind f) (comp (bind g) h) 
     ∎}
-  where open Cat C
+  where open Cat {a}{b} C
         open Monad M

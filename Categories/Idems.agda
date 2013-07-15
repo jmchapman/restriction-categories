@@ -1,16 +1,17 @@
 open import Categories
 
-module Categories.Idems (X : Cat) where
+module Categories.Idems {a b}(X : Cat {a}{b}) where
 
   open import Utilities
   open import Relation.Binary.HeterogeneousEquality
   open ≅-Reasoning renaming (begin_ to proof_)
   open import Function
   open import Data.Product
+  open import Level
 
   open Cat X
 
-  record Idem : Set where
+  record Idem : Set (a ⊔ b) where
     field E : Obj
           e : Hom E E
           .law : comp e e ≅ e

@@ -1,26 +1,28 @@
 open import Categories
-module Categories.Pullbacks (X : Cat) where
+open import Level
+
+module Categories.Pullbacks {a b}(X : Cat {a}{b}) where
   open import Relation.Binary.HeterogeneousEquality
   open ≅-Reasoning renaming (begin_ to proof_)
   open import Data.Product
   open import Utilities
   open Cat X
 
-  record Square {X Y Z}(f : Hom X Z)(g : Hom Y Z) : Set where
+  record Square {X Y Z}(f : Hom X Z)(g : Hom Y Z) : Set (a ⊔ b)where
      field W    : Obj
            h    : Hom W X
            k    : Hom W Y
            .scom : comp f h ≅ comp g k
 
   record PMap  {X Y Z : Obj}{f : Hom X Z}{g : Hom Y Z}(sq' sq : Square f g) 
-         : Set where
+         : Set (a ⊔ b) where
     open Square
     field mor   : Hom (W sq') (W sq)
           .prop1 : comp (h sq) mor ≅ h sq'
           .prop2 : comp (k sq) mor ≅ k sq'
   open PMap
 
-  record Pullback {X Y Z}(f : Hom X Z)(g : Hom Y Z) : Set where
+  record Pullback {X Y Z}(f : Hom X Z)(g : Hom Y Z) : Set (a ⊔ b) where
     field sq : Square f g
           prop : (sq' : Square f g) → 
                  Σ' (PMap sq' sq) λ u → (u' : PMap sq' sq) → mor u ≅  mor u'

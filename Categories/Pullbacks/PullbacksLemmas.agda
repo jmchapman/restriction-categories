@@ -1,5 +1,6 @@
 open import Categories
-module Categories.Pullbacks.PullbacksLemmas (X : Cat) where
+
+module Categories.Pullbacks.PullbacksLemmas {a b}(X : Cat {a}{b}) where
 open import Relation.Binary.HeterogeneousEquality
 open ≅-Reasoning renaming (begin_ to proof_)
 open import Data.Product

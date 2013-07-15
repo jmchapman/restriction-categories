@@ -1,10 +1,11 @@
-{-# OPTIONS --type-in-type #-}
+
 module Utilities where
 
 open import Relation.Binary.HeterogeneousEquality
 open import Data.Unit
+open import Level
 
-record Σ' (A : Set)(B : A → Set) : Set where
+record Σ' {a b}(A : Set a)(B : A → Set b) : Set (a ⊔ b) where
     constructor _,,_
     field fst : A
           .snd : B fst

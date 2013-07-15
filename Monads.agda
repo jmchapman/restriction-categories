@@ -3,8 +3,9 @@ module Monads where
 open import Categories
 open import Relation.Binary.HeterogeneousEquality
 open ≅-Reasoning renaming (begin_ to proof_)
+open import Level
 
-record Monad (C : Cat) : Set where
+record Monad {a b}(C : Cat {a}{b}) : Set (suc (a ⊔ b)) where
   open Cat C
   field T    : Obj → Obj
         η    : ∀ {X} → Hom X (T X)

@@ -1,6 +1,7 @@
 open import Categories
+open import Level
 
-module Categories.Monos (X : Cat) where
+module Categories.Monos {a b}(X : Cat {a}{b}) where
 
 open import Relation.Binary.HeterogeneousEquality
 open ≅-Reasoning renaming (begin_ to proof_)
@@ -8,7 +9,7 @@ open import Function
 
 open Cat X
 
-Mono : ∀{A B} → Hom A B → Set
+Mono : ∀{A B} → Hom A B → Set (a ⊔ b)
 Mono f = ∀{C}{g h : Hom C _} → (comp f g ≅ comp f h) → g ≅ h
 
 .idmono : ∀{A} → Mono (iden {A})

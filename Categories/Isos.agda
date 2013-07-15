@@ -1,6 +1,7 @@
 open import Categories
+open import Level
 
-module Categories.Isos (X : Cat) where
+module Categories.Isos {a b}(X : Cat {a}{b}) where
   open import Relation.Binary.HeterogeneousEquality
   open ≅-Reasoning renaming (begin_ to proof_)
   open import Function
@@ -8,7 +9,7 @@ module Categories.Isos (X : Cat) where
   open Cat X
 
 
-  record Iso {A B : Obj} (f : Hom A B) : Set where
+  record Iso {A B : Obj} (f : Hom A B) : Set (a ⊔ b) where
     constructor _,,_,,_
     field inv  : Hom B A
           .rinv : comp f inv ≅ iden {B}

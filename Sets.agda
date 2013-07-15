@@ -1,4 +1,4 @@
-{-# OPTIONS --type-in-type #-}
+
 module Sets where
 
 open import Categories
