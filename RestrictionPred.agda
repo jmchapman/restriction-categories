@@ -1,4 +1,3 @@
-{-# OPTIONS --type-in-type #-}
 
 module RestrictionPred where
 

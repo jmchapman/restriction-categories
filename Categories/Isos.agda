@@ -9,7 +9,7 @@ module Categories.Isos {a b}(X : Cat {a}{b}) where
   open Cat X
 
 
-  record Iso {A B : Obj} (f : Hom A B) : Set (a ⊔ b) where
+  record Iso {A B : Obj} (f : Hom A B) : Set b where
     constructor _,,_,,_
     field inv  : Hom B A
           .rinv : comp f inv ≅ iden {B}

@@ -1,4 +1,3 @@
-{-# OPTIONS --type-in-type #-}
 
 module RestrictionMaybe where
 open import Relation.Binary.HeterogeneousEquality
@@ -13,7 +12,7 @@ open import Monads.Kleisli
 open import Sets
 open import Monads.Maybe
 
-rest : ∀{X Y} → (X → Maybe Y) → X → Maybe X
+rest : {X Y : Set} → (X → Maybe Y) → X → Maybe X
 rest f x with f x
 ... | nothing = nothing
 ... | just y  = just x

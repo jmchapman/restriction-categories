@@ -27,12 +27,12 @@ module Categories.Idems {a b}(X : Cat {a}{b}) where
     {D = λ _ _ _ → Idem}
     p 
     q 
-    {c = Idem.law ide}
+    {z = Idem.law ide}
     (fixtypes (trans (Idem.law ide) (trans q (sym (Idem.law ide')))) 
               q) 
     (λ x y z → record { E = x; e = y; law = z })
 
-  record Split (ide : Idem) : Set where
+  record Split (ide : Idem) : Set (a ⊔ b) where
     open Idem ide
     field B : Obj 
           s : Hom B E

@@ -11,7 +11,6 @@ record Σ' {a b}(A : Set a)(B : A → Set b) : Set (a ⊔ b) where
           .snd : B fst
 open Σ' public
 
-
 postulate ext : {A : Set}{B B' : A → Set}{f : ∀ a → B a}{g : ∀ a → B' a} → 
                 (∀ a → f a ≅ g a) → f ≅ g
 
@@ -22,15 +21,15 @@ postulate iext : {A : Set}{B B' : A → Set}{f : ∀ {a} → B a}{g : ∀{a} →
 data Reveal_is_ {A : Set} (x : Hidden A) (y : A) : Set where
   [_] : (eq : reveal x ≅ y) → Reveal x is y
 
-
-cong₃ : {A : Set}
-        {B : A → Set}
-        {C : (a : A) → B a → Set}
-        {D : (a : A)(b : B a) → C a b → Set}
-        {a a' : A} → a ≅ a' → 
-        {b : B a}{b' : B a'} → b ≅ b' → 
-        {c : C a b}{c' : C a' b'} → c ≅ c' → 
-        (f : (a : A)(b : B a)(c : C a b) → D a b c) → f a b c ≅ f a' b' c'
+cong₃ : ∀{a b c d}
+        {A : Set a}
+        {B : A → Set b}
+        {C : (a : A) → B a → Set c}
+        {D : (a : A)(b : B a) → C a b → Set d}
+        {x x' : A} → x ≅ x' → 
+        {y : B x}{y' : B x'} → y ≅ y' → 
+        {z : C x y}{z' : C x' y'} → z ≅ z' → 
+        (f : (x : A)(y : B x)(z : C x y) → D x y z) → f x y z ≅ f x' y' z'
 cong₃ refl refl refl f = refl
 
 cong₄ : {A : Set}
@@ -49,16 +48,16 @@ inspect : ∀ {A : Set} {B : A → Set}
           (f : (x : A) → B x) (x : A) → Reveal (hide f x) is (f x)
 inspect f x = [ refl ]
 
-fixtypes : {A A' A'' A''' : Set}{a : A}{a' : A'}{a'' : A''}{a''' : A'''}
+fixtypes : ∀{i}{A A' A'' A''' : Set i}{a : A}{a' : A'}{a'' : A''}{a''' : A'''}
            {p : a ≅ a'}{q : a'' ≅ a'''} → 
            a ≅ a'' → a' ≅ a''' → p ≅ q
 fixtypes refl refl = ≡-to-≅ (proof-irrelevance _ _)
 
-fixtypes' : {A A' A'' A''' : Set}{a : A}{a' : A'}{a'' : A''}{a''' : A'''}
+fixtypes' : ∀{i}{A A' A'' A''' : Set i}{a : A}{a' : A'}{a'' : A''}{a''' : A'''}
             {p : a ≅ a'}{q : a'' ≅ a'''} →
             a ≅ a'' → p ≅ q
 fixtypes' {p = p}{q = q} r = fixtypes r (trans (sym p) (trans r q))
 
-fixtypes'' : ∀{A}{a a' a'' a''' : A}{p : a ≅ a'}{q : a'' ≅ a'''} →
+fixtypes'' : ∀{i}{A : Set i}{a a' a'' a''' : A}{p : a ≅ a'}{q : a'' ≅ a'''} →
             a' ≅ a''' → p ≅ q
 fixtypes'' {p = p}{q = q} r = fixtypes (trans p (trans r (sym q))) r 

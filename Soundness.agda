@@ -1,7 +1,8 @@
-{-# OPTIONS --type-in-type #-}
+
 open import Categories
 open import Stable
-module Soundness (X : Cat) (M : StableSys X) where
+
+module Soundness {a b}(X : Cat {a}{b}) (M : StableSys X) where
 
 open import Relation.Binary.HeterogeneousEquality
 open ≅-Reasoning renaming (begin_ to proof_)

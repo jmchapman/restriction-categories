@@ -1,6 +1,6 @@
 open import RestrictionCat
 
-module Totals (X : RestCat) where
+module Totals {a b}(X : RestCat {a}{b}) where
 
   open import Categories
   open import Relation.Binary.HeterogeneousEquality
@@ -11,8 +11,9 @@ module Totals (X : RestCat) where
   open Cat cat
   open import Categories.Monos
   open import Categories.Isos
+  open import Level
 
-  record Tot (A B : Obj) : Set where
+  record Tot (A B : Obj) : Set b where
     field hom : Hom A B 
           .tot : rest hom ≅ iden {A}
 

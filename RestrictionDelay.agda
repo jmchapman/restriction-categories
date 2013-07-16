@@ -1,4 +1,4 @@
-{-# OPTIONS --type-in-type #-}
+
 module RestrictionDelay where
 
 open import Coinduction

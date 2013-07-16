@@ -7,8 +7,7 @@ open import Utilities
 open import Data.Product
 open import Function
 
-
-module PartialMaps (X : Cat)(M : StableSys X) where
+module PartialMaps {a b}(X : Cat {a}{b})(M : StableSys X) where
 
     open Cat X
     open StableSys X M
@@ -17,8 +16,9 @@ module PartialMaps (X : Cat)(M : StableSys X) where
     open import Categories.Monos X
     open import Categories.Pullbacks.PullbacksLemmas X
     open import Categories.Pullbacks.PastingLemmas X
+    open import Level
 
-    record Span (A B : Obj) : Set where
+    record Span (A B : Obj) : Set (a ⊔ b) where
       field A' : Obj
             mhom : Hom A' A
             fhom : Hom A' B

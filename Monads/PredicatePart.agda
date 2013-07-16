@@ -1,4 +1,4 @@
-{-# OPTIONS --type-in-type #-}
+
 module Monads.PredicatePart where
 
 open import Utilities
@@ -11,6 +11,7 @@ open import Categories
 import Categories.Isos
 open import Monads
 open import Sets
+open import Level
 
 open Cat Sets
 open Categories.Isos Sets
@@ -53,8 +54,8 @@ postulate ⇔ : ∀{X Y} → prop X → prop Y → (X → Y) → (Y → X) → X
 
 -- predicate partiality monad
 
-pT : Set → Set
-pT X = Σ Set (λ D → (prop D) × (D → X))
+pT : Set → Set ?
+pT X = Σ Set (λ D → prop D × (D → X))
 
 pη : ∀{X} → X → pT X
 pη x = ⊤ , (λ p q → refl) , (λ _ → x)

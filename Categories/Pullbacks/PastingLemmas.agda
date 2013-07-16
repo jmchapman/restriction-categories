@@ -1,5 +1,6 @@
 open import Categories
-module Categories.Pullbacks.PastingLemmas (X : Cat) where
+
+module Categories.Pullbacks.PastingLemmas {a b}(X : Cat {a}{b}) where
   open import Relation.Binary.HeterogeneousEquality
   open ≅-Reasoning renaming (begin_ to proof_)
   open import Utilities

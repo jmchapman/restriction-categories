@@ -1,7 +1,7 @@
-{-# OPTIONS --type-in-type #-}
+
 open import Categories
 
-module Splits (X : Cat) where
+module Splits {a b}(X : Cat {a}{b}) where
 
 open import Relation.Binary.HeterogeneousEquality
 open import Utilities
@@ -10,16 +10,16 @@ open import Data.Product
 open Cat X
 open import Categories.Idems
 open import Functors
-
+open import Level
 
 -- Definition of Split(X), which is the category where
 -- every idempotent splits
 
-record IdemClass : Set where
-  field ∈   : Idem X → Set
+record IdemClass : Set (suc (a ⊔ b)) where
+  field ∈   : Idem X → Set (a ⊔ b)
         .id∈ : ∀{X} → ∈ (record { E = X; e = iden; law = idl })
 
-record SplitMap (ide ide' : Idem X) : Set where
+record SplitMap (ide ide' : Idem X) : Set b where
   open Idem X ide
   open Idem X ide' renaming (E to E' ; e to e' ; law to law')
   field imap : Hom E E'
@@ -194,7 +194,7 @@ splitidr {ide}{ide'}{f} =
       imap 
       ∎)
 
-SplitCat : IdemClass → Cat
+SplitCat : IdemClass → Cat {a ⊔ b}{b}
 SplitCat E = 
   let open IdemClass E
   in record {
@@ -208,7 +208,6 @@ SplitCat E =
       (splitcomp (splitcomp f g) h)
       (splitcomp f (splitcomp g h))
       ass }
-
 
 Incl : (E : IdemClass) → Fun X (SplitCat E)
 Incl E = 

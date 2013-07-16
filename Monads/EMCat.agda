@@ -2,7 +2,7 @@
 open import Categories
 open import Monads
 
-module Monads.EMCat (C : Cat)(Tm : Monad C) where
+module Monads.EMCat {a b}(C : Cat {a}{b})(Tm : Monad C) where
 
 open import Monads.EMAlgebras C Tm
 open import Relation.Binary.HeterogeneousEquality

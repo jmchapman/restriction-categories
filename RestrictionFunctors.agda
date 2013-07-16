@@ -9,8 +9,9 @@ open import Data.Product
 open import RestrictionCat
 open import Functors
 import Totals
+open import Level
 
-record RestFun (X Y : RestCat) : Set where
+record RestFun {a b}(X Y : RestCat {a}{b}) : Set (a ⊔ b) where
   open Cat
   open RestCat
   open Fun
@@ -18,8 +19,8 @@ record RestFun (X Y : RestCat) : Set where
         .frest : ∀{A B}{f : Hom (cat X) A B} → 
                 rest Y (HMap fun f) ≅ HMap fun (rest X f)
 
-F : ∀{X} → Fun (Totals.Total X) (RestCat.cat X)
-F {X} = record { 
+F : ∀{a b}{X : RestCat {a}{b}} → Fun (Totals.Total X) (RestCat.cat X)
+F {_}{_}{X} = record { 
   OMap  = id; 
   HMap  = hom; 
   fid   = refl;
@@ -27,15 +28,15 @@ F {X} = record {
   where open Totals X
         open Tot
 
-RF : ∀{X} → RestFun (Trivial (Totals.Total X)) X
-RF {X} = record { 
+RF : ∀{a b}{X : RestCat {a}{b}} → RestFun (Trivial (Totals.Total X)) X
+RF {_}{_}{X} = record { 
   fun   = F; 
   frest = λ {_ _ f} → tot f }
   where open Totals X
         open Tot
 
-.RFFaithful : ∀{X} → Faithful (F {X})
-RFFaithful {X} = λ {_} {_} {f} {g} → TotEq f g
+.RFFaithful : ∀{a b}{X : RestCat {a}{b}} → Faithful F
+RFFaithful {_}{_}{X} = λ {_} {_} {f} {g} → TotEq f g
   where open Totals X
         open Tot
 
@@ -45,13 +46,13 @@ open RestFun
 open RestCat
 open Fun 
 
-IdRF : ∀{C} → RestFun C C
-IdRF {C} = record { 
+IdRF : ∀{a b}{C : RestCat {a}{b}} → RestFun C C
+IdRF {_}{_}{C} = record { 
   fun = IdF (cat C); 
   frest = refl }
 
-_○R_ : ∀{C D E} → RestFun D E → RestFun C D → RestFun C E
-_○R_ {C}{D}{E} F G = record { 
+_○R_ : ∀{a b}{C D E : RestCat {a}{b}} → RestFun D E → RestFun C D → RestFun C E
+_○R_ {_}{_}{C}{D}{E} F G = record { 
   fun = fun F ○ fun G; 
   frest = λ {A}{B}{f} → 
     proof
@@ -62,9 +63,9 @@ _○R_ {C}{D}{E} F G = record {
     HMap (fun F) (HMap (fun G) (rest C f))
     ∎}
 
-RCCat : Cat
-RCCat = record {
-         Obj = RestCat;
+RCCat : ∀{a b} → Cat {suc a ⊔ suc b}{a ⊔ b}
+RCCat {a}{b} = record {
+         Obj = RestCat {a}{b};
          Hom = RestFun;
          iden = IdRF;
          comp = _○R_;

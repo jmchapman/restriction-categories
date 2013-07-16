@@ -5,7 +5,7 @@ open import Relation.Binary.HeterogeneousEquality
 open ≅-Reasoning renaming (begin_ to proof_)
 open import Level
 
-record Monad {a b}(C : Cat {a}{b}) : Set (suc (a ⊔ b)) where
+record Monad {a b}(C : Cat {a}{b}) : Set (a ⊔ b) where
   open Cat C
   field T    : Obj → Obj
         η    : ∀ {X} → Hom X (T X)
@@ -20,8 +20,8 @@ record Monad {a b}(C : Cat {a}{b}) : Set (suc (a ⊔ b)) where
 
 open import Functors
 
-TFun : ∀{C} → Monad C → Fun C C
-TFun {C} M = 
+TFun : ∀{a b}{C : Cat {a}{b}} → Monad C → Fun C C
+TFun {a}{b}{C} M = 
   let open Cat C
       open Monad M
   in record { 

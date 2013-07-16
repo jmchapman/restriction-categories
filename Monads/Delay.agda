@@ -1,4 +1,4 @@
-{-# OPTIONS --type-in-type #-}
+
 module Monads.Delay where
 
 open import Coinduction
