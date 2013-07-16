@@ -1,3 +1,4 @@
+open import Level
 
 module Monads.PredicatePart where
 
@@ -11,24 +12,24 @@ open import Categories
 import Categories.Isos
 open import Monads
 open import Sets
-open import Level
 
-open Cat Sets
-open Categories.Isos Sets
+open Cat {suc (suc zero)}{suc zero} Sets
+open Categories.Isos {suc (suc zero)}{suc zero} Sets
 
 -- various products equality proofs
 
-prod≅ : {A : Set}{B : A → Set}{x y : Σ A B} → proj₁ x ≅ proj₁ y →
+prod≅ : ∀{a b}{A : Set a}{B : A → Set b}{x y : Σ A B} → proj₁ x ≅ proj₁ y →
         proj₂ x ≅ proj₂ y → x ≅ y
 prod≅ refl refl = refl
 
-prod≅' : {A A' B B' : Set}{x : A × B}{y : A' × B'} → 
+prod≅' : ∀{a b c d}{A : Set a}{A' : Set b}{B : Set c}{B' : Set d}
+         {x : A × B}{y : A' × B'} → 
          proj₁ x ≅ proj₁ y → proj₂ x ≅ proj₂ y → x ≅ y
 prod≅' refl refl = refl
 
-dprod≅ : ∀{A}{B : A → Set}{x y : Σ A B} → proj₁ x ≅ proj₁ y →
+dprod≅ : ∀{a b}{A : Set a}{B : A → Set b}{x y : Σ A B} → proj₁ x ≅ proj₁ y →
          (∀(a : A)(b b' : B a) → b ≅ b') → x ≅ y
-dprod≅ {_}{_}{.a , b}{a , b'} refl q = prod≅ refl (q a b b')
+dprod≅ {_}{_}{_}{_}{.a , b}{a , b'} refl q = prod≅ refl (q a b b')
 
 -- squash type
 
@@ -42,7 +43,7 @@ prop X = ∀(p q : X) → p ≅ q
 
 postulate ⇔ : ∀{X Y} → prop X → prop Y → (X → Y) → (Y → X) → X ≅ Y
 
-⇔m : ∀{X X' Y}{f : X → Y}{g : X' → Y} → prop X → prop X' → 
+⇔m : ∀{a}{X X' : Set}{Y : Set a}{f : X → Y}{g : X' → Y} → prop X → prop X' → 
      (h : X → X') → (X' → X) → f ≅ g ∘ h → f ≅ g
 ⇔m p q h h' r with ⇔ p q h h'
 ⇔m {g = g} p q h h' r | refl = trans r (ext (λ x → cong g (p (h x) x)))
@@ -54,7 +55,7 @@ postulate ⇔ : ∀{X Y} → prop X → prop Y → (X → Y) → (Y → X) → X
 
 -- predicate partiality monad
 
-pT : Set → Set ?
+pT : Set₁ → Set₁
 pT X = Σ Set (λ D → prop D × (D → X))
 
 pη : ∀{X} → X → pT X
@@ -68,14 +69,14 @@ pbind f (D , p , g) =
   (λ {(d , d') → proj₂ (proj₂ (f (g d))) d'})
 
 plaw1 : ∀{X} → pbind (pη {X}) ≅ iden {pT X}
-plaw1 = ext (λ x → 
+plaw1 {X} = ext (λ x → 
   let pr : prop (proj₁ x)
       pr p q = (proj₁ (proj₂ x)) p q
 
       pr' : prop (Σ (proj₁ x) (λ _ → ⊤))
       pr' p q = dprod≅ (pr (proj₁ p) (proj₁ q)) (λ _ _ _ → ⊤prop)
-  in prod≅ (⇔ pr' pr proj₁ (λ y → y , _))
-           (prod≅' (⇔p pr' pr proj₁ (λ y → y , _))
+  in prod≅ (⇔ pr' pr proj₁ (λ y → y , _)) 
+           (prod≅' (⇔p pr' pr proj₁ (λ y → y , _)) 
                    (⇔m pr' pr proj₁ (λ y → y , _) refl)))
 
 plaw2 : ∀{X Y}{f : X → pT Y} → (pbind f) ∘ pη ≅ f
@@ -89,7 +90,7 @@ plaw2 {f = f} = ext (λ x →
         (prod≅' (⇔p pr' pr proj₂ (λ y → _ , y)) 
                 (⇔m pr' pr proj₂ ((λ y → _ , y)) refl)))
 
-prf : ∀{X Y}(f : X → pT Y)(x : X) → prop (proj₁ (f x))
+prf : {X Y : Set₁}(f : X → pT Y)(x : X) → prop (proj₁ (f x))
 prf f x p q = (proj₁ (proj₂ (f x))) p q
 
 plaw3 : ∀{X Y Z}{f : X → (pT Y)}{g : Y → (pT Z)} →

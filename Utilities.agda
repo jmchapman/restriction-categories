@@ -11,11 +11,11 @@ record Σ' {a b}(A : Set a)(B : A → Set b) : Set (a ⊔ b) where
           .snd : B fst
 open Σ' public
 
-postulate ext : {A : Set}{B B' : A → Set}{f : ∀ a → B a}{g : ∀ a → B' a} → 
-                (∀ a → f a ≅ g a) → f ≅ g
+postulate ext : ∀{a b}{A : Set a}{B B' : A → Set b}{f : ∀ a → B a}
+                {g : ∀ a → B' a} → (∀ a → f a ≅ g a) → f ≅ g
 
-postulate iext : {A : Set}{B B' : A → Set}{f : ∀ {a} → B a}{g : ∀{a} → B' a} → 
-                 (∀ a → f {a} ≅ g {a}) → 
+postulate iext : ∀{a b}{A : Set a}{B B' : A → Set b}{f : ∀ {a} → B a}
+                 {g : ∀{a} → B' a} → (∀ a → f {a} ≅ g {a}) → 
                  _≅_ {_}{ {a : A} → B a} f {_} { {a : A} → B' a} g
 
 data Reveal_is_ {A : Set} (x : Hidden A) (y : A) : Set where

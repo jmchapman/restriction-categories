@@ -9,7 +9,7 @@ open import Data.Product
 open import Utilities
 open import Level
 
-record Fun {a b}(C D : Cat {a}{b}) : Set (a ⊔ b) where
+record Fun {a b c d}(C : Cat {a}{b})(D : Cat {c}{d}) : Set (a ⊔ c ⊔ b ⊔ d) where
   open Cat
   field OMap  : Obj C → Obj D
         HMap  : ∀{X Y} → Hom C X Y → Hom D (OMap X) (OMap Y)
@@ -55,11 +55,12 @@ F ○ G = record{
   fid   = ○fid F G;
   fcomp = ○fcomp F G}
 
-Faithful : ∀{a b}{C D : Cat {a}{b}} → Fun C D → Set (a ⊔ b)
-Faithful {_}{_}{C} F = ∀{A B}{f g : Hom C A B} → HMap F f ≅ HMap F g → f ≅ g
+Faithful : ∀{a b c d}{C : Cat {a}{b}}{D : Cat {c}{d}} → Fun C D → Set (a ⊔ b)
+Faithful {_}{_}{_}{_}{C} F = ∀{A B}{f g : Hom C A B} → HMap F f ≅ HMap F g → f ≅ g
 
-Full : ∀{a b}{C D : Cat {a}{b}} → Fun C D → Set (a ⊔ b)
-Full {_}{_}{C}{D} F = ∀{A B}{f : Hom D (OMap F A) (OMap F B)} → Σ' (Hom C A B) λ g → HMap F g ≅ f
+Full : ∀{a b c d}{C : Cat {a}{b}}{D : Cat {c}{d}} → Fun C D → Set (d ⊔ b ⊔ a)
+Full {_}{_}{_}{_}{C}{D} F = 
+  ∀{A B}{f : Hom D (OMap F A) (OMap F B)} → Σ' (Hom C A B) λ g → HMap F g ≅ f
 
 -- Equality for functors
 .Fun≅ : ∀{C D}{F G : Fun C D} → Fun.OMap F ≅ Fun.OMap G →

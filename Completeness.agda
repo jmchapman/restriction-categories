@@ -1,7 +1,6 @@
-
 open import SplitRestCats
 
-module Completeness (X : SplitRestCat) where
+module Completeness {a b}(X : SplitRestCat {a}{b}) where
 
   open import Categories
   open import RestrictionCat
@@ -511,7 +510,7 @@ module Completeness (X : SplitRestCat) where
       ≅⟨ R1 ⟩
       f
       ∎
-
+{-
   IsoCompl : Iso CCat Funct
   IsoCompl = Funct2 ,, 
              Fun≅ refl HIso1 ,, 
@@ -521,3 +520,4 @@ module Completeness (X : SplitRestCat) where
   RIsoCompl = RFunct2 ,, 
               RFun≅ (Fun≅ refl HIso1) ,, 
               RFun≅ (Fun≅ refl HIso2)
+-}

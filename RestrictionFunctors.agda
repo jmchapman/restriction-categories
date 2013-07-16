@@ -11,7 +11,7 @@ open import Functors
 import Totals
 open import Level
 
-record RestFun {a b}(X Y : RestCat {a}{b}) : Set (a ⊔ b) where
+record RestFun {a b c d}(X : RestCat {a}{b})(Y : RestCat {c}{d}) : Set (a ⊔ c ⊔ b ⊔ d) where
   open Cat
   open RestCat
   open Fun
@@ -83,8 +83,8 @@ record RestFun (X Y : RestCat) : Set where
 -}
 
 
-.RFun≅ : ∀{C D}{F G : RestFun C D} → RestFun.fun F ≅ RestFun.fun G → F ≅ G
-RFun≅ {C}{D}{F}{G} p  = 
+.RFun≅ : ∀{a b c d}{C : RestCat {a}{b}}{D : RestCat {c}{d}}{F G : RestFun C D} → RestFun.fun F ≅ RestFun.fun G → F ≅ G
+RFun≅ {_}{_}{_}{_}{C}{D}{F}{G} p  = 
   let
     open Cat
     open RestCat

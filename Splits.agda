@@ -16,7 +16,7 @@ open import Level
 -- every idempotent splits
 
 record IdemClass : Set (suc (a ⊔ b)) where
-  field ∈   : Idem X → Set (a ⊔ b)
+  field ∈   : Idem X → Set
         .id∈ : ∀{X} → ∈ (record { E = X; e = iden; law = idl })
 
 record SplitMap (ide ide' : Idem X) : Set b where

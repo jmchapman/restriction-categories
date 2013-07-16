@@ -1,6 +1,6 @@
 open import SplitRestCats
 
-module MonicClasses (X : SplitRestCat) where
+module MonicClasses {a b}(X : SplitRestCat {a}{b}) where
 
   open import Categories
   open import RestrictionCat
@@ -17,8 +17,9 @@ module MonicClasses (X : SplitRestCat) where
   open import Categories.Idems cat
   open import Totals rcat
   open Tot
+  open import Level
 
-  record SRestIde {B E} (s : Tot B E) : Set where
+  record SRestIde {B E} (s : Tot B E) : Set (a ⊔ b) where
     field As    : Obj
           fs    : Hom E As
           rs    : Hom E B
