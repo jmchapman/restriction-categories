@@ -142,3 +142,97 @@ map = Fun.HMap (TFun DelayM)
 
 str : ∀{X Y} → X × Delay Y → Delay (X × Y)
 str (x , dy) = map (λ y → (x , y)) dy
+
+-- Products
+
+data _D×_ (X Y : Set) : Set where
+  nownow : X → Y → X D× Y
+  nowlater : X → Delay Y → X D× Y
+  laternow : Delay X → Y → X D× Y
+  laterlater : ∞ (X D× Y) → X D× Y
+
+data _D∼_ {X Y : Set} : X D× Y → X D× Y → Set where
+  nownow∼ : ∀{x y} → nownow x y D∼ nownow x y
+  nowlater∼ : ∀{x dy dy'} → dy ∼ dy' → nowlater x dy D∼ nowlater x dy'
+  laternow∼ : ∀{dx dx' y} → dx ∼ dx' → laternow dx y D∼ laternow dx' y
+  laterlater∼ : ∀{dxy dxy'} → ∞ (♭ dxy D∼ ♭ dxy') → 
+                laterlater dxy D∼ laterlater dxy'
+
+dproj₁ : ∀{X Y} → X D× Y → Delay X
+dproj₁ (nownow x y) = now x
+dproj₁ (nowlater x dy) = now x
+dproj₁ (laternow dx y) = later (♯ dx)
+dproj₁ (laterlater dxy) = later (♯ (dproj₁ (♭ dxy)))
+
+dproj₂ : ∀{X Y} → X D× Y → Delay Y
+dproj₂ (nownow x y) = now y
+dproj₂ (nowlater x dy) = later (♯ dy)
+dproj₂ (laternow dx y) = now y
+dproj₂ (laterlater dxy) = later (♯ (dproj₂ (♭ dxy)))
+
+D×→D : ∀{X Y} → X D× Y → Delay X × Delay Y
+D×→D dxy = (dproj₁ dxy) , (dproj₂ dxy)
+
+×→D× : ∀{X Y} → Delay X → Delay Y → X D× Y
+×→D× (now x) (now y) = nownow x y
+×→D× (now x) (later dy) = nowlater x (♭ dy)
+×→D× (later dx) (now y) = laternow (♭ dx) y
+×→D× (later dx) (later dy) = laterlater (♯ (×→D× (♭ dx) (♭ dy)))
+
+u : ∀{X Y Z} → (Z → Delay X) → (Z → Delay Y) → Z → X D× Y
+u f g z = ×→D× (f z) (g z)
+
+comp-aux₁ : ∀{X Y}(dx : Delay X)(dy : Delay Y) → dproj₁ (×→D× dx dy) ∼ dx
+comp-aux₁ (now x) (now y) = now∼
+comp-aux₁ (now x) (later dy) = now∼
+comp-aux₁ (later dx) (now y) = later∼ (♯ refl∼)
+comp-aux₁ (later dx) (later dy) = later∼ (♯ (comp-aux₁ (♭ dx) (♭ dy)))
+
+comp-aux₂ : ∀{X Y}(dx : Delay X)(dy : Delay Y) → dproj₂ (×→D× dx dy) ∼ dy
+comp-aux₂ (now x) (now y) = now∼
+comp-aux₂ (now x) (later dy) = later∼ (♯ refl∼)
+comp-aux₂ (later dx) (now y) = now∼ 
+comp-aux₂ (later dx) (later dy) = later∼ (♯ (comp-aux₂ (♭ dx) (♭ dy)))
+
+comp₁ : ∀{X Y Z}(f : Z → Delay X)(g : Z → Delay Y)(z : Z) → 
+        dproj₁ (u f g z) ∼ f z
+comp₁ f g z = comp-aux₁ (f z) (g z)
+
+comp₂ : ∀{X Y Z}(f : Z → Delay X)(g : Z → Delay Y)(z : Z) → 
+        dproj₂ (u f g z) ∼ g z
+comp₂ f g z = comp-aux₂ (f z) (g z)
+
+uniq-aux : ∀{X Y}(dxy dxy' : X D× Y) → dproj₁ dxy ∼ dproj₁ dxy' → 
+           dproj₂ dxy ∼ dproj₂ dxy' → dxy D∼ dxy'
+uniq-aux (nownow x y) (nownow .x .y) now∼ now∼ = nownow∼
+uniq-aux (nownow x x₁) (nowlater x₂ x₃) p ()
+uniq-aux (nownow x x₁) (laternow x₂ x₃) () q
+uniq-aux (nownow x x₁) (laterlater x₂) () q
+uniq-aux (nowlater x x₁) (nownow x₂ x₃) p ()
+uniq-aux (nowlater x dy) (nowlater .x dy') now∼ (later∼ q) = nowlater∼ (♭ q)
+uniq-aux (nowlater x x₁) (laternow x₂ x₃) p ()
+uniq-aux (nowlater x x₁) (laterlater x₂) () q
+uniq-aux (laternow x x₁) (nownow x₂ x₃) () q
+uniq-aux (laternow x x₁) (nowlater x₂ x₃) p ()
+uniq-aux (laternow dx y) (laternow dx' .y) (later∼ p) now∼ = laternow∼ (♭ p)
+uniq-aux (laternow x x₁) (laterlater x₂) p ()
+uniq-aux (laterlater x) (nownow x₁ x₂) () q
+uniq-aux (laterlater x) (nowlater x₁ x₂) () q
+uniq-aux (laterlater x) (laternow x₁ x₂) p ()
+uniq-aux (laterlater dxy) (laterlater dxy') (later∼ p) (later∼ q) = 
+  laterlater∼ (♯ (uniq-aux (♭ dxy) (♭ dxy') (♭ p) (♭ q)))
+
+uniq : ∀{X Y Z}(f : Z → Delay X)(g : Z → Delay Y)(u' : Z → X D× Y)(z : Z) → 
+       dproj₁ (u' z) ∼ f z → dproj₂ (u' z) ∼ g z → u' z D∼ u f g z
+uniq f g u' z p q = uniq-aux (u' z) 
+                             (u f g z) 
+                             (trans∼ p (sym∼ (comp₁ f g z))) 
+                             (trans∼ q (sym∼ (comp₂ f g z)))
+
+-- Meets
+
+Agree : ∀{X Y}(f g : X → Delay Y) → Set
+Agree {X} f g = Σ X (λ x → f x ∼ g x)
+
+Meet : ∀{X Y}(f g : X → Delay Y) → Agree f g → Delay Y
+Meet f g (x , p) = f x
