@@ -1,7 +1,7 @@
 open import Categories
 open import Monads
 
-module Modules (C : Cat)(Tm : Monad C) where
+module Monads.EMAlgebras (C : Cat)(Tm : Monad C) where
 
   open import Relation.Binary.HeterogeneousEquality
   open import Functors
@@ -10,29 +10,29 @@ module Modules (C : Cat)(Tm : Monad C) where
   open Monad Tm
   open Fun (TFun Tm)
 
-  record Module : Set where
+  record Algebra : Set where
     field M       : Obj
           ν       : Hom (T M) M
           .ηlaw    : comp ν η ≅ iden {M}
           .bindlaw : comp ν (HMap ν) ≅ comp ν (μ {M})
 
-  record ModuleMap (X Y : Module) : Set where
-    open Module X renaming (ν to νM)
-    open Module Y renaming (M to N; ν to νN)
+  record AlgebraMap (X Y : Algebra) : Set where
+    open Algebra X renaming (ν to νM)
+    open Algebra Y renaming (M to N; ν to νN)
     field mhom  : Hom M N
           .mcom : comp mhom νM ≅ comp νN (HMap mhom)
   
-  open Module
-  open ModuleMap
+  open Algebra
+  open AlgebraMap
 
-  .ModuleMapEq : ∀{X Y}(f g : ModuleMap X Y) → mhom f ≅ mhom g → f ≅ g
-  ModuleMapEq {X}{Y} f g p = cong₂
+  .AlgebraMapEq : ∀{X Y}(f g : AlgebraMap X Y) → mhom f ≅ mhom g → f ≅ g
+  AlgebraMapEq {X}{Y} f g p = cong₂
     {_}
     {_}
     {_}
     {Hom (M X) (M Y)}
     {λ mhom → comp mhom (ν X) ≅ comp (ν Y) (HMap mhom)}
-    {λ _ _ → ModuleMap X Y}
+    {λ _ _ → AlgebraMap X Y}
     {mhom f}
     {mhom g}
     {mcom f}
