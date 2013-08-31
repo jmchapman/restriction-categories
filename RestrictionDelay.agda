@@ -265,3 +265,43 @@ DelayR = record {
   R2   = λ {_}{_}{_}{f}{g} → ext (dR2 {f = f} {g = g}); 
   R3   = λ {_}{_}{_}{f}{g} → ext (dR3 {f = f} {g = g}); 
   R4   = λ {_}{_}{_}{f}{g} → ext (dR4 {f = f} {g = g})}
+
+-- Restriction product
+
+open RestCat DelayR
+open import RestrictionProducts DelayR
+open import Totals DelayR
+open import Monads
+open Monad DelayM
+
+drest≅ : ∀{X Y}(x : X)(f : X → Delay Y) → drest f x ≅ dbind (λ z → now x) (f x)
+drest≅ x f = cong (λ f' → f' (f x)) (sym law3) 
+
+dp₁ : ∀{X Y} → Tot (X × Y) X
+dp₁ = record { 
+  hom = λ { (x , y) → now x }; 
+  tot = refl }
+
+dp₂ : ∀{X Y} → Tot (X × Y) Y
+dp₂ = record { 
+  hom = λ { (x , y) → now y }; 
+  tot = refl }
+
+d⟨_,_⟩-aux : {X Y : Set} → Delay X → Delay Y → Delay (X × Y)
+d⟨ now x , now y ⟩-aux = now (x , y)
+d⟨ now x , later dy ⟩-aux = later (♯ d⟨ now x , ♭ dy ⟩-aux)
+d⟨ later dx , now y ⟩-aux = later (♯ d⟨ ♭ dx , now y ⟩-aux)
+d⟨ later dx , later dy ⟩-aux = later (♯ d⟨ ♭ dx , ♭ dy ⟩-aux)
+
+d⟨_,_⟩ : {X Y Z : Set} → (Z → Delay X) → (Z → Delay Y) → Z → Delay (X × Y)
+d⟨ f , g ⟩ z = d⟨ f z , g z ⟩-aux 
+
+DelayProd : (X Y : Set) → RestProd X Y
+DelayProd X Y = record {
+  W = X × Y;
+  p₁ = dp₁;
+  p₂ = dp₂;
+  ⟨_,_⟩ = d⟨_,_⟩;
+  tr1 = {!!};
+  tr2 = {!!};
+  uniq = {!!} }

@@ -145,6 +145,7 @@ str (x , dy) = map (λ y → (x , y)) dy
 
 -- Products
 
+{-
 data _D×_ (X Y : Set) : Set where
   nownow : X → Y → X D× Y
   nowlater : X → Delay Y → X D× Y
@@ -231,8 +232,10 @@ uniq f g u' z p q = uniq-aux (u' z)
 
 -- Meets
 
-Agree : ∀{X Y}(f g : X → Delay Y) → Set
-Agree {X} f g = Σ X (λ x → f x ∼ g x)
+meet-aux : ∀{X}(y : X)(dx : Delay X) → Delay ((x : X) → y ≅ {!y!})
+meet-aux y (now x) = {!!}
+meet-aux y (later dx) = {!!}
 
-Meet : ∀{X Y}(f g : X → Delay Y) → Agree f g → Delay Y
-Meet f g (x , p) = f x
+meet : ∀{X Y}(f g : X → Delay Y) → X → Delay {!!}
+meet f g x = {!!}
+-}
