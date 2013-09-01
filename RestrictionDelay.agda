@@ -275,6 +275,8 @@ open import Monads
 open Monad DelayM
 open Tot
 
+-- Useful equalities
+
 drest≅ : ∀{X Y}(x : X)(f : X → Delay Y) → drest f x ≅ dbind (λ z → now x) (f x)
 drest≅ x f = cong (λ f' → f' (f x)) (sym law3) 
 
@@ -287,6 +289,8 @@ compdrest {X}{Y}{Z}{f}{g} z =
   dbind f (dbind (λ a → now z) (g z))
   ∎
 
+-- Projections
+
 dp₁ : ∀{X Y} → Tot (X × Y) X
 dp₁ = record { 
   hom = λ { (x , y) → now x }; 
@@ -297,6 +301,8 @@ dp₂ = record {
   hom = λ { (x , y) → now y }; 
   tot = refl }
 
+-- Pairing
+
 d⟨_,_⟩-aux : {X Y : Set} → Delay X → Delay Y → Delay (X × Y)
 d⟨ now x , now y ⟩-aux = now (x , y)
 d⟨ now x , later dy ⟩-aux = later (♯ d⟨ now x , ♭ dy ⟩-aux)
@@ -306,55 +312,91 @@ d⟨ later dx , later dy ⟩-aux = later (♯ d⟨ ♭ dx , ♭ dy ⟩-aux)
 d⟨_,_⟩ : {X Y Z : Set} → (Z → Delay X) → (Z → Delay Y) → Z → Delay (X × Y)
 d⟨ f , g ⟩ z = d⟨ f z , g z ⟩-aux 
 
-dtr1-aux2 : ∀{X Y}{y : Y}(dx : Delay X) → 
-           dbind (hom dp₁) d⟨ dx , now y ⟩-aux ∼ dx
-dtr1-aux2 (now x) = refl∼
-dtr1-aux2 (later dx) = later∼ (♯ dtr1-aux2 (♭ dx))
+{-
+dbind-dproj₁-nowy : ∀{X Y}{y : Y}(dx : Delay X) → 
+                   dbind (hom dp₁) d⟨ dx , now y ⟩-aux ∼ dx
+dbind-dproj₁-nowy (now x) = refl∼
+dbind-dproj₁-nowy (later dx) = later∼ (♯ dbind-dproj₁-nowy (♭ dx))
 
+dbind-dproj₁-nowx : ∀{X Y}{x : X}(dy : Delay Y) → 
+                    dbind (hom dp₁) d⟨ now x , dy ⟩-aux ∼ dbind (λ _ → now x) dy
+dbind-dproj₁-nowx (now y) = now∼
+dbind-dproj₁-nowx (later dy) = later∼ (♯ (dbind-dproj₁-nowx (♭ dy)))
+
+dbind-dproj₂-nowx : ∀{X Y}{x : X}(dy : Delay Y) → 
+                   dbind (hom dp₂) d⟨ now x , dy ⟩-aux ∼ dy
+dbind-dproj₂-nowx (now y) = refl∼
+dbind-dproj₂-nowx (later dy) = later∼ (♯ dbind-dproj₂-nowx (♭ dy))
+
+dbind-dproj₂-nowy : ∀{X Y}{y :  Y}(dx : Delay X) → 
+             dbind (hom dp₂) d⟨ dx , now y ⟩-aux ∼ dbind (λ _ → now y) dx
+dbind-dproj₂-nowy (now x) = now∼
+dbind-dproj₂-nowy (later dx) = later∼ (♯ (dbind-dproj₂-nowy (♭ dx)))
+-}
+
+{-
 dtr1-aux : ∀{X Y}(dx : Delay X)(dy : Delay Y) → 
            dbind (hom dp₁) d⟨ dx , dy ⟩-aux ≈ dbind (λ _ → dx) dy
 dtr1-aux (now x) (now y) = refl≈
 dtr1-aux (now x) (later dy) = later≈ (♯ dtr1-aux (now x) (♭ dy) )
-dtr1-aux (later dx) (now y) = later≈ (♯ ∼→≈ (dtr1-aux2 (♭ dx)))
+dtr1-aux (later dx) (now y) = later≈ (♯ ∼→≈ (dbind-dproj₁-nowy (♭ dx)))
 dtr1-aux (later dx) (later dy) = later≈ (♯ {!!})
 
 --trans≈ (dtr1-aux (♭ dx) (♭ dy)) (trans≈ laterlem (trans≈ (later≈ (♯ refl≈)) (sym≈ (∼→≈ (dbindlater (♭ dy))))))
-
-dtr1-aux3 : ∀{X Y}(dx dz : Delay X)(dy : Delay Y) →
-            dbind (λ _ → dx) dy ≈ dz → 
-            dbind (hom dp₁) d⟨ dx , dy ⟩-aux ≈ dz
-dtr1-aux3 (now x) .dz (now y) (↓≈ {.(now x)} {dz} now↓ q) = ↓≈ now↓ q
-dtr1-aux3 (now x) .(now z) (later dy) (↓≈ {._} {.(now z)} {z} (later↓ p) now↓) =
-  ↓≈ (later↓ {!!}) now↓
-dtr1-aux3 (now x) .(later dz) (later dy) (↓≈ (later↓ p) (later↓ {dz} q)) = ↓≈ (later↓ {!!}) (later↓ q)
-dtr1-aux3 (now x) .(later dz) (later dy) (later≈ {._} {dz} p) = 
-  later≈ (♯ (dtr1-aux3 (now x) (♭ dz) (♭ dy) (♭ p)))
-dtr1-aux3 (later dx) .(now x) (now y) (↓≈ {.(later dx)} {now x} (later↓ p) now↓) = ↓≈ (later↓ (≈↓ (sym≈ (∼→≈ (dtr1-aux2 (♭ dx)))) p)) now↓
-dtr1-aux3 (later dx) .(later dz) (now y) (↓≈ {.(later dx)} {later dz} (later↓ p) (later↓ q)) = later≈ (♯ (trans≈ (∼→≈ (dtr1-aux2 (♭ dx))) (↓≈ p q)))
-dtr1-aux3 (later dx) .(later dz) (now y) (later≈ {.dx} {dz} p) = later≈ (♯ (trans≈ (∼→≈ (dtr1-aux2 (♭ dx))) (♭ p)))
-dtr1-aux3 (later dx) (now z) (later dy) p = ↓≈ (later↓ {!!}) now↓
-dtr1-aux3 (later dx) (later dz) (later dy) (↓≈ (later↓ x) (later↓ x₁)) = {!!}
-dtr1-aux3 (later dx) (later dz) (later dy) (later≈ x) = {!!}
-
-
-
-{-
-dtr1-aux2 : ∀{X Y}(dx dz : Delay X)(dy : Delay Y) →
-            dbind (λ _ → dx) dy ∼ dz → 
-            dbind (hom dp₁) d⟨ dx , dy ⟩-aux ≈ dz
-dtr1-aux2 (now x) (now .x) (now y) now∼ = refl≈
-dtr1-aux2 (now x) (now z) (later x₁) ()
-dtr1-aux2 (now x) (later dz) (now x₁) ()
-dtr1-aux2 (now x) (later dz) (later dy) (later∼ p) = 
-  later≈ (♯ dtr1-aux2 (now x) (♭ dz) (♭ dy) (♭ p))
-dtr1-aux2 (later dx) (now x) (now x₁) ()
-dtr1-aux2 (later dx) (now x) (later x₁) ()
-dtr1-aux2 (later dx) (later dz) (now y) (later∼ p) = 
-  later≈ (♯ (dtr1-aux2 (♭ dx) (♭ dz) (now y) (♭ p)))
-dtr1-aux2 (later dx) (later dz) (later dy) (later∼ p) = 
-  later≈ (♯ dtr1-aux2 (♭ dx) (♭ dz) (♭ dy) (trans∼ (trans∼ {!!} (sym∼ (dbindlater (♭ dy)))) (♭ p)))
 -}
 
+-- First triangle commutes
+
+dtr1-aux↓' : ∀{X Y}{z : X}(dx dz : Delay X)(dy : Delay Y) →
+             dbind (λ _ → dx) dy ∼ dz → dz ↓ z → 
+             dbind (hom dp₁) d⟨ dx , dy ⟩-aux ↓ z
+dtr1-aux↓' {X} {Y} {z} .(now z) .(now z) (now x) now∼ now↓ = now↓
+dtr1-aux↓' {X} {Y} {z} dx .(now z) (later dy) () now↓
+dtr1-aux↓' (later dx) (later dz) (now y) (later∼ p) (later↓ q) = 
+  later↓ (dtr1-aux↓' (♭ dx) (♭ dz) (now y) (♭ p) q)
+dtr1-aux↓' (now x) (later dz) (later dy) (later∼ p) (later↓ q) = 
+  later↓ (dtr1-aux↓' (now x) (♭ dz) (♭ dy) (♭ p) q)
+dtr1-aux↓' (later dx) (later dz) (later dy) (later∼ p) (later↓ q) with ♭ dz
+... | a with
+ trans∼ (sym∼ (dbindlater {f = λ _ → dx} (♭ dy))) (♭ p)
+dtr1-aux↓' (later dx) (later dz) (later dy) (later∼ p) (later↓ (later↓ q)) | .(later dw) | later∼ {._} {dw} r = later↓ (dtr1-aux↓' (♭ dx) (♭ dw) (♭ dy) (♭ r) q)
+
+dtr1-aux↓ : ∀{X Y}{z : X}(dx : Delay X)(dy : Delay Y) →
+            dbind (λ _ → dx) dy ↓ z → dbind (hom dp₁) d⟨ dx , dy ⟩-aux ↓ z
+dtr1-aux↓ dx dy p = dtr1-aux↓' dx _ dy refl∼ p
+
+dtr1-aux≈ : ∀{X Y}(dx dz : Delay X)(dy : Delay Y) →
+            dbind (λ _ → dx) dy ≈ dz → 
+            dbind (hom dp₁) d⟨ dx , dy ⟩-aux ≈ dz
+dtr1-aux≈ (now x) (now .x) (now y) (↓≈ now↓ now↓) = ↓≈ now↓ now↓
+dtr1-aux≈ (now x) (later dy) (now y) (↓≈ now↓ (later↓ q)) = ↓≈ now↓ (later↓ q)
+dtr1-aux≈ (now x) (now z) (later dy) (↓≈ (later↓ p) now↓) = 
+  ↓≈ (later↓ (dtr1-aux↓ (now x) (♭ dy) p)) now↓
+dtr1-aux≈ (now x) (later dz) (later dy) (↓≈ (later↓ p) (later↓ q)) = 
+  later≈ (♯ (dtr1-aux≈ (now x) (♭ dz) (♭ dy) (↓≈ p q)))
+dtr1-aux≈ (now x) (later dz) (later dy) (later≈ p) = 
+  later≈ (♯ (dtr1-aux≈ (now x) (♭ dz) (♭ dy) (♭ p)))
+dtr1-aux≈ (later dx) (now z) (now y) (↓≈ (later↓ p) now↓) = 
+  ↓≈ (later↓ (dtr1-aux↓ (♭ dx) (now y) p)) now↓
+dtr1-aux≈ (later dx) (later dz) (now y) (↓≈ (later↓ p) (later↓ q)) = 
+  ↓≈ (later↓ (dtr1-aux↓ (♭ dx) (now y) p)) (later↓ q)
+dtr1-aux≈ (later dx) (later dz) (now y) (later≈ p) = 
+  later≈ (♯ dtr1-aux≈ (♭ dx) (♭ dz) (now y) (♭ p))
+dtr1-aux≈ (later dx) dz (later dy) (↓≈ (later↓ p) q) with
+  ≈↓ (∼→≈ (dbindlater {f = λ _ → dx} (♭ dy))) p
+dtr1-aux≈ (later dx) (now z) (later dy) (↓≈ (later↓ p) now↓) | later↓ r = 
+  ↓≈ (later↓ (dtr1-aux↓ (♭ dx) (♭ dy) r)) now↓
+dtr1-aux≈ (later dx) (later dz) (later dy) (↓≈ (later↓ p) q) | later↓ r = 
+  ↓≈ (later↓ (dtr1-aux↓ (♭ dx) (♭ dy) r)) q
+dtr1-aux≈ (later dx) (later dz) (later dy) (later≈ p) with
+  trans≈ laterlem 
+         (trans≈ (later≈ (♯ refl≈)) 
+                 (trans≈ (∼→≈ (sym∼ (dbindlater {f = λ _ → dx} (♭ dy)))) (♭ p)))
+... | q = later≈ (♯ (dtr1-aux≈ (♭ dx) (♭ dz) (♭ dy) q))
+
+dtr1-aux : ∀{X Y}(dx : Delay X)(dy : Delay Y) →
+           dbind (hom dp₁) d⟨ dx , dy ⟩-aux ≈ dbind (λ _ → dx) dy
+dtr1-aux dx dy = dtr1-aux≈ dx _ dy refl≈
 
 dtr1 : ∀{X Y Z}{f : Z → Delay X}{g : Z → Delay Y}(z : Z) → 
        comp (hom dp₁) d⟨ f , g ⟩ z ≅ comp f (drest g) z
@@ -369,10 +411,72 @@ dtr1 {X}{Y}{Z}{f}{g} z =
   dbind f (drest g z)
   ∎
 
-{-
-  trans (dtr1-aux (f z) (g z)) 
-        (trans (compdrest {f = f}{g = g} z) (cong {!!} {!!}))
--}
+-- Second triangle commutes
+
+dtr2-aux↓' : ∀{X Y}{z : Y}(dx : Delay X)(dz dy : Delay Y) →
+             dbind (λ _ → dy) dx ∼ dz → dz ↓ z → 
+             dbind (hom dp₂) d⟨ dx , dy ⟩-aux ↓ z
+dtr2-aux↓' (now x) .(now y) (now y) now∼ q = q
+dtr2-aux↓' (now x) (later dz) (later dy) (later∼ p) (later↓ q) = 
+  later↓ (dtr2-aux↓' (now x) (♭ dz) (♭ dy) (♭ p) q)
+dtr2-aux↓' (later dx) (later dz) (now y) (later∼ p) (later↓ q) = 
+  later↓ (dtr2-aux↓' (♭ dx) (♭ dz) (now y) (♭ p) q)
+dtr2-aux↓' (later dx) (later dz) (later dy) (later∼ p) (later↓ q) with ♭ dz
+... | a with
+ trans∼ (sym∼ (dbindlater {f = λ _ → dy} (♭ dx))) (♭ p)
+dtr2-aux↓' (later dx) (later dz) (later dy) (later∼ p) (later↓ (later↓ q)) | .(later dw) | later∼ {._} {dw} r = later↓ (dtr2-aux↓' (♭ dx) (♭ dw) (♭ dy) (♭ r) q)
+
+dtr2-aux↓ : ∀{X Y}{z : Y}(dx : Delay X)(dy : Delay Y) →
+            dbind (λ _ → dy) dx ↓ z → dbind (hom dp₂) d⟨ dx , dy ⟩-aux ↓ z
+dtr2-aux↓ dx dy p = dtr2-aux↓' dx _ dy refl∼ p
+
+dtr2-aux≈ : ∀{X Y}(dx : Delay X)(dz dy : Delay Y) →
+            dbind (λ _ → dy) dx ≈ dz → 
+            dbind (hom dp₂) d⟨ dx , dy ⟩-aux ≈ dz
+dtr2-aux≈ (now x) (now y) (now .y) (↓≈ now↓ now↓) = ↓≈ now↓ now↓
+dtr2-aux≈ (now x) (later dz) (now y) (↓≈ now↓ (later↓ q)) = ↓≈ now↓ (later↓ q)
+dtr2-aux≈ (now x) (now z) (later dy) (↓≈ (later↓ p) now↓) = 
+  ↓≈ (later↓ (dtr2-aux↓ (now x) (♭ dy) p)) now↓
+dtr2-aux≈ (now x) (later dz) (later dy) (↓≈ (later↓ p) (later↓ q)) = 
+  ↓≈ (later↓ (dtr2-aux↓ (now x) (♭ dy) p)) (later↓ q)
+dtr2-aux≈ (now x) (later dz) (later dy) (later≈ p) = 
+  later≈ (♯ dtr2-aux≈ (now x) (♭ dz) (♭ dy) (♭ p))
+dtr2-aux≈ (later dx) (now z) (now y) (↓≈ (later↓ p) now↓) = 
+  ↓≈ (later↓ (dtr2-aux↓ (♭ dx) (now y) p)) now↓
+dtr2-aux≈ (later dx) (later dz) (now y) (↓≈ (later↓ p) (later↓ q)) = 
+  later≈ (♯ (dtr2-aux≈ (♭ dx) (♭ dz) (now y) (↓≈ p q)))
+dtr2-aux≈ (later dx) (later dz) (now y) (later≈ p) = 
+  later≈ (♯ (dtr2-aux≈ (♭ dx) (♭ dz) (now y) (♭ p)))
+dtr2-aux≈ (later dx) (now x) (later dy) (↓≈ (later↓ p) now↓) with
+  ≈↓ (∼→≈ (dbindlater {f = λ _ → dy} (♭ dx))) p
+dtr2-aux≈ (later dx) (now x) (later dy) (↓≈ (later↓ p) now↓) | later↓ q = 
+  ↓≈ (later↓ (dtr2-aux↓ (♭ dx) (♭ dy) q)) now↓
+dtr2-aux≈ (later dx) (later dz) (later dy) (↓≈ (later↓ p) (later↓ q)) with
+  ≈↓ (∼→≈ (dbindlater {f = λ _ → dy} (♭ dx))) p 
+dtr2-aux≈ (later dx) (later dz) (later dy) (↓≈ (later↓ p) (later↓ q)) | later↓ r
+ = ↓≈ (later↓ (dtr2-aux↓ (♭ dx) (♭ dy) r)) (later↓ q)
+dtr2-aux≈ (later dx) (later dz) (later dy) (later≈ p) with
+  trans≈ laterlem 
+         (trans≈ (later≈ (♯ refl≈)) 
+                 (trans≈ (∼→≈ (sym∼ (dbindlater {f = λ _ → dy} (♭ dx)))) (♭ p)))
+... | q = later≈ (♯ (dtr2-aux≈ (♭ dx) (♭ dz) (♭ dy) q))
+
+dtr2-aux : ∀{X Y}(dx : Delay X)(dy : Delay Y) →
+           dbind (hom dp₂) d⟨ dx , dy ⟩-aux ≈ dbind (λ _ → dy) dx
+dtr2-aux dx dy = dtr2-aux≈ dx _ dy refl≈
+
+dtr2 : ∀{X Y Z}{f : Z → Delay X}{g : Z → Delay Y}(z : Z) → 
+       comp (hom dp₂) d⟨ f , g ⟩ z ≅ comp g (drest f) z
+dtr2 {X}{Y}{Z}{f}{g} z = 
+  proof
+  comp (hom dp₂) d⟨ f , g ⟩ z
+  ≅⟨ quotient (dtr2-aux (f z) (g z)) ⟩
+  dbind (λ _ → g z) (f z)
+  ≅⟨ compdrest {f = g} {g = f} z ⟩
+  dbind g (dbind (λ a → now z) (f z))
+  ≅⟨ cong (dbind g) (sym (drest≅ z f)) ⟩ 
+  dbind g (drest f z)
+  ∎
 
 DelayProd : (X Y : Set) → RestProd X Y
 DelayProd X Y = record {
@@ -380,6 +484,6 @@ DelayProd X Y = record {
   p₁ = dp₁;
   p₂ = dp₂;
   ⟨_,_⟩ = d⟨_,_⟩;
-  tr1 = {!!};
-  tr2 = {!!};
+  tr1 = λ {Z}{f}{g} → ext (dtr1 {f = f} {g = g});
+  tr2 = λ {Z}{f}{g} → ext (dtr2 {f = f} {g = g});
   uniq = {!!} }
