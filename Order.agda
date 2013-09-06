@@ -16,6 +16,25 @@ infix 4 _≤_
 _⌣_ : ∀{A B} → Hom A B → Hom A B → Set
 f ⌣ g = comp g (rest f) ≅ comp f (rest g)
 
+.comp⌣ : ∀{A B C}{f g : Hom A B}(p : f ⌣ g){h : Hom C _} → comp f h ⌣ comp g h
+comp⌣ {f = f}{g = g} p {h = h} = 
+  proof
+  comp (comp g h) (rest (comp f h))
+  ≅⟨ ass ⟩
+  comp g (comp h (rest (comp f h)))
+  ≅⟨ cong (comp g) (sym R4) ⟩
+  comp g (comp (rest f) h)
+  ≅⟨ sym ass ⟩
+  comp (comp g (rest f)) h
+  ≅⟨ cong (λ x → comp x h) p ⟩
+  comp (comp f (rest g)) h
+  ≅⟨ ass ⟩
+  comp f (comp (rest g) h)
+  ≅⟨ cong (comp f) R4 ⟩
+  comp f (comp h (rest (comp g h)))
+  ≅⟨ sym ass ⟩
+  comp (comp f h) (rest (comp g h))  
+  ∎
 
 _≤_ : ∀{A B} → Hom A B → Hom A B → Set
 f ≤ g = comp g (rest f) ≅ f
@@ -85,3 +104,14 @@ module Meets where
        ≅⟨ Mt1 ⟩
        h
        ∎
+
+module Joins where
+
+  record Join : Set (a ⊔ b) where
+    field _∨_∣_ : ∀{A B}(f g : Hom A B) → .(f ⌣ g) → Hom A B
+          Jn1a  : ∀{A B}{f g : Hom A B}{p : f ⌣ g} → f ≤ f ∨ g ∣ p
+          Jn1b  : ∀{A B}{f g : Hom A B}{p : f ⌣ g} → g ≤ f ∨ g ∣ p
+          Jn2   : ∀{A B}{f g h : Hom A B}{p : f ⌣ g} → f ≤ h  → g ≤ h → 
+                  f ∨ g ∣ p ≤ h
+          Jn3   : ∀{A B C}{f g : Hom A B}{p : f ⌣ g}{h : Hom C _} →
+                  comp (f ∨ g ∣ p) h ≅ (comp f h) ∨ (comp g h) ∣ comp⌣ p

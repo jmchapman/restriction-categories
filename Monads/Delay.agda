@@ -104,6 +104,16 @@ dbind : ∀{X Y} → (X → Delay Y) → Delay X → Delay Y
 dbind f (now x)   = f x
 dbind f (later x) = later (♯ dbind f (♭ x))
 
+dbindconv-val : ∀{X Y}{f : X → Delay Y}{y : Y}(dx : Delay X) → dbind f dx ↓ y → 
+                X
+dbindconv-val (now x) p = x
+dbindconv-val (later dx) (later↓ p) = dbindconv-val (♭ dx) p
+
+dbindconv : ∀{X Y}{f : X → Delay Y}{y : Y}(dx : Delay X)(p : dbind f dx ↓ y) → 
+            dx ↓ dbindconv-val dx p
+dbindconv (now x) p = now↓
+dbindconv (later dx) (later↓ p) = later↓ (dbindconv (♭ dx) p)
+
 dbindlater' : ∀{X Y}{f : X → ∞ (Delay Y)}(dx : Delay X)(dz : Delay Y) → 
               later (♯ (dbind (♭ ∘ f) dx)) ∼ dz →
               dbind (later ∘ f) dx ∼ dz
@@ -145,13 +155,14 @@ str (x , dy) = map (λ y → (x , y)) dy
 
 -- Meets
 
--- We have to require at least the semidecidability of equality in codomains 
-
 _≅'_ : ∀{a b}{A : Set a}{B : Set b} → A → B → Set
 a ≅' b = a ≅ b
 
 open import Relation.Binary
 open import Relation.Nullary.Core
+
+{-
+-- We have to require at least the semidecidability of equality in codomains 
 
 data SemiDec {p} (P : Set p) : Set p where
   yes  : ( p :   P) → SemiDec P
@@ -161,39 +172,42 @@ data SemiDec {p} (P : Set p) : Set p where
 SemiDecidable : ∀ {a b ℓ} {A : Set a} {B : Set b} → REL A B ℓ → Set _
 SemiDecidable _∼_ = ∀ x y → SemiDec (x ∼ y)
 
-meet-aux : ∀{X}{_≟_ : SemiDecidable {A = X} _≅'_} → Delay X → Delay X → Delay X
-meet-aux {X}{_≟_} (now x) (now y) with x ≟ y
-meet-aux {X}{_≟_} (now x) (now .x) | yes refl = now x
-meet-aux {X}{_≟_} (now x) (now y)  | no ¬p = 
-  later (♯ (meet-aux {X}{_≟_} (now x) (now y)))
-meet-aux {X}{_≟_} (now x) (now y)  | wait q = 
-  later (♯ (meet-aux {X}{_≟_} (now x) (now y)))
-meet-aux {X}{_≟_} (now x) (later dy) = 
-  later (♯ (meet-aux {X}{_≟_} (now x) (♭ dy)))
-meet-aux {X}{_≟_} (later dx) (now y) = 
-  later (♯ (meet-aux {X}{_≟_} (♭ dx) (now y)))
-meet-aux {X}{_≟_} (later dx) (later dy) = 
-  later (♯ (meet-aux {X}{_≟_} (♭ dx) (♭ dy)))
+dmeet-aux : ∀{X}{_≟_ : SemiDecidable {A = X} _≅'_} → Delay X → Delay X → Delay X
+dmeet-aux {X}{_≟_} (now x) (now y) with x ≟ y
+dmeet-aux {X}{_≟_} (now x) (now .x) | yes refl = now x
+dmeet-aux {X}{_≟_} (now x) (now y)  | no ¬p = 
+  later (♯ (dmeet-aux {X}{_≟_} (now x) (now y)))
+dmeet-aux {X}{_≟_} (now x) (now y)  | wait q = 
+  later (♯ (dmeet-aux {X}{_≟_} (now x) (now y)))
+dmeet-aux {X}{_≟_} (now x) (later dy) = 
+  later (♯ (dmeet-aux {X}{_≟_} (now x) (♭ dy)))
+dmeet-aux {X}{_≟_} (later dx) (now y) = 
+  later (♯ (dmeet-aux {X}{_≟_} (♭ dx) (now y)))
+dmeet-aux {X}{_≟_} (later dx) (later dy) = 
+  later (♯ (dmeet-aux {X}{_≟_} (♭ dx) (♭ dy)))
 
-meet : {X Y : Set}{_≟_ : SemiDecidable {A = Y}{B = Y} _≅'_}
+dmeet : {X Y : Set}{_≟_ : SemiDecidable {A = Y}{B = Y} _≅'_}
        (f g : X → Delay Y) → X → Delay Y
-meet {X}{Y}{_≟_} f g x = meet-aux {Y}{_≟_} (f x) (g x)
+dmeet {X}{Y}{_≟_} f g x = dmeet-aux {Y}{_≟_} (f x) (g x)
+-}
 
-{-
 -- Meets with decidable equality
 
-meet-aux : ∀{X}{_≟_ : Decidable {A = X} _≅'_} → Delay X → Delay X → Delay X
-meet-aux {X}{_≟_} (now x) (now y) with x ≟ y
-meet-aux {X}{_≟_} (now x) (now .x) | yes refl = now x
-meet-aux {X}{_≟_} (now x) (now y) | no ¬p = 
-  later (♯ (meet-aux {X}{_≟_} (now x) (now y)))
-meet-aux {X}{_≟_} (now x) (later dy) = 
-  later (♯ (meet-aux {X}{_≟_} (now x) (♭ dy)))
-meet-aux {X}{_≟_} (later dx) (now y) = 
-  later (♯ (meet-aux {X}{_≟_} (♭ dx) (now y)))
-meet-aux {X}{_≟_} (later dx) (later dy) = 
-  later (♯ (meet-aux {X}{_≟_} (♭ dx) (♭ dy)))
--}
+dmeet-aux : ∀{X}{_≟_ : Decidable {A = X} _≅'_} → Delay X → Delay X → Delay X
+dmeet-aux {X}{_≟_} (now x) (now y) with x ≟ y
+dmeet-aux {X}{_≟_} (now x) (now .x) | yes refl = now x
+dmeet-aux {X}{_≟_} (now x) (now y) | no ¬p = 
+  later (♯ (dmeet-aux {X}{_≟_} (now x) (now y)))
+dmeet-aux {X}{_≟_} (now x) (later dy) = 
+  later (♯ (dmeet-aux {X}{_≟_} (now x) (♭ dy)))
+dmeet-aux {X}{_≟_} (later dx) (now y) = 
+  later (♯ (dmeet-aux {X}{_≟_} (♭ dx) (now y)))
+dmeet-aux {X}{_≟_} (later dx) (later dy) = 
+  later (♯ (dmeet-aux {X}{_≟_} (♭ dx) (♭ dy)))
+
+dmeet : {X Y : Set}{_≟_ : Decidable {A = Y}{B = Y} _≅'_}
+        (f g : X → Delay Y) → X → Delay Y
+dmeet {X}{Y}{_≟_} f g x = dmeet-aux {Y}{_≟_} (f x) (g x)
 
 {-
 

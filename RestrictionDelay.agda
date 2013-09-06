@@ -243,11 +243,13 @@ DelayR = record {
   R4   = λ {_}{_}{_}{f}{g} → ext (dR4 {f = f} {g = g})}
 
 open RestCat DelayR
+
+{-
+-- Restriction product
+
 open import RestrictionProducts DelayR
 open import Totals DelayR
 open Tot
-
--- Restriction product
 
 -- Projections
 
@@ -496,3 +498,113 @@ DelayProd X Y = record {
   tr1 = λ {Z}{f}{g} → ext (dtr1 {f = f} {g = g});
   tr2 = λ {Z}{f}{g} → ext (dtr2 {f = f} {g = g});
   uniq = λ {Z}{f}{g} u p q → ext (uniq {f = f} {g = g} u p q) }
+-}
+
+
+-- Meets
+
+open import Order DelayR
+open Meets
+open import Relation.Binary
+open import Relation.Nullary.Core
+
+dMt1-aux  : ∀{X}{_≟_ : Decidable {A = X} _≅'_}(dx : Delay X) → 
+            dmeet-aux {X}{_≟_} dx dx ≈ dx
+dMt1-aux {X}{_≟_} (now x) with x ≟ x
+dMt1-aux (now x) | yes refl = ↓≈ now↓ now↓
+dMt1-aux (now x) | no ¬p with ¬p refl
+dMt1-aux (now x) | no ¬p | ()
+dMt1-aux (later dx) = later≈ (♯ (dMt1-aux (♭ dx)))
+
+dMt1  : ∀{X Y}{_≟_ : Decidable {A = Y}{B = Y} _≅'_}{f : X → Delay Y} → 
+        (x : X) → dmeet {X}{Y}{_≟_} f f x ≅ f x
+dMt1 {f = f} x = quotient (dMt1-aux (f x))
+
+dMt2a-aux↓' : ∀{X}{_≟_ : Decidable {A = X} _≅'_}{z : X}(dx dy dz : Delay X) →
+              dbind (λ _ → dy) (dmeet-aux {X}{_≟_} dx dy) ∼ dz → dz ↓ z → 
+              dmeet-aux {X}{_≟_} dx dy ↓ z
+dMt2a-aux↓' {X}{_≟_} (now x) (now y) dz p q with x ≟ y 
+dMt2a-aux↓' (now x) (now .x) .(now x) now∼ q | yes refl = q
+dMt2a-aux↓' (now x) (now y) (later dz) (later∼ p) (later↓ q) | no ¬r = 
+  later↓ (dMt2a-aux↓' (now x) (now y) (♭ dz) (♭ p) q)
+dMt2a-aux↓' {X}{_≟_} (now x) (later dy) (later .dz) (later∼ p) (later↓ {dz} q) with ♭ dz
+... | dw with
+  trans∼ (sym∼ (dbindlater {_}{_}{λ _ → dy} (dmeet-aux {X}{_≟_} (now x) (♭ dy)))) (♭ p)
+dMt2a-aux↓' (now x) (later dy) (later .dz) (later∼ p) (later↓ {dz} (later↓ {dw} q)) | .(later dw) | later∼ r = 
+  later↓ (dMt2a-aux↓' (now x) (♭ dy) (♭ dw) (♭ r) q)
+dMt2a-aux↓' (later dx) (now y) (later .dz) (later∼ p) (later↓ {dz} q) = 
+  later↓ (dMt2a-aux↓' (♭ dx) (now y) (♭ dz) (♭ p) q)
+dMt2a-aux↓' {X}{_≟_} (later dx) (later dy) (later .dz) (later∼ p) (later↓ {dz} q) with ♭ dz
+... | dw with
+  trans∼ (sym∼ (dbindlater {_}{_}{λ _ → dy} (dmeet-aux {X}{_≟_} (♭ dx) (♭ dy)))) (♭ p)
+dMt2a-aux↓' (later dx) (later dy) (later .dz) (later∼ p) (later↓ {dz} (later↓ {dw} q)) | .(later dw) | later∼ r = later↓ (dMt2a-aux↓' (♭ dx) (♭ dy) (♭ dw) (♭ r) q)
+
+dMt2a-aux↓ : ∀{X}{_≟_ : Decidable {A = X} _≅'_}{z : X}(dx dy : Delay X) →
+             dbind (λ _ → dy) (dmeet-aux {X}{_≟_} dx dy) ↓ z →  
+             dmeet-aux {X}{_≟_} dx dy ↓ z
+dMt2a-aux↓ dx dy p = dMt2a-aux↓' dx dy _ refl∼ p
+
+dMt2a-aux' : ∀{X}{_≟_ : Decidable {A = X} _≅'_}(dx dy dz : Delay X) →
+            dbind (λ _ → dy) (dmeet-aux {X}{_≟_} dx dy) ≈ dz →  
+            dmeet-aux {X}{_≟_} dx dy ≈ dz
+dMt2a-aux' {X}{_≟_} (now x) (now y) dz p with x ≟ y 
+dMt2a-aux' (now x) (now .x) dz p | yes refl = p
+dMt2a-aux' (now x) (now y) (now z) (↓≈ (later↓ p) now↓) | no ¬q = 
+  ↓≈ (later↓ (dMt2a-aux↓ (now x) (now y) p)) now↓
+dMt2a-aux' (now x) (now y) (later dz) (↓≈ (later↓ p) (later↓ r)) | no ¬q = 
+  later≈ (♯ (dMt2a-aux' (now x) (now y) (♭ dz) (↓≈ p r)))
+dMt2a-aux' (now x) (now y) (later dz) (later≈ p) | no ¬q = 
+  later≈ (♯ (dMt2a-aux' (now x) (now y) (♭ dz) (♭ p)))
+dMt2a-aux' {X}{_≟_} (now x) (later dy) (now z) (↓≈ (later↓ p) now↓) with
+  trans≈ (∼→≈ (dbindlater {_}{_}{λ _ → dy} (dmeet-aux {X}{_≟_} (now x) (♭ dy)))) (trans≈ (later≈ (♯ refl≈)) (sym≈ laterlem))
+dMt2a-aux' (now x) (later dy) (now z) (↓≈ (later↓ p) now↓) | r = 
+  ↓≈ (later↓ (dMt2a-aux↓ (now x) (♭ dy) (≈↓ r p))) now↓
+dMt2a-aux' {X}{_≟_} (now x) (later dy) (later dz) (↓≈ (later↓ p) (later↓ q)) with
+  trans≈ (∼→≈ (dbindlater {_}{_}{λ _ → dy} (dmeet-aux {X}{_≟_} (now x) (♭ dy)))) (trans≈ (later≈ (♯ refl≈)) (sym≈ laterlem))
+dMt2a-aux' (now x) (later dy) (later dz) (↓≈ (later↓ p) (later↓ q)) | r =
+  later≈ (♯ (dMt2a-aux' (now x) (♭ dy) (♭ dz) (↓≈ (≈↓ r p) q)))
+dMt2a-aux' {X}{_≟_} (now x) (later dy) (later dz) (later≈ p) with
+  trans≈ (∼→≈ (dbindlater {_}{_}{λ _ → dy} (dmeet-aux {X}{_≟_} (now x) (♭ dy)))) (trans≈ (later≈ (♯ refl≈)) (sym≈ laterlem))
+dMt2a-aux' (now x) (later dy) (later dz) (later≈ p) | r = 
+  later≈ (♯ (dMt2a-aux' (now x) (♭ dy) (♭ dz) (trans≈ (sym≈ r) (♭ p))))
+dMt2a-aux' (later dx) (now y) (now z) (↓≈ (later↓ p) now↓) = 
+  ↓≈ (later↓ (dMt2a-aux↓ (♭ dx) (now y) p)) now↓
+dMt2a-aux' (later dx) (now y) (later dz) (↓≈ (later↓ p) (later↓ q)) = 
+  later≈ (♯ (dMt2a-aux' (♭ dx) (now y) (♭ dz) (↓≈ p q)))
+dMt2a-aux' (later dx) (now y) (later dz) (later≈ p) = 
+  later≈ (♯ (dMt2a-aux' (♭ dx) (now y) (♭ dz) (♭ p)))
+dMt2a-aux' {X}{_≟_} (later dx) (later dy) (now z) (↓≈ (later↓ p) now↓) with 
+  trans≈ (∼→≈ (dbindlater {_}{_}{λ _ → dy} (dmeet-aux {X}{_≟_} (♭ dx) (♭ dy)))) (trans≈ (later≈ (♯ refl≈)) (sym≈ laterlem))
+... | r = ↓≈ (later↓ (dMt2a-aux↓ (♭ dx) (♭ dy) (≈↓ r p))) now↓
+dMt2a-aux' {X}{_≟_} (later dx) (later dy) (later dz) (↓≈ (later↓ p) (later↓ q)) with
+  trans≈ (∼→≈ (dbindlater {_}{_}{λ _ → dy} (dmeet-aux {X}{_≟_} (♭ dx) (♭ dy)))) (trans≈ (later≈ (♯ refl≈)) (sym≈ laterlem))
+... | r = later≈ (♯ (dMt2a-aux' (♭ dx) (♭ dy) (♭ dz) (↓≈ (≈↓ r p) q)))
+dMt2a-aux' {X}{_≟_} (later dx) (later dy) (later dz) (later≈ p) with
+  trans≈ (∼→≈ (dbindlater {_}{_}{λ _ → dy} (dmeet-aux {X}{_≟_} (♭ dx) (♭ dy)))) (trans≈ (later≈ (♯ refl≈)) (sym≈ laterlem))
+... | r = later≈ (♯ (dMt2a-aux' (♭ dx) (♭ dy) (♭ dz) (trans≈ (sym≈ r) (♭ p))))
+
+dMt2a-aux : ∀{X}{_≟_ : Decidable {A = X} _≅'_}(dx dy : Delay X) →
+            dmeet-aux {X}{_≟_} dx dy ≈ 
+            dbind (λ _ → dy) (dmeet-aux {X}{_≟_} dx dy)
+dMt2a-aux dx dy = dMt2a-aux' dx dy _ refl≈
+
+dMt2a : ∀{X Y}{_≟_ : Decidable {A = Y}{B = Y} _≅'_}{f g : X → Delay Y} →
+        dmeet {X}{Y}{_≟_} f g ≤ g
+dMt2a {X}{Y}{_≟_}{f}{g} = ext (λ x → 
+  proof 
+  dbind g (drest (dmeet f g) x)
+  ≅⟨ cong (dbind g) (drest≅ x (dmeet f g)) ⟩
+  dbind g (dbind (λ z → now x) (dmeet f g x))
+  ≅⟨ sym (compdrest {f = g}{g = dmeet f g} x) ⟩
+  dbind (λ _ → g x) (dmeet f g x)
+  ≅⟨ quotient (sym≈ (dMt2a-aux (f x) (g x))) ⟩
+  dmeet f g x
+  ∎)
+
+
+
+
+
+
+
+
