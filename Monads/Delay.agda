@@ -143,9 +143,66 @@ map = Fun.HMap (TFun DelayM)
 str : ∀{X Y} → X × Delay Y → Delay (X × Y)
 str (x , dy) = map (λ y → (x , y)) dy
 
--- Products
+-- Meets
+
+-- We have to require at least the semidecidability of equality in codomains 
+
+_≅'_ : ∀{a b}{A : Set a}{B : Set b} → A → B → Set
+a ≅' b = a ≅ b
+
+open import Relation.Binary
+open import Relation.Nullary.Core
+
+data SemiDec {p} (P : Set p) : Set p where
+  yes  : ( p :   P) → SemiDec P
+  no   : (¬p : ¬ P) → SemiDec P
+  wait : SemiDec P → SemiDec P
+
+SemiDecidable : ∀ {a b ℓ} {A : Set a} {B : Set b} → REL A B ℓ → Set _
+SemiDecidable _∼_ = ∀ x y → SemiDec (x ∼ y)
+
+meet-aux : ∀{X}{_≟_ : SemiDecidable {A = X} _≅'_} → Delay X → Delay X → Delay X
+meet-aux {X}{_≟_} (now x) (now y) with x ≟ y
+meet-aux {X}{_≟_} (now x) (now .x) | yes refl = now x
+meet-aux {X}{_≟_} (now x) (now y)  | no ¬p = 
+  later (♯ (meet-aux {X}{_≟_} (now x) (now y)))
+meet-aux {X}{_≟_} (now x) (now y)  | wait q = 
+  later (♯ (meet-aux {X}{_≟_} (now x) (now y)))
+meet-aux {X}{_≟_} (now x) (later dy) = 
+  later (♯ (meet-aux {X}{_≟_} (now x) (♭ dy)))
+meet-aux {X}{_≟_} (later dx) (now y) = 
+  later (♯ (meet-aux {X}{_≟_} (♭ dx) (now y)))
+meet-aux {X}{_≟_} (later dx) (later dy) = 
+  later (♯ (meet-aux {X}{_≟_} (♭ dx) (♭ dy)))
+
+meet : {X Y : Set}{_≟_ : SemiDecidable {A = Y}{B = Y} _≅'_}
+       (f g : X → Delay Y) → X → Delay Y
+meet {X}{Y}{_≟_} f g x = meet-aux {Y}{_≟_} (f x) (g x)
 
 {-
+-- Meets with decidable equality
+
+meet-aux : ∀{X}{_≟_ : Decidable {A = X} _≅'_} → Delay X → Delay X → Delay X
+meet-aux {X}{_≟_} (now x) (now y) with x ≟ y
+meet-aux {X}{_≟_} (now x) (now .x) | yes refl = now x
+meet-aux {X}{_≟_} (now x) (now y) | no ¬p = 
+  later (♯ (meet-aux {X}{_≟_} (now x) (now y)))
+meet-aux {X}{_≟_} (now x) (later dy) = 
+  later (♯ (meet-aux {X}{_≟_} (now x) (♭ dy)))
+meet-aux {X}{_≟_} (later dx) (now y) = 
+  later (♯ (meet-aux {X}{_≟_} (♭ dx) (now y)))
+meet-aux {X}{_≟_} (later dx) (later dy) = 
+  later (♯ (meet-aux {X}{_≟_} (♭ dx) (♭ dy)))
+-}
+
+{-
+
+-- First product definition. It is the product in Set but not in the
+-- Kleisli cat. It is isomorphic to Delay X × Delay Y in Set, and that
+-- make me think that there is no way to prove it isomorphic to the
+-- actual product (defined in RestrictionDelay.agda) in the Klesli
+-- cat.
+
 data _D×_ (X Y : Set) : Set where
   nownow : X → Y → X D× Y
   nowlater : X → Delay Y → X D× Y
@@ -174,26 +231,32 @@ dproj₂ (laterlater dxy) = later (♯ (dproj₂ (♭ dxy)))
 D×→D : ∀{X Y} → X D× Y → Delay X × Delay Y
 D×→D dxy = (dproj₁ dxy) , (dproj₂ dxy)
 
-×→D× : ∀{X Y} → Delay X → Delay Y → X D× Y
-×→D× (now x) (now y) = nownow x y
-×→D× (now x) (later dy) = nowlater x (♭ dy)
-×→D× (later dx) (now y) = laternow (♭ dx) y
-×→D× (later dx) (later dy) = laterlater (♯ (×→D× (♭ dx) (♭ dy)))
+×→D× : ∀{X Y} → Delay X × Delay Y → X D× Y
+×→D× (now x , now y) = nownow x y
+×→D× (now x , later dy) = nowlater x (♭ dy)
+×→D× (later dx , now y) = laternow (♭ dx) y
+×→D× (later dx , later dy) = laterlater (♯ (×→D× (♭ dx , ♭ dy)))
 
 u : {X Y Z : Set} → (Z → Delay X) → (Z → Delay Y) → Z → X D× Y
-u f g z = ×→D× (f z) (g z)
+u f g z = ×→D× (f z , g z)
 
-comp-aux₁ : ∀{X Y}(dx : Delay X)(dy : Delay Y) → dproj₁ (×→D× dx dy) ∼ dx
+comp-aux₁ : ∀{X Y}(dx : Delay X)(dy : Delay Y) → dproj₁ (×→D× (dx , dy)) ∼ dx
 comp-aux₁ (now x) (now y) = now∼
 comp-aux₁ (now x) (later dy) = now∼
 comp-aux₁ (later dx) (now y) = later∼ (♯ refl∼)
 comp-aux₁ (later dx) (later dy) = later∼ (♯ (comp-aux₁ (♭ dx) (♭ dy)))
 
-comp-aux₂ : ∀{X Y}(dx : Delay X)(dy : Delay Y) → dproj₂ (×→D× dx dy) ∼ dy
+comp-aux₂ : ∀{X Y}(dx : Delay X)(dy : Delay Y) → dproj₂ (×→D× (dx , dy)) ∼ dy
 comp-aux₂ (now x) (now y) = now∼
 comp-aux₂ (now x) (later dy) = later∼ (♯ refl∼)
 comp-aux₂ (later dx) (now y) = now∼ 
 comp-aux₂ (later dx) (later dy) = later∼ (♯ (comp-aux₂ (♭ dx) (♭ dy)))
+
+iso₂ : ∀{X Y}(dxy : X D× Y) → ×→D× (D×→D dxy) D∼ dxy
+iso₂ (nownow x y) = nownow∼
+iso₂ (nowlater x dy) = nowlater∼ refl∼
+iso₂ (laternow dx y) = laternow∼ refl∼
+iso₂ (laterlater dxy) = laterlater∼ (♯ (iso₂ (♭ dxy)))
 
 comp₁ : ∀{X Y Z}(f : Z → Delay X)(g : Z → Delay Y)(z : Z) → 
         dproj₁ (u f g z) ∼ f z
@@ -229,13 +292,4 @@ uniq f g u' z p q = uniq-aux (u' z)
                              (u f g z) 
                              (trans∼ p (sym∼ (comp₁ f g z))) 
                              (trans∼ q (sym∼ (comp₂ f g z)))
-
--- Meets
-
-meet-aux : ∀{X}(y : X)(dx : Delay X) → Delay ((x : X) → y ≅ {!y!})
-meet-aux y (now x) = {!!}
-meet-aux y (later dx) = {!!}
-
-meet : ∀{X Y}(f g : X → Delay Y) → X → Delay {!!}
-meet f g x = {!!}
 -}

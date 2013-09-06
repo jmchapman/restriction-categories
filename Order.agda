@@ -13,6 +13,10 @@ open import Function
 
 infix 4 _≤_
 
+_⌣_ : ∀{A B} → Hom A B → Hom A B → Set
+f ⌣ g = comp g (rest f) ≅ comp f (rest g)
+
+
 _≤_ : ∀{A B} → Hom A B → Hom A B → Set
 f ≤ g = comp g (rest f) ≅ f
 
