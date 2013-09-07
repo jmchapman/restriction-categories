@@ -244,7 +244,6 @@ DelayR = record {
 
 open RestCat DelayR
 
-{-
 -- Restriction product
 
 open import RestrictionProducts DelayR
@@ -498,8 +497,6 @@ DelayProd X Y = record {
   tr1 = λ {Z}{f}{g} → ext (dtr1 {f = f} {g = g});
   tr2 = λ {Z}{f}{g} → ext (dtr2 {f = f} {g = g});
   uniq = λ {Z}{f}{g} u p q → ext (uniq {f = f} {g = g} u p q) }
--}
-
 
 -- Meets
 
@@ -601,10 +598,52 @@ dMt2a {X}{Y}{_≟_}{f}{g} = ext (λ x →
   dmeet f g x
   ∎)
 
+-- dMt2b is the same
 
+-- Joins
 
+dcomp : {X Y : Set}{f g : X → Delay Y} → f ⌣ g → (x : X) →
+        dbind (λ _ → g x) (f x) ≅ dbind (λ _ → f x) (g x)
+dcomp {f = f} {g = g} p x = 
+  proof
+  dbind (λ _ → g x) (f x) 
+  ≅⟨ compdrest {f = g} {g = f} x ⟩
+  dbind g (dbind (λ _ → now x) (f x))
+  ≅⟨ cong (dbind g) (sym (drest≅ x f)) ⟩
+  dbind g (drest f x)
+  ≅⟨ cong (λ h → h x) p ⟩
+  dbind f (drest g x)
+  ≅⟨ cong (dbind f) (drest≅ x g) ⟩
+  dbind f (dbind (λ _ → now x) (g x))
+  ≅⟨ sym (compdrest {f = f} {g = g} x) ⟩
+  dbind (λ _ → f x) (g x)
+  ∎
 
+djoin-aux : ∀{X}(dx dy : Delay X) → dbind (λ _ → dy) dx ≈ dbind (λ _ → dx) dy →
+            Delay X
+djoin-aux (now x) (now .x) (↓≈ now↓ now↓) = now x
+djoin-aux (now x) (later dy) p = now x
+djoin-aux (later dx) (now y) p = now y
+djoin-aux (later dx) (later dy) (↓≈ (later↓ {._}{x} p) (later↓ q)) = now x
+djoin-aux (later dx) (later dy) (later≈ p) with
+  trans≈ laterlem
+         (trans≈ (later≈ (♯ refl≈)) 
+                 (∼→≈ (sym∼ (dbindlater {_} {_} {λ _ → dy} (♭ dx))))) | 
+  trans≈ laterlem
+         (trans≈ (later≈ (♯ refl≈)) 
+                 (∼→≈ (sym∼ (dbindlater {_} {_} {λ _ → dx} (♭ dy)))))
+... | q | r = 
+  later (♯ (djoin-aux (♭ dx) (♭ dy) (trans≈ q (trans≈ (♭ p) (sym≈ r)))))
 
+djoin : {X Y : Set}(f g : X → Delay Y)(x : X) →  
+        dbind (λ _ → g x) (f x) ≈ dbind (λ _ → f x) (g x) → Delay Y
+djoin f g x p = djoin-aux (f x) (g x) p
 
-
+djoin' : {X Y : Set}(f g : X → Delay Y)(x : X) → f ⌣ g → Delay Y
+djoin' f g x p = 
+  djoin-aux (f x) 
+            (g x) 
+            (subst (_≈_ _)
+                   (dcomp {f = f}{g = g} p x) 
+                   refl≈)
 
