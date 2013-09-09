@@ -244,6 +244,7 @@ DelayR = record {
 
 open RestCat DelayR
 
+{-
 -- Restriction product
 
 open import RestrictionProducts DelayR
@@ -599,8 +600,11 @@ dMt2a {X}{Y}{_≟_}{f}{g} = ext (λ x →
   ∎)
 
 -- dMt2b is the same
+-}
 
 -- Joins
+
+open import Order DelayR
 
 dcomp : {X Y : Set}{f g : X → Delay Y} → f ⌣ g → (x : X) →
         dbind (λ _ → g x) (f x) ≅ dbind (λ _ → f x) (g x)
@@ -619,22 +623,314 @@ dcomp {f = f} {g = g} p x =
   dbind (λ _ → f x) (g x)
   ∎
 
+_d⌣_ : ∀{X Y}(f g : X → Delay Y) → Set
+_d⌣_ {X} f g = {x : X} → dbind (λ _ → g x) (f x) ≈ dbind (λ _ → f x) (g x)
+
+dbindlater≈ : ∀{X Y}{f : X → ∞ (Delay Y)}(dx : Delay X) → 
+              dbind (♭ ∘ f) dx ≈ dbind (later ∘ f) dx
+dbindlater≈ dx = trans≈ laterlem 
+                        (trans≈ (later≈ (♯ refl≈)) 
+                                (∼→≈ (sym∼ (dbindlater dx))))
+
 djoin-aux : ∀{X}(dx dy : Delay X) → dbind (λ _ → dy) dx ≈ dbind (λ _ → dx) dy →
             Delay X
 djoin-aux (now x) (now .x) (↓≈ now↓ now↓) = now x
 djoin-aux (now x) (later dy) p = now x
 djoin-aux (later dx) (now y) p = now y
 djoin-aux (later dx) (later dy) (↓≈ (later↓ {._}{x} p) (later↓ q)) = now x
-djoin-aux (later dx) (later dy) (later≈ p) with
+djoin-aux (later dx) (later dy) (later≈ p) with  
+  trans≈ (dbindlater≈ (♭ dx)) (trans≈ (♭ p) (sym≈ (dbindlater≈ (♭ dy))))
+... | r = later (♯ (djoin-aux (♭ dx) (♭ dy) r))
+
+djoin : {X Y : Set}(f g : X → Delay Y) → f d⌣ g → X → Delay Y
+djoin f g p x = djoin-aux (f x) (g x) p
+
+dbindconst↓ : ∀{X Y}{x : X}{y : Y}(dx : Delay X){dy : Delay Y} → dx ↓ x → 
+              dy ↓ y → dbind (λ _ → dy) dx ↓ y
+dbindconst↓ (now x) p q = q
+dbindconst↓ (later dx) (later↓ p) q = later↓ (dbindconst↓ (♭ dx) p q) 
+
+dbindconst↓-arg₁' : ∀{X}{x : X}(dx dy dz dz' : Delay X) → 
+                    dbind (λ _ → dy) dx ∼ dz → dbind (λ _ → dx) dy ∼ dz' → 
+                    dz ↓ x → dz' ↓ x → dx ↓ x
+dbindconst↓-arg₁' (now x) (now y) dz dz' p q r r' with
+  unique↓ r' (∼↓ q now↓)
+dbindconst↓-arg₁' {X} {x} (now .x) (now y) dz dz' p q r r' | refl = now↓
+dbindconst↓-arg₁' (now x) (later .dy) .(later dz) .(later dz') (later∼ {dy} {dz} p) (later∼ {._} {dz'} q) (later↓ r) (later↓ r') = dbindconst↓-arg₁' (now x) (♭ dy) (♭ dz) (♭ dz') (♭ p) (♭ q) r r'
+dbindconst↓-arg₁' (later dx) (now y) dz .(later dz') p (later∼ {.dx} {dz'} q) r (later↓ r') = later↓ (∼↓ (sym∼ (♭ q)) r') 
+dbindconst↓-arg₁' (later dx) (later dy) (now z) dz' () q r r'
+dbindconst↓-arg₁' (later dx) (later dy) (later dz) (now z') p () r r'
+dbindconst↓-arg₁' (later dx) (later dy) (later dz) (later dz') (later∼ p) (later∼ q) (later↓ r) (later↓ r') with ♭ dz |
+                                    ♭ dz' |
+                                    trans∼ (sym∼ (dbindlater (♭ dx))) (♭ p) |
+                                    trans∼ (sym∼ (dbindlater (♭ dy))) (♭ q)
+dbindconst↓-arg₁' (later dx) (later dy) (later dz) (later dz') (later∼ p) (later∼ q) (later↓ (later↓ r)) (later↓ (later↓ r'))| later dw | later dw' | later∼ s | later∼ t = 
+  later↓ (dbindconst↓-arg₁' (♭ dx) (♭ dy) (♭ dw) (♭ dw') (♭ s) (♭ t) r r')
+
+dbindconst↓-arg₁ : ∀{X}{x : X}(dx dy : Delay X) → dbind (λ _ → dy) dx ↓ x →
+                   dbind (λ _ → dx) dy ↓ x → dx ↓ x
+dbindconst↓-arg₁ dx dy p q = dbindconst↓-arg₁' dx dy _ _ refl∼ refl∼ p q
+
+djoin-aux↓ : ∀{X}{x : X}(dx dy : Delay X) → 
+             (p : dbind (λ _ → dy) dx ≈ dbind (λ _ → dx) dy) → dx ↓ x →  
+             djoin-aux dx dy p ↓ x
+djoin-aux↓ (now x) (now .x) (↓≈ now↓ now↓) now↓ = now↓
+djoin-aux↓ (now x) (later dy) p now↓ = now↓
+djoin-aux↓ (later dx) (now y) (↓≈ (later↓ p) (later↓ p')) (later↓ q) with
+  unique↓ p' q | unique↓ p (dbindconst↓ (♭ dx) q now↓)
+djoin-aux↓ {X} {x} (later dx) (now .x) (↓≈ (later↓ p) (later↓ p')) (later↓ q) | refl | refl = now↓
+djoin-aux↓ (later dx) (now y) (later≈ p) (later↓ q) with
+  unique↓ (≈↓ (sym≈ (♭ p)) q) (dbindconst↓ (♭ dx) q now↓)
+djoin-aux↓ {X} {x} (later dx) (now .x) (later≈ p) (later↓ q) | refl = now↓
+djoin-aux↓ (later dx) (later dy) (↓≈ (later↓ {y = y} p) (later↓ p')) (later↓ q) with
+  ∼↓ (dbindlater (♭ dx)) p |
+  ∼↓ (dbindlater (♭ dy)) p'
+djoin-aux↓ (later dx) (later dy) (↓≈ (later↓ p) (later↓ p')) (later↓ q) | later↓ r | later↓ s with
+  unique↓ q (dbindconst↓-arg₁ (♭ dx) (♭ dy) r s)
+djoin-aux↓ (later dx) (later dy) (↓≈ (later↓ p) (later↓ p')) (later↓ q) | later↓ r | later↓ s | refl = now↓ 
+djoin-aux↓ (later dx) (later dy) (later≈ p) (later↓ q) with
+  trans≈ (dbindlater≈ (♭ dx)) (trans≈ (♭ p) (sym≈ (dbindlater≈ (♭ dy))))
+... | r = later↓ (djoin-aux↓ (♭ dx) (♭ dy) r q)               
+
+djoin-aux-eq : ∀{X}(dx dy : Delay X) → 
+                {p q : dbind (λ _ → dy) dx ≈ dbind (λ _ → dx) dy} → 
+                djoin-aux dx dy p ≈ djoin-aux dx dy q
+djoin-aux-eq (now x) (now .x) {↓≈ now↓ now↓} {↓≈ now↓ now↓} = ↓≈ now↓ now↓
+djoin-aux-eq (now x) (later dy) = refl≈
+djoin-aux-eq (later dx) (now y) = refl≈
+djoin-aux-eq (later dx) (later dy) {↓≈ (later↓ p) (later↓ p')} {↓≈ (later↓ q) (later↓ q')} with unique↓ p q 
+djoin-aux-eq (later dx) (later dy) {↓≈ (later↓ p) (later↓ p')} {↓≈ (later↓ q) (later↓ q')} | refl = refl≈
+djoin-aux-eq (later dx) (later dy) {↓≈ (later↓ p) (later↓ p')} {later≈ q} with  
+  trans≈ (dbindlater≈ (♭ dx)) (trans≈ (♭ q) (sym≈ (dbindlater≈ (♭ dy)))) |
+  ∼↓ (dbindlater (♭ dx)) p |
+  ∼↓ (dbindlater (♭ dy)) p'
+... | r | later↓ s | later↓ t = ↓≈ now↓ (later↓ (djoin-aux↓ (♭ dx) (♭ dy) r (dbindconst↓-arg₁ (♭ dx) (♭ dy) s t)))
+djoin-aux-eq (later dx) (later dy) {later≈ p} {↓≈ (later↓ q) (later↓ q')} with  
+  trans≈ (dbindlater≈ (♭ dx)) (trans≈ (♭ p) (sym≈ (dbindlater≈ (♭ dy)))) |
+  ∼↓ (dbindlater (♭ dx)) q |
+  ∼↓ (dbindlater (♭ dy)) q'
+... | r | later↓ s | later↓ t = ↓≈ (later↓ (djoin-aux↓ (♭ dx) (♭ dy) r (dbindconst↓-arg₁ (♭ dx) (♭ dy) s t))) now↓
+djoin-aux-eq (later dx) (later dy) {later≈ p} {later≈ q} with  
+  trans≈ (dbindlater≈ (♭ dx)) (trans≈ (♭ p) (sym≈ (dbindlater≈ (♭ dy)))) |
+  trans≈ (dbindlater≈ (♭ dx)) (trans≈ (♭ q) (sym≈ (dbindlater≈ (♭ dy))))
+... | r | r' = later≈ (♯ (djoin-aux-eq (♭ dx) (♭ dy) {r} {r'}))
+
+dbindconst≈ : ∀{X}{dx dy dz : Delay X} → dy ≅ dz → 
+              dbind (λ _ → dy) dx ≈ dbind (λ _ → dz) dx
+dbindconst≈ refl = refl≈
+
+dJn1a-aux'' : ∀{X}(dx dy dz : Delay X)
+              (p : dbind (λ _ → dy) dx ≈ dbind (λ _ → dx) dy) →
+              dbind (λ _ → djoin-aux dx dy p) dx ≈ dz → dx ≈ dz
+dJn1a-aux'' (now x) (now .x) dz (↓≈ now↓ now↓) q = q
+dJn1a-aux'' (now x) (later dy) dz p q = q
+dJn1a-aux'' (later .dy) (now y) (now z) (↓≈ (later↓ p) (later↓ {dy} q)) (↓≈ (later↓ r) now↓) with unique↓ p r
+dJn1a-aux'' (later .dy) (now y) (now z) (↓≈ (later↓ p) (later↓ {dy} q)) (↓≈ (later↓ r) now↓) | refl = ↓≈ (later↓ q) now↓
+dJn1a-aux'' (later .dy) (now y) (later dz) (↓≈ (later↓ p) (later↓ {dy} q)) (↓≈ (later↓ r) (later↓ s)) with unique↓ p r
+dJn1a-aux'' (later .dy) (now y) (later dz) (↓≈ (later↓ p) (later↓ {dy} q)) (↓≈ (later↓ r) (later↓ s)) | refl = ↓≈ (later↓ q) (later↓ s)
+dJn1a-aux'' (later .dy) (now y) (later dz) (↓≈ (later↓ p) (later↓ {dy} q)) (later≈ r) = ↓≈ (later↓ q) (later↓ (≈↓ (♭ r) p))
+dJn1a-aux'' (later dx) (now y) (now z) (later≈ p) (↓≈ (later↓ q) now↓) = 
+  ↓≈ (later↓ (≈↓ (♭ p) q)) now↓
+dJn1a-aux'' (later dx) (now y) (later dz) (later≈ p) (↓≈ (later↓ q) (later↓ r)) = later≈ (♯ (↓≈ (≈↓ (♭ p) q) r))
+dJn1a-aux'' (later dx) (now y) (later dz) (later≈ p) (later≈ q) = 
+  later≈ (♯ (trans≈ (sym≈ (♭ p)) (♭ q)))
+dJn1a-aux'' (later dx) (later dy) (now z) (↓≈ (later↓ {y = y} p) (later↓ q)) (↓≈ (later↓ r) now↓) with 
+  ∼↓ (dbindlater (♭ dx)) p |
+  ∼↓ (dbindlater (♭ dy)) q
+... | later↓ s | later↓ t with
+  dbindconst↓-arg₁ (♭ dx) (♭ dy) s t
+... | u  with 
+  unique↓ r (dbindconst↓ (♭ dx) {now y} u now↓) 
+dJn1a-aux'' (later dx) (later dy) (now .y) (↓≈ (later↓ {._} {y} p) (later↓ q)) (↓≈ (later↓ r) now↓) | later↓ s | later↓ t | u | refl = ↓≈ (later↓ u) now↓
+dJn1a-aux'' (later dx) (later dy) (later dz) (↓≈ (later↓ {y = y} p) (later↓ q)) (↓≈ (later↓ {y = y'} r) (later↓ s)) with
+  ∼↓ (dbindlater (♭ dx)) p |
+  ∼↓ (dbindlater (♭ dy)) q
+... | later↓ t | later↓ u with
+  dbindconst↓-arg₁ (♭ dx) (♭ dy) t u
+... | v with 
+  unique↓ r (dbindconst↓ (♭ dx) {now y} v now↓)
+dJn1a-aux'' (later dx) (later dy) (later dz) (↓≈ (later↓ p) (later↓ q)) (↓≈ (later↓ r) (later↓ s)) | later↓ t | later↓ u | v | refl = ↓≈ (later↓ v) (later↓ s)
+dJn1a-aux'' (later dx) (later dy) (later dz) (↓≈ (later↓ {y = y} p) (later↓ q)) (later≈ r) with
+  ∼↓ (dbindlater (♭ dx)) p |
+  ∼↓ (dbindlater (♭ dy)) q
+... | later↓ s | later↓ t with
+  dbindconst↓-arg₁ (♭ dx) (♭ dy) s t
+... | u = later≈ (♯ (trans≈ (↓≈ u (dbindconst↓ (♭ dx) {now y} u now↓)) (♭ r)))
+dJn1a-aux'' (later dx) (later dy) (now z) (later≈ p) (↓≈ (later↓ q) now↓) = 
+  ↓≈ (later↓ {!!}) now↓
+dJn1a-aux'' (later dx) (later dy) (later dz) (later≈ p) (↓≈ (later↓ q) (later↓ r)) = {!!}
+{-
+with
   trans≈ laterlem
          (trans≈ (later≈ (♯ refl≈)) 
                  (∼→≈ (sym∼ (dbindlater {_} {_} {λ _ → dy} (♭ dx))))) | 
   trans≈ laterlem
          (trans≈ (later≈ (♯ refl≈)) 
                  (∼→≈ (sym∼ (dbindlater {_} {_} {λ _ → dx} (♭ dy)))))
-... | q | r = 
-  later (♯ (djoin-aux (♭ dx) (♭ dy) (trans≈ q (trans≈ (♭ p) (sym≈ r)))))
+... | s | t with
+  trans≈ laterlem
+         (trans≈ (later≈ (♯ refl≈)) 
+                 (∼→≈ (sym∼ (dbindlater {_} {_} {λ _ → ♯ (djoin-aux (♭ dx) (♭ dy) (trans≈ s (trans≈ (♭ p) (sym≈ t))))} (♭ dx)))))
+... | u = later≈ (♯ dJn1a-aux'' (♭ dx) (♭ dy) (♭ dz) (trans≈ s (trans≈ (♭ p) (sym≈ t))) (trans≈ u (trans≈ (dbindconst≈ {dy = later (♯ (djoin-aux (♭ dx) (♭ dy) (trans≈ s (trans≈ (♭ p) (sym≈ t)))))} (quotient (later≈ (♯ {!!})))) (↓≈ q r))))
+-}
 
+--{dy = later (♯ (djoin-aux (♭ dx) (♭ dy) (trans≈ s (trans≈ (♭ p) (sym≈ t)))))}
+
+--(λ x → _ ≈ dbind (λ _ → x) (♭ dx)) (quotient (later≈ (♯ refl≈))) {!!}) (↓≈ q r))))
+
+dJn1a-aux'' (later dx) (later dy) (later dz) (later≈ p) (later≈ q) with 
+  trans≈ (dbindlater≈ (♭ dx)) (trans≈ (♭ p) (sym≈ (dbindlater≈ (♭ dy))))
+... | r = 
+  later≈ (♯ 
+    (dJn1a-aux'' (♭ dx) (♭ dy) (♭ dz) r        
+       (trans≈ (dbindlater≈ (♭ dx)) 
+               (trans≈ (dbindconst≈ {_}
+                                    {♭ dx}
+                                    {later (♯ (djoin-aux (♭ dx) (♭ dy) r))}
+                                    (quotient (later≈ (♯ djoin-aux-eq (♭ dx)
+                                                                      (♭ dy))))) 
+                       (♭ q)))))
+
+{-
+dJn1a-aux'' (later dx) (later dy) (later dz) (later≈ p) (later≈ q) = 
+  later≈ 
+    (♯ 
+      (dJn1a-aux'' (♭ dx) 
+                   (♭ dy) 
+                   (♭ dz) 
+                   (trans≈ laterlem 
+                     (trans≈ (later≈ (♯ refl≈)) 
+                       (trans≈ (∼→≈ (sym∼ (dbindlater {_} 
+                                                      {_} 
+                                                      {λ _ → dy} 
+                                                      (♭ dx)))) 
+                         (trans≈ (♭ p) 
+                           (trans≈ (∼→≈ (dbindlater {_} {_} {λ _ → dx} (♭ dy))) 
+                             (trans≈ (later≈ (♯ refl≈)) (sym≈ laterlem))))))) 
+                   (trans≈ laterlem
+                       (trans≈ (later≈ (♯ dbindconst≈ {_} {_}
+                                            {djoin-aux (♭ dx) (♭ dy)
+                                             (trans≈ laterlem
+                                              (trans≈ (later≈ (♯ refl≈))
+                                               (trans≈ (∼→≈ (sym∼ (dbindlater {_} {_} {λ _ → dy} (♭ dx))))
+                                                (trans≈ (♭ p)
+                                                 (trans≈ (∼→≈ (dbindlater {_} {_} {λ _ → dx} (♭ dy)))
+                                                  (trans≈ (later≈ (♯ refl≈)) (sym≈ laterlem)))))))}
+                                            {{!!}} {!!}))
+                        (trans≈
+                         (∼→≈
+                          (sym∼ (dbindlater {_} {_} {λ _ → ♯ djoin-aux (♭ dx) (♭ dy) (trans≈ laterlem                                   
+        (trans≈ (later≈ (♯ refl≈))                                             
+          (trans≈ (∼→≈ (sym∼ (dbindlater {_} {_} {λ _ → dy} (♭ dx))))
+            (trans≈ (♭ p)
+              (trans≈ (∼→≈ (dbindlater {_} {_} {λ _ → dx} (♭ dy)))
+                (trans≈ (later≈ (♯ refl≈)) (sym≈ laterlem)))))))} (♭ dx)))) (trans≈ {!!} (♭ q)))))))
+-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{-♯ (djoin-aux (♭ dx) (♭ dy) 
+(trans≈ laterlem                                   
+        (trans≈ (later≈ (♯ refl≈))                                             
+          (trans≈ (∼→≈ (sym∼ (dbindlater {_} {_} {λ _ → dy} (♭ dx))))
+            (trans≈ (♭ p)
+              (trans≈ (∼→≈ (dbindlater {_} {_} {λ _ → dx} (♭ dy)))
+                (trans≈ (later≈ (♯ refl≈)) (sym≈ laterlem))))))))} {!♭ dx!})))
+                        (♭ q)))))))
+-}
+{-
+dbind
+      (λ _ →
+         djoin-aux (♭ dx) (♭ dy)
+         (trans≈ laterlem
+          (trans≈ (later≈ (.RestrictionDelay.♯-58 dx dy dz p q))
+           (trans≈ (∼→≈ (sym∼ (dbindlater (♭ dx))))
+            (trans≈ (♭ p)
+             (trans≈ (∼→≈ (dbindlater (♭ dy)))
+              (trans≈ (later≈ (.RestrictionDelay.♯-60 dx dy dz p q))
+               (sym≈ laterlem))))))))
+      (♭ dx)
+      ≈ ♭ dz
+-}  
+
+
+
+{-
+dJn1a-aux'' : ∀{X}(dx dy dz : Delay X)
+              (p : dbind (λ _ → dy) dx ≈ dbind (λ _ → dx) dy) →
+              dbind (λ _ → djoin-aux dx dy p) dx ∼ dz → dx ∼ dz
+dJn1a-aux'' (now x) (now .x) dz (↓≈ now↓ now↓) q = q
+dJn1a-aux'' (now x) (later dy) dz p q = q
+dJn1a-aux'' (later dx) (now y) dz p q = {!!}
+dJn1a-aux'' (later dx) (later dy) (now x) p ()
+dJn1a-aux'' (later dx) (later dy) (later dz) (↓≈ (later↓ p) (later↓ q)) (later∼ r) = later∼ (♯ {!!})
+dJn1a-aux'' (later dx) (later dy) (later dz) (later≈ p) (later∼ q) with
+  trans≈ laterlem
+         (trans≈ (later≈ (♯ refl≈)) 
+                 (∼→≈ (sym∼ (dbindlater {_} {_} {λ _ → dy} (♭ dx))))) | 
+  trans≈ laterlem
+         (trans≈ (later≈ (♯ refl≈)) 
+                 (∼→≈ (sym∼ (dbindlater {_} {_} {λ _ → dx} (♭ dy)))))
+... | r | s with
+  trans≈ laterlem
+         (trans≈ (later≈ (♯ refl≈)) 
+                 (∼→≈ (sym∼ (dbindlater {_} {_} {λ _ → ♯ (djoin-aux (♭ dx) (♭ dy) (trans≈ r (trans≈ (♭ p) (sym≈ s))))} (♭ dx)))))
+... | t = later∼ (♯ (dJn1a-aux'' (♭ dx) (♭ dy) (♭ dz) (trans≈ r (trans≈ (♭ p) (sym≈ s))) {!trans≈ t (trans≈ ? (∼→≈ (♭ q)))!}))
+-}
+
+{-
+dJn1a-aux' : ∀{X}(dx dy : Delay X)
+             (p : dbind (λ _ → dy) dx ≈ dbind (λ _ → dx) dy) →
+             dbind (λ _ → djoin-aux dx dy p) dx ∼ dx
+dJn1a-aux' (now x) (now .x) (↓≈ now↓ now↓) = now∼
+dJn1a-aux' (now x) (later x₁) p = now∼
+dJn1a-aux' (later dx) (now y) p = dbind≈→∼ (later dx) p
+dJn1a-aux' (later dx) (later dy) (↓≈ (later↓ p) (later↓ q)) = 
+  later∼ (♯ (dbind≈→∼ (♭ dx) {!!}))
+dJn1a-aux' (later dx) (later dy) (later≈ p) with
+  trans≈ laterlem
+         (trans≈ (later≈ (♯ refl≈)) 
+                 (∼→≈ (sym∼ (dbindlater {_} {_} {λ _ → dy} (♭ dx))))) | 
+  trans≈ laterlem
+         (trans≈ (later≈ (♯ refl≈)) 
+                 (∼→≈ (sym∼ (dbindlater {_} {_} {λ _ → dx} (♭ dy)))))
+... | q | r with
+  trans≈ laterlem
+         (trans≈ (later≈ (♯ refl≈)) 
+                 (∼→≈ (sym∼ (dbindlater {_} {_} {λ _ → ♯ (djoin-aux (♭ dx) (♭ dy) (trans≈ q (trans≈ (♭ p) (sym≈ r))))} (♭ dx)))))
+... | s = later∼ (♯ {!!})
+
+dJn1a : ∀{X Y}{f g : X → Delay Y}{p : f d⌣ g} → f ≤ djoin f g p
+dJn1a {f = f}{g = g}{p = p} = ext (λ x → 
+  proof
+  dbind (djoin f g p) (drest f x)
+  ≅⟨ cong (dbind (djoin f g p)) (drest≅ x f) ⟩
+  dbind (djoin f g p) (dbind (λ _ → now x) (f x))
+  ≅⟨ sym (compdrest {f = djoin f g p} {g = f} x) ⟩
+  dbind (λ _ → djoin f g p x) (f x)
+  ≅⟨ {!!} ⟩
+  f x
+  ∎)
+
+{-
 djoin : {X Y : Set}(f g : X → Delay Y)(x : X) →  
         dbind (λ _ → g x) (f x) ≈ dbind (λ _ → f x) (g x) → Delay Y
 djoin f g x p = djoin-aux (f x) (g x) p
@@ -646,4 +942,5 @@ djoin' f g x p =
             (subst (_≈_ _)
                    (dcomp {f = f}{g = g} p x) 
                    refl≈)
-
+-}
+-}

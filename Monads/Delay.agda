@@ -104,6 +104,7 @@ dbind : ∀{X Y} → (X → Delay Y) → Delay X → Delay Y
 dbind f (now x)   = f x
 dbind f (later x) = later (♯ dbind f (♭ x))
 
+{-
 dbindconv-val : ∀{X Y}{f : X → Delay Y}{y : Y}(dx : Delay X) → dbind f dx ↓ y → 
                 X
 dbindconv-val (now x) p = x
@@ -113,6 +114,7 @@ dbindconv : ∀{X Y}{f : X → Delay Y}{y : Y}(dx : Delay X)(p : dbind f dx ↓ 
             dx ↓ dbindconv-val dx p
 dbindconv (now x) p = now↓
 dbindconv (later dx) (later↓ p) = later↓ (dbindconv (♭ dx) p)
+-}
 
 dbindlater' : ∀{X Y}{f : X → ∞ (Delay Y)}(dx : Delay X)(dz : Delay Y) → 
               later (♯ (dbind (♭ ∘ f) dx)) ∼ dz →
