@@ -15,11 +15,445 @@ open ≅-Reasoning renaming (begin_ to proof_)
 open import RestrictionCat
 open import Monads.Delay
 open Monad DelayM
+open Cat (Kl DelayM)
 
 drest : ∀{X Y} → (X → Delay Y) → X → Delay X
 drest f x = map proj₁ (str (x , f x))
 
-open Cat (Kl DelayM)
+-- A lemma we need for R4
+
+funcong∼ : ∀{X Y}(dx : Delay X)(f g : X → Delay Y) → ((x : X) → f x ∼ g x) → 
+           dbind f dx ∼ dbind g dx
+funcong∼ (now x) f g p = p x
+funcong∼ (later dx) f g p = later∼ (♯ (funcong∼ (♭ dx) f g p))
+
+dbind↓2' : ∀{Y Z}{z : Y}{dy dz : Delay Y}{g : Y → Delay Z} → 
+           dbind (λ y → dbind (λ _ → dy) (g y)) dy ∼ dz → dz ↓ z →
+           dbind (λ y → dbind (λ _ → now y) (g y)) dy ↓ z
+dbind↓2' {Y}{Z}{z}{now x} p q = ≈↓ (∼→≈ (sym∼ p)) q
+dbind↓2' {Y}{Z}{z}{later dy}{later dz}{g} (later∼ p) (later↓ q) with ♭ dz
+... | a with 
+  trans∼ 
+    (sym∼ (dbindlater (♭ dy)))
+    (trans∼
+      (funcong∼ (♭ dy) 
+                (λ y → later (♯ dbind (λ _ → ♭ dy) (g y))) 
+                _
+                (λ y → trans∼ (later∼ (♯ refl∼)) (sym∼ (dbindlater (g y)))))
+      (♭ p))
+dbind↓2' {Y}{Z}{z}{later dy}{later dz}{g} (later∼ p) (later↓ (later↓ q)) | 
+  .(later dy') | 
+  later∼ {._} {dy'} r = later↓ (dbind↓2' {dy = ♭ dy}{g = g} (♭ r) q)
+ 
+dbind↓2 : ∀{Y Z}{z : Y}{dy : Delay Y}{g : Y → Delay Z} → 
+          dbind (λ y → dbind (λ _ → dy) (g y)) dy ↓ z →
+          dbind (λ y → dbind (λ _ → now y) (g y)) dy ↓ z
+dbind↓2 {dy = dy}{g = g} p = dbind↓2' {dy = dy}{g = g} refl∼ p
+
+lemma3' : ∀{Y Z}{dy dz : Delay Y}{g : Y → Delay Z} → 
+          dbind (λ y → dbind (λ _ → dy) (g y)) dy ≈ dz → 
+          dbind (λ y → dbind (λ _ → now y) (g y)) dy ≈ dz
+lemma3' {Y}{Z}{now y} p = p
+lemma3' {Y}{Z}{later dy}{dz}{g} (↓≈ (later↓ p) q) with
+  ≈↓ 
+    (sym≈
+      (∼→≈ 
+        (funcong∼ (♭ dy) 
+                  (λ y → later (♯ dbind (λ _ → ♭ dy) (g y))) 
+                  _
+                  (λ y → (trans∼ (later∼ (♯ refl∼))
+                         (sym∼ (dbindlater {_} {_} {λ _ → dy} (g y))))))))
+    p
+... | r with
+  ≈↓ (sym≈
+        (trans≈ (trans≈ laterlem (later≈ (♯ refl≈)))
+         (∼→≈ (sym∼ (dbindlater (♭ dy)))))) r
+... | r' = ↓≈ (later↓ (dbind↓2 {dy = ♭ dy}{g = g} r')) q 
+lemma3' {Y}{Z}{later dy}{later dz}{g} (later≈ p)
+  with 
+  trans≈
+    (∼→≈ 
+      (funcong∼ (♭ dy)
+                (λ y → later (♯ dbind (λ _ → ♭ dy) (g y))) 
+                _ 
+                (λ y → (trans∼ (later∼ (♯ refl∼)) (sym∼ (dbindlater (g y)))))))
+    (♭ p)
+... | r =
+  later≈ 
+    (♯ lemma3' {dy = ♭ dy} 
+               {dz = ♭ dz}
+               {g = g}
+               (trans≈ (trans≈ laterlem 
+                               (later≈ (♯ refl≈))) 
+                       (trans≈ (∼→≈ (sym∼ (dbindlater (♭ dy)))) 
+                               r)))
+lemma3 : ∀{Y Z}{dy : Delay Y}{g : Y → Delay Z} → 
+         dbind (λ y → dbind (λ _ → now y) (g y)) dy ≈ 
+         dbind (λ y → dbind (λ _ → dy) (g y)) dy
+lemma3 {Y}{Z}{dy}{g} = lemma3' {Y}{Z}{dy}{_}{g} refl≈
+
+-- The Kleisli category of the Delay monad is a restriction category
+
+drest≅ : ∀{X Y}(x : X)(f : X → Delay Y) → drest f x ≅ dbind (λ z → now x) (f x)
+drest≅ x f = cong (λ f' → f' (f x)) (sym law3) 
+
+compdrest : ∀{X Y Z}{f : Z → Delay X}{g : Z → Delay Y}(z : Z) → 
+            dbind (λ _ → f z) (g z) ≅ dbind f (dbind (λ a → now z) (g z))
+compdrest {X}{Y}{Z}{f}{g} z = 
+  proof
+  dbind (λ _ → f z) (g z) 
+  ≅⟨ cong (λ f' → f' (g z)) law3 ⟩
+  dbind f (dbind (λ a → now z) (g z))
+  ∎
+
+dR1 : ∀{X Y}{f : X → Delay Y}(x : X) → dbind f (drest f x) ≅ f x
+dR1 {f = f} x = 
+  proof
+  dbind f (drest f x)
+  ≅⟨ cong (dbind f) (drest≅ x f) ⟩
+  dbind f (dbind (λ z → now x) (f x))
+  ≅⟨ sym (compdrest {f = f} {g = f} x) ⟩
+  dbind (λ _ → f x) (f x)
+  ≅⟨ quotient (sym≈ (dcomp≈dbind {_}{_}{f x})) ⟩
+  dcomp (f x) (f x)
+  ≅⟨ quotient (dcomp≈fst refl≈) ⟩
+  f x 
+  ∎
+
+dR2 : ∀{X Y Z}{f : X → Delay Y}{g : X → Delay Z}(x : X) → 
+      dbind (drest f) (drest g x) ≅ dbind (drest g) (drest f x)
+dR2 {f = f}{g = g} x =
+  proof 
+  dbind (drest f) (drest g x)
+  ≅⟨ cong (dbind (drest f)) (drest≅ x g) ⟩ 
+  dbind (drest f) (dbind (λ z → now x) (g x))
+  ≅⟨ sym (compdrest {f = drest f} {g = g} x) ⟩ 
+  dbind (λ _ → drest f x) (g x)
+  ≅⟨ cong (λ y → dbind (λ _ → y) (g x)) (drest≅ x f) ⟩
+  dbind (λ _ → dbind (λ _ → now x) (f x)) (g x)
+  ≅⟨ cong (λ y → dbind (λ _ → y) (g x)) 
+          (quotient (sym≈ (dcomp≈dbind {_}{_}{f x}))) ⟩
+  dbind (λ _ → dcomp (f x) (now x)) (g x)
+  ≅⟨ quotient (sym≈ (dcomp≈dbind {_}{_}{g x})) ⟩
+  dcomp (g x) (dcomp (f x) (now x))
+  ≅⟨ quotient (∼→≈ (dcompcomm {_}{_}{_}{g x}{f x})) ⟩
+  dcomp (f x) (dcomp (g x) (now x))
+  ≅⟨ quotient (dcomp≈dbind {_}{_}{f x}) ⟩
+  dbind (λ _ → dcomp (g x) (now x)) (f x)
+  ≅⟨ cong (λ y → dbind (λ _ → y) (f x)) (quotient (dcomp≈dbind {_}{_}{g x})) ⟩
+  dbind (λ _ → (dbind (λ _ → now x) (g x))) (f x)
+  ≅⟨ cong (λ y → dbind (λ _ → y) (f x)) (sym (drest≅ x g)) ⟩
+  dbind (λ _ → drest g x) (f x)
+  ≅⟨ compdrest {f = drest g} {g = f} x ⟩ 
+  dbind (drest g) (dbind (λ z → now x) (f x))
+  ≅⟨ cong (dbind (drest g)) (sym (drest≅ x f)) ⟩ 
+  dbind (drest g) (drest f x)
+  ∎
+
+dR3 : ∀{X Y Z}{f : X → Delay Y}{g : X → Delay Z}(x : X) → 
+    dbind (drest g) (drest f x) ≅ drest (dbind g ∘ (drest f)) x
+dR3 {f = f}{g = g} x = 
+  proof
+  dbind (drest g) (drest f x)
+  ≅⟨ cong (dbind (drest g)) (drest≅ x f) ⟩
+  dbind (drest g) (dbind (λ z → now x) (f x))
+  ≅⟨ sym (compdrest {f = drest g} {g = f} x) ⟩
+  dbind (λ _ → drest g x) (f x)
+  ≅⟨ cong (λ y → dbind (λ _ → y) (f x)) (drest≅ x g) ⟩ 
+  dbind (λ _ → dbind (λ z → now x) (g x)) (f x)
+  ≅⟨ cong (λ f' → f' (f x)) law3 ⟩ 
+  dbind (λ z → now x) (dbind (λ _ → g x) (f x))
+  ≅⟨ cong (dbind (λ z → now x)) (compdrest {f = g} {g = f} x) ⟩ 
+  dbind (λ z → now x) (dbind g (dbind (λ z → now x) (f x)))
+  ≅⟨ cong (dbind (λ z → now x) ∘ dbind g) (sym (drest≅ x f)) ⟩ 
+  dbind (λ z → now x) (dbind g (drest f x))
+  ≅⟨ sym (drest≅ x (dbind g ∘ drest f)) ⟩ 
+  drest (dbind g ∘ (drest f)) x
+  ∎
+
+dR4 : ∀{X Y Z}{f : X → Delay Y}{g : Y → Delay Z}(x : X) →
+      dbind (drest g) (f x) ≅ dbind f (drest (dbind g ∘ f) x)
+dR4 {X}{Y}{Z}{f = f}{g = g} x = 
+  proof
+  dbind (λ y → drest g y) (f x)
+  ≅⟨ cong (λ t → dbind t (f x)) (ext (λ y → drest≅ y g)) ⟩
+  dbind (λ y → dbind (λ _ → now y) (g y)) (f x)
+  ≅⟨ quotient (lemma3 {dy = f x} {g = g}) ⟩
+  dbind (λ y → dbind (λ _ → f x) (g y)) (f x)
+  ≅⟨ cong (λ h → h (f x)) law3 ⟩
+  dbind (λ _ → f x) (dbind g (f x))
+  ≅⟨ compdrest {f = f} {g = dbind g ∘ f} x ⟩
+  dbind f (dbind (λ z → now x) (dbind g (f x)))
+  ≅⟨ cong (dbind f) (sym (drest≅ x (dbind g ∘ f))) ⟩
+  dbind f (drest (dbind g ∘ f) x)
+  ∎
+
+DelayR : RestCat
+DelayR = record { 
+  cat  = Kl DelayM; 
+  rest = drest; 
+  R1   = λ {_}{_}{f} → ext (dR1 {f = f});
+  R2   = λ {_}{_}{_}{f}{g} → ext (dR2 {f = f} {g = g}); 
+  R3   = λ {_}{_}{_}{f}{g} → ext (dR3 {f = f} {g = g}); 
+  R4   = λ {_}{_}{_}{f}{g} → ext (dR4 {f = f} {g = g})}
+
+open RestCat DelayR
+
+-- Restriction product
+
+open import RestrictionProducts DelayR
+open import Totals DelayR
+open Tot
+
+-- Projections
+
+dp₁ : ∀{X Y} → Tot (X × Y) X
+dp₁ = record { 
+  hom = λ { (x , y) → now x }; 
+  tot = refl }
+
+dp₂ : ∀{X Y} → Tot (X × Y) Y
+dp₂ = record { 
+  hom = λ { (x , y) → now y }; 
+  tot = refl }
+
+-- Pairing
+
+d⟨_,_⟩-aux : {X Y : Set} → Delay X → Delay Y → Delay (X × Y)
+d⟨ now x , now y ⟩-aux = now (x , y)
+d⟨ now x , later dy ⟩-aux = later (♯ d⟨ now x , ♭ dy ⟩-aux)
+d⟨ later dx , now y ⟩-aux = later (♯ d⟨ ♭ dx , now y ⟩-aux)
+d⟨ later dx , later dy ⟩-aux = later (♯ d⟨ ♭ dx , ♭ dy ⟩-aux)
+
+d⟨_,_⟩ : {X Y Z : Set} → (Z → Delay X) → (Z → Delay Y) → Z → Delay (X × Y)
+d⟨ f , g ⟩ z = d⟨ f z , g z ⟩-aux 
+
+-- First triangle commutes
+
+dtr1-aux' : ∀{X Y}{dx : Delay X}{dy : Delay Y} →
+            dbind (hom dp₁) d⟨ dx , dy ⟩-aux ≈ dcomp dy dx 
+dtr1-aux' {X}{Y}{now x}{now y} = ↓≈ now↓ now↓
+dtr1-aux' {X}{Y}{later dx}{now y} = later≈ (♯ dtr1-aux' {_}{_}{♭ dx})
+dtr1-aux' {X}{Y}{now x}{later dy} = later≈ (♯ dtr1-aux' {_}{_}{_}{♭ dy})
+dtr1-aux' {X}{Y}{later dx}{later dy} = later≈ (♯ dtr1-aux' {_}{_}{♭ dx})
+
+dtr1-aux : ∀{X Y}{dx : Delay X}{dy : Delay Y} →
+           dbind (hom dp₁) d⟨ dx , dy ⟩-aux ≈ dbind (λ _ → dx) dy
+dtr1-aux {X}{Y}{dx}{dy} = trans≈ (dtr1-aux' {_}{_}{dx}) (dcomp≈dbind {_}{_}{dy})
+
+dtr1 : ∀{X Y Z}{f : Z → Delay X}{g : Z → Delay Y}(z : Z) → 
+       comp (hom dp₁) d⟨ f , g ⟩ z ≅ comp f (drest g) z
+dtr1 {X}{Y}{Z}{f}{g} z = 
+  proof
+  comp (hom dp₁) d⟨ f , g ⟩ z
+  ≅⟨ quotient (dtr1-aux {dx = f z}{dy = g z}) ⟩
+  dbind (λ _ → f z) (g z)
+  ≅⟨ compdrest {f = f} {g = g} z ⟩
+  dbind f (dbind (λ a → now z) (g z))
+  ≅⟨ cong (dbind f) (sym (drest≅ z g)) ⟩ 
+  dbind f (drest g z)
+  ∎
+
+-- Second triangle commutes
+
+dtr2-aux' : ∀{X Y}{dx : Delay X}{dy : Delay Y} →
+            dbind (hom dp₂) d⟨ dx , dy ⟩-aux ≈ dcomp dx dy 
+dtr2-aux' {X}{Y}{now x}{now y} = ↓≈ now↓ now↓
+dtr2-aux' {X}{Y}{later dx}{now y} = later≈ (♯ dtr2-aux' {_}{_}{♭ dx})
+dtr2-aux' {X}{Y}{now x}{later dy} = later≈ (♯ dtr2-aux' {_}{_}{now x}{♭ dy})
+dtr2-aux' {X}{Y}{later dx}{later dy} = later≈ (♯ dtr2-aux' {_}{_}{♭ dx})
+
+dtr2-aux : ∀{X Y}{dx : Delay X}{dy : Delay Y} →
+           dbind (hom dp₂) d⟨ dx , dy ⟩-aux ≈ dbind (λ _ → dy) dx
+dtr2-aux {X}{Y}{dx} = trans≈ (dtr2-aux' {_}{_}{dx}) (dcomp≈dbind {_}{_}{dx})
+
+dtr2 : ∀{X Y Z}{f : Z → Delay X}{g : Z → Delay Y}(z : Z) → 
+       comp (hom dp₂) d⟨ f , g ⟩ z ≅ comp g (drest f) z
+dtr2 {X}{Y}{Z}{f}{g} z = 
+  proof
+  comp (hom dp₂) d⟨ f , g ⟩ z
+  ≅⟨ quotient (dtr2-aux {dx = f z} {dy = g z}) ⟩
+  dbind (λ _ → g z) (f z)
+  ≅⟨ compdrest {f = g} {g = f} z ⟩
+  dbind g (dbind (λ a → now z) (f z))
+  ≅⟨ cong (dbind g) (sym (drest≅ z f)) ⟩ 
+  dbind g (drest f z)
+  ∎
+
+-- Universal property
+
+uniq-aux' : {X Y : Set}{x : X}{y : Y}(dxy : Delay (X × Y)) →
+            dbind (hom dp₁) dxy ↓ x → dbind (hom dp₂) dxy ↓ y → dxy ↓ (x , y)
+uniq-aux' {X} {Y} {x} {y} (now (.x , .y)) now↓ now↓ = now↓
+uniq-aux' (later dxy) (later↓ p) (later↓ q) = later↓ (uniq-aux' (♭ dxy) p q)
+
+uniq-aux : {X Y : Set}(dxy dxy' : Delay (X × Y)) →
+           dbind (hom dp₁) dxy ≈ dbind (hom dp₁) dxy' → 
+           dbind (hom dp₂) dxy ≈ dbind (hom dp₂) dxy' → dxy ≈ dxy'
+uniq-aux (now (x , y)) (now (.x , .y)) (↓≈ now↓ now↓) (↓≈ now↓ now↓) = 
+  ↓≈ now↓ now↓
+uniq-aux (now (x , y)) (later dxy) (↓≈ now↓ (later↓ p)) (↓≈ now↓ (later↓ q)) = 
+  ↓≈ now↓ (later↓ (uniq-aux' (♭ dxy) p q))
+uniq-aux (later dxy) (now (x , y)) (↓≈ (later↓ p) now↓) (↓≈ (later↓ q) now↓) = 
+  ↓≈ (later↓ (uniq-aux' (♭ dxy) p q)) now↓
+uniq-aux (later dxy) 
+         (later dxy') 
+         (↓≈ (later↓ p) (later↓ p')) 
+         (↓≈ (later↓ q) (later↓ q')) = 
+  later≈ (♯ (uniq-aux (♭ dxy) (♭ dxy') (↓≈ p p') (↓≈ q q')))
+uniq-aux (later dxy) (later dxy') (↓≈ (later↓ p) (later↓ p')) (later≈ q) = 
+  later≈ (♯ (uniq-aux (♭ dxy) (♭ dxy') (↓≈ p p') (♭ q)))
+uniq-aux (later dxy) (later dxy') (later≈ p) (↓≈ (later↓ q) (later↓ q')) = 
+  later≈ (♯ (uniq-aux (♭ dxy) (♭ dxy') (♭ p) (↓≈ q q')))
+uniq-aux (later dxy) (later dxy') (later≈ p) (later≈ q) = 
+  later≈ (♯ (uniq-aux (♭ dxy) (♭ dxy') (♭ p) (♭ q)))
+
+uniq : ∀{X Y Z}{f : Z → Delay X}{g : Z → Delay Y}(u : Z → Delay (X × Y)) → 
+       comp (hom dp₁) u ≅ comp f (rest g) → 
+       comp (hom dp₂) u ≅ comp g (rest f) → (z : Z) → u z ≅ d⟨ f , g ⟩ z
+uniq {f = f}{g = g} u p q z = 
+  quotient (uniq-aux (u z) 
+                     (d⟨ f , g ⟩ z) 
+                     (subst (λ h → h z ≈ dbind (hom dp₁) (d⟨ f , g ⟩ z)) 
+                            (sym p) 
+                            (subst (λ x → comp f (rest g) z ≈ x) 
+                                   (sym (dtr1 {f = f}{g = g} z)) 
+                                   refl≈)) 
+                     (subst (λ h → h z ≈ dbind (hom dp₂) (d⟨ f , g ⟩ z)) 
+                            (sym q) 
+                            (subst (λ x → comp g (rest f) z ≈ x) 
+                                   (sym (dtr2 {f = f}{g = g} z)) 
+                                   refl≈)))
+
+DelayProd : (X Y : Set) → RestProd X Y
+DelayProd X Y = record {
+  W = X × Y;
+  p₁ = dp₁;
+  p₂ = dp₂;
+  ⟨_,_⟩ = d⟨_,_⟩;
+  tr1 = λ {Z}{f}{g} → ext (dtr1 {f = f} {g = g});
+  tr2 = λ {Z}{f}{g} → ext (dtr2 {f = f} {g = g});
+  uniq = λ {Z}{f}{g} u p q → ext (uniq {f = f} {g = g} u p q) }
+
+-- Meets
+
+open import Order DelayR
+open Meets
+open import Relation.Binary
+open import Relation.Nullary.Core
+
+dMt1-aux  : ∀{X}{_≟_ : Decidable {A = X} _≅'_}(dx : Delay X) → 
+            dmeet-aux {X}{_≟_} dx dx ≈ dx
+dMt1-aux {X}{_≟_} (now x) with x ≟ x
+dMt1-aux (now x) | yes refl = ↓≈ now↓ now↓
+dMt1-aux (now x) | no ¬p with ¬p refl
+dMt1-aux (now x) | no ¬p | ()
+dMt1-aux (later dx) = later≈ (♯ (dMt1-aux (♭ dx)))
+
+dMt1  : ∀{X Y}{_≟_ : Decidable {A = Y}{B = Y} _≅'_}{f : X → Delay Y} → 
+        (x : X) → dmeet {X}{Y}{_≟_} f f x ≅ f x
+dMt1 {f = f} x = quotient (dMt1-aux (f x))
+
+dMt2a-aux' : ∀{X}{_≟_ : Decidable {A = X} _≅'_}{dx dy : Delay X} →
+             dmeet-aux {X}{_≟_} dx dy ≈ 
+             dcomp (dmeet-aux {X}{_≟_} dx dy) dy
+dMt2a-aux' {X}{_≟_}{now x}{now y} with x ≟ y
+dMt2a-aux' {X}{_≟_}{now x}{now .x} | yes refl = ↓≈ now↓ now↓
+dMt2a-aux' {X}{_≟_}{now x}{now y} | no ¬p = 
+  later≈ (♯ dMt2a-aux' {_}{_}{now x}{now y})
+dMt2a-aux' {X}{_≟_}{later dx}{now y} = later≈ (♯ dMt2a-aux' {_}{_}{♭ dx})
+dMt2a-aux' {X} {_≟_}{now x}{later dy} = 
+  later≈ (♯ dMt2a-aux' {_}{_}{now x}{♭ dy})
+dMt2a-aux' {X} {_≟_}{later dx}{later dy} = 
+  later≈ (♯ dMt2a-aux' {_}{_}{♭ dx}{♭ dy})
+
+dMt2a-aux : ∀{X}{_≟_ : Decidable {A = X} _≅'_}{dx dy : Delay X} →
+            dmeet-aux {X}{_≟_} dx dy ≈ 
+            dbind (λ _ → dy) (dmeet-aux {X}{_≟_} dx dy)
+dMt2a-aux {X}{_≟_}{dx}{dy} = 
+  trans≈ (dMt2a-aux' {_}{_}{dx}{dy}) 
+         (dcomp≈dbind {_}{_}{dmeet-aux {_}{_≟_} dx dy})
+
+dMt2a : ∀{X Y}{_≟_ : Decidable {A = Y}{B = Y} _≅'_}{f g : X → Delay Y} →
+        dmeet {X}{Y}{_≟_} f g ≤ g
+dMt2a {X}{Y}{_≟_}{f}{g} = ext (λ x → 
+  proof 
+  dbind g (drest (dmeet f g) x)
+  ≅⟨ cong (dbind g) (drest≅ x (dmeet f g)) ⟩
+  dbind g (dbind (λ z → now x) (dmeet f g x))
+  ≅⟨ sym (compdrest {f = g}{g = dmeet f g} x) ⟩
+  dbind (λ _ → g x) (dmeet f g x)
+  ≅⟨ quotient (sym≈ (dMt2a-aux {dx = f x}{dy = g x})) ⟩
+  dmeet f g x
+  ∎)
+
+-- dMt2b is similar
+
+-- Joins
+
+_d⌣_ : ∀{X Y}(f g : X → Delay Y) → Set
+_d⌣_ {X} f g = {x : X} → dcomp (f x) (g x) ≈ dcomp (g x) (f x)
+
+djoin-aux : ∀{X}(dx dy : Delay X) → dcomp dx dy ≈ dcomp dy dx → Delay X
+djoin-aux (now x) (now .x) (↓≈ now↓ now↓) = now x
+djoin-aux (now x) (later dy) p = now x
+djoin-aux (later dx) (now y) p = now y
+djoin-aux (later dx) (later dy) (↓≈ (later↓ {y = y} p) (later↓ q)) = now y
+djoin-aux (later dx) (later dy) (later≈ p) = 
+  later (♯ (djoin-aux (♭ dx) (♭ dy) (♭ p)))
+
+djoin : {X Y : Set}(f g : X → Delay Y) → f d⌣ g → X → Delay Y
+djoin f g p x = djoin-aux (f x) (g x) p
+
+dJn1a-aux : ∀{X}{dx dy : Delay X}{p : dcomp dx dy ≈ dcomp dy dx} →
+            dcomp dx (djoin-aux dx dy p) ∼ dx
+dJn1a-aux {X}{now x}{now .x}{↓≈ now↓ now↓} = now∼
+dJn1a-aux {X}{now x}{later dy} = now∼
+dJn1a-aux {X} {later dx} {now y} {↓≈ (later↓ p) (later↓ q)} = 
+  later∼ (♯ (dcomp≈→∼ (↓≈ p q)))
+dJn1a-aux {X} {later dx} {now y} {later≈ p} = 
+  later∼ (♯ dcomp≈→∼ (♭ p))
+dJn1a-aux {X} {later dx} {later dy} {↓≈ (later↓ p) (later↓ q)} = 
+  later∼ (♯ dcomp≈→∼ (dcomp≈fst (↓≈ (dcomp↓snd {_}{_}{♭ dy} q) now↓)))
+dJn1a-aux {X} {later dx} {later dy} {later≈ p} = 
+  later∼ (♯ dJn1a-aux {_}{♭ dx}{♭ dy}{♭ p})
+
+dJn1a : ∀{X Y}{f g : X → Delay Y}{p : f d⌣ g} → f ≤ djoin f g p
+dJn1a {f = f}{g = g}{p = p} = ext (λ x → 
+  proof
+  dbind (djoin f g p) (drest f x)
+  ≅⟨ cong (dbind (djoin f g p)) (drest≅ x f) ⟩
+  dbind (djoin f g p) (dbind (λ _ → now x) (f x))
+  ≅⟨ sym (compdrest {f = djoin f g p} {g = f} x) ⟩
+  dbind (λ _ → djoin f g p x) (f x)
+  ≅⟨ quotient (sym≈ (dcomp≈dbind {_}{_}{f x})) ⟩
+  dcomp (f x) (djoin f g p x)
+  ≅⟨ quotient (∼→≈ (dJn1a-aux {_} {f x} {g x} {p})) ⟩
+  f x
+  ∎)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{-
+
+-- Old (impossible to work with) approach
 
 -- Some lemmata we need
 
@@ -606,9 +1040,9 @@ dMt2a {X}{Y}{_≟_}{f}{g} = ext (λ x →
 
 open import Order DelayR
 
-dcomp : {X Y : Set}{f g : X → Delay Y} → f ⌣ g → (x : X) →
+dbindcomm : {X Y : Set}{f g : X → Delay Y} → f ⌣ g → (x : X) →
         dbind (λ _ → g x) (f x) ≅ dbind (λ _ → f x) (g x)
-dcomp {f = f} {g = g} p x = 
+dbindcomm {f = f} {g = g} p x = 
   proof
   dbind (λ _ → g x) (f x) 
   ≅⟨ compdrest {f = g} {g = f} x ⟩
@@ -625,12 +1059,6 @@ dcomp {f = f} {g = g} p x =
 
 _d⌣_ : ∀{X Y}(f g : X → Delay Y) → Set
 _d⌣_ {X} f g = {x : X} → dbind (λ _ → g x) (f x) ≈ dbind (λ _ → f x) (g x)
-
-dbindlater≈ : ∀{X Y}{f : X → ∞ (Delay Y)}(dx : Delay X) → 
-              dbind (♭ ∘ f) dx ≈ dbind (later ∘ f) dx
-dbindlater≈ dx = trans≈ laterlem 
-                        (trans≈ (later≈ (♯ refl≈)) 
-                                (∼→≈ (sym∼ (dbindlater dx))))
 
 djoin-aux : ∀{X}(dx dy : Delay X) → dbind (λ _ → dy) dx ≈ dbind (λ _ → dx) dy →
             Delay X
@@ -940,7 +1368,8 @@ djoin' f g x p =
   djoin-aux (f x) 
             (g x) 
             (subst (_≈_ _)
-                   (dcomp {f = f}{g = g} p x) 
+                   (dbindcomm {f = f}{g = g} p x) 
                    refl≈)
+-}
 -}
 -}
