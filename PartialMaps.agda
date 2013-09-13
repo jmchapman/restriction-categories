@@ -158,7 +158,11 @@ module PartialMaps (X : Cat)(M : StableSys X) where
     ~cong : {X Y Z : Obj}{mf m'f' : Span Y Z} → mf ~Span~ m'f' → 
                          {ng n'g' : Span X Y} → ng ~Span~ n'g' → 
                          compspan mf ng ~Span~ compspan m'f' n'g'
-    ~cong (spaneq s invs rinvs linvs) (spaneq s' invs' rinvs' linvs') = ?
+    ~cong (spaneq s invs rinvs linvs) (spaneq s' invs' rinvs' linvs') = spaneq 
+      {!!} 
+      {!!} 
+      {!!} 
+      {!!}
 
     .idlspan : {X Y : Obj} {mf : Span X Y} → compspan idspan mf ~Span~ mf
     idlspan {X}{Y}{mf} = 
@@ -319,49 +323,42 @@ module PartialMaps (X : Cat)(M : StableSys X) where
          comp (comp f'' k'') k'''
          ∎)    
 
-    open Quotient
+
+    Q' : {_ _ : Obj} → Set
+    Q' {A} {B} = Quotient.Q (quot (Span A B) Span~EqR)
+    
+    abs' : {A B : Obj} → Span A B → Q' {A}{B}
+    abs' {A}{B} = Quotient.abs (quot (Span A B) Span~EqR)
+
+    rep' : {A B : Obj} → Q' {A}{B} → Span A B
+    rep' {A}{B} = Quotient.rep (quot (Span A B) Span~EqR)
+
+    ax1' : {A B : Obj} → (mf m'f' : Span A B) → 
+          mf ~Span~ m'f' → abs' {A}{B} mf ≅ abs' {A}{B} m'f'
+    ax1' {A}{B} = Quotient.ax1 (quot (Span A B) Span~EqR)
+
+    ax2' : {A B : Obj} → (mf : Q' {A}{B}) → abs' {A}{B} (rep' {A}{B} mf) ≅ mf
+    ax2' {A}{B} = Quotient.ax2 (quot (Span A B) Span~EqR)
+
+    ax3' : {A B : Obj} → (mf : Span A B) → rep' {A}{B} (abs' {A}{B} mf) ~Span~ mf
+    ax3' {A}{B} = Quotient.ax3 (quot (Span A B) Span~EqR)
+
     Par : Cat
     Par = record {
       Obj = Obj;
-      Hom = λ A B → Q (quot (Span A B) (Span~EqR));
-      iden = λ {A} → abs (quot (Span A A) (Span~EqR)) idspan; 
-      comp = λ {A} {B} {C} f g → abs 
-        (quot (Span A C) Span~EqR) 
-        (compspan (rep (quot (Span B C) Span~EqR) f) 
-                  (rep (quot (Span A B) Span~EqR) g));
+      Hom = λ A B → Q';
+      iden = λ {A} → abs' idspan; 
+      comp = λ {A} {B} {C} f g → abs' {A}{C} (compspan (rep' f) (rep' g));
       idl = λ {A}{B}{mf} → trans 
-        (ax1 (quot (Span A B) Span~EqR) 
-             _ 
-             _ 
-             (~trans (~cong (ax3 (quot (Span B B) Span~EqR) idspan) ~refl) 
-                     (idlspan {mf = rep (quot (Span A B) Span~EqR) mf}))) 
-        (ax2 (quot (Span A B) Span~EqR) mf);
+        (ax1' _  _ (~trans (~cong (ax3' idspan) ~refl) (idlspan {mf = rep' mf}))) 
+        (ax2' mf);
 
       idr = λ {A} {B} {mf} → trans 
-        (ax1 (quot (Span A B) Span~EqR) 
-             _ 
-             _ 
-             (~trans (~cong ~refl (ax3 (quot (Span A A) Span~EqR) idspan)) 
-                     (idrspan {mf = rep (quot (Span A B) Span~EqR) mf}))) 
-        (ax2 (quot (Span A B) Span~EqR) mf);
-      ass = λ {W}{X}{Y}{Z} {m''f''} {m'f'} {mf} → 
-        ax1 (quot (Span W Z) Span~EqR) 
-            _ 
-            _ 
-            (~trans (~trans (~cong (ax3 (quot (Span X Z) Span~EqR) 
-                                        (compspan (rep (quot (Span Y Z) 
-                                                             Span~EqR) 
-                                                       m''f'')
-                                                  (rep (quot (Span X Y) 
-                                                             Span~EqR) 
-                                                       m'f'))) 
-                                   ~refl)
-                            assspan) 
-                    (~cong ~refl 
-                           (~sym (ax3 (quot (Span W Y) Span~EqR) 
-                                            (compspan (rep (quot (Span X Y) 
-                                                                 Span~EqR)  
-                                                           m'f') 
-                                                      (rep (quot (Span W X)
-                                                                 Span~EqR)
-                                                           mf))))))} 
+        (ax1' _ _  (~trans (~cong ~refl (ax3' idspan)) (idrspan {mf = rep' mf}))) 
+        (ax2' mf);
+      ass = λ {W}{X}{Y}{Z} {m''f''} {m'f'} {mf} →  ax1' 
+        _ 
+        _ 
+        (~trans (~trans (~cong (ax3' (compspan (rep' m''f'') (rep'  m'f'))) ~refl)
+                        assspan) 
+                (~cong ~refl (~sym (ax3' (compspan (rep' m'f') (rep' mf))))))} 
