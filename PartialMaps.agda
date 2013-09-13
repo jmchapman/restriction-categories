@@ -26,16 +26,107 @@ module PartialMaps (X : Cat)(M : StableSys X) where
 
     data _~Span~_ {A B}(mf m'f' : Span A B) : Set where
       spaneq : (s : Hom (Span.A' mf) (Span.A' m'f')) → 
-                         Iso s → 
-                         comp (Span.mhom m'f') s ≅ (Span.mhom mf) →
-                         comp (Span.fhom m'f') s ≅ (Span.fhom mf) → mf ~Span~ m'f'
+               Iso s → 
+               .(comp (Span.mhom m'f') s ≅ (Span.mhom mf)) →
+               .(comp (Span.fhom m'f') s ≅ (Span.fhom mf)) → 
+               mf ~Span~ m'f'
+
+    ~refl : ∀{A B}{mf : Span A B} → mf ~Span~ mf
+    ~refl {A}{B}{mf} = 
+      let open Span mf renaming (mhom to m; fhom to f) 
+      in spaneq iden 
+                idiso 
+                idr
+                idr
+
+    ~sym : ∀{A B}{mf m'f' : Span A B} → mf ~Span~ m'f' → m'f' ~Span~ mf
+    ~sym {A}{B}{mf}{m'f'} (spaneq s (inv ,, rinv ,, linv) q r) = 
+      let open Span mf renaming (mhom to m; fhom to f)
+          open Span m'f' renaming (mhom to m'; fhom to f')
+      in spaneq 
+        inv 
+        (s ,, linv ,, rinv) 
+        (proof 
+         comp m inv 
+         ≅⟨ cong (λ x → comp x inv) (sym q) ⟩ 
+         comp (comp m' s) inv 
+         ≅⟨ ass ⟩ 
+         comp m' (comp s inv)
+         ≅⟨ cong (comp m') rinv ⟩ 
+         comp m' iden
+         ≅⟨ idr ⟩ 
+         m' ∎) 
+        (proof 
+         comp f inv 
+         ≅⟨ cong (λ x → comp x inv) (sym r) ⟩ 
+         comp (comp f' s) inv 
+         ≅⟨ ass ⟩ 
+         comp f' (comp s inv)
+         ≅⟨ cong (comp f') rinv ⟩ 
+         comp f' iden
+         ≅⟨ idr ⟩ 
+         f' ∎) 
+
+    ~trans : ∀{A B}{mf m'f' m''f'' : Span A B} → 
+              mf ~Span~ m'f' → m'f' ~Span~ m''f'' → mf ~Span~ m''f''
+    ~trans {A}{B}{mf}{m'f'}{m''f''} (spaneq s iso p q) (spaneq s' iso' p' q') =
+      let open Span mf renaming (mhom to m; fhom to f)
+          open Span m'f' renaming (mhom to m'; fhom to f')
+          open Span m''f'' renaming (mhom to m''; fhom to f'')
+          open Iso iso renaming (inv to invs; rinv to rinvs; linv to linvs)
+          open Iso iso' renaming (inv to invs'; rinv to rinvs'; linv to linvs')
+      in spaneq 
+        (comp s' s) 
+        (comp invs invs' 
+         ,, 
+         (proof 
+          comp (comp s' s) (comp invs invs') 
+          ≅⟨ ass ⟩ 
+          comp s' (comp s (comp invs invs'))
+          ≅⟨ cong (comp s') (sym ass) ⟩ 
+          comp s' (comp (comp s invs) invs')
+          ≅⟨ cong (λ x → comp s' (comp x invs')) rinvs ⟩ 
+          comp s' (comp iden invs')
+          ≅⟨ cong (comp s') idl ⟩ 
+          comp s' invs'
+          ≅⟨ rinvs' ⟩ 
+          iden ∎)
+         ,, 
+         (proof 
+          comp (comp invs invs') (comp s' s) 
+          ≅⟨ ass ⟩ 
+          comp invs (comp invs' (comp s' s))
+          ≅⟨ cong (comp invs) (sym ass) ⟩ 
+          comp invs (comp (comp invs' s') s)
+          ≅⟨ cong (λ x → comp invs (comp x s)) linvs' ⟩ 
+          comp invs (comp iden s)
+          ≅⟨ cong (comp invs) idl ⟩ 
+          comp invs s
+          ≅⟨ linvs ⟩ 
+          iden ∎))
+        (proof 
+         comp m'' (comp s' s) 
+         ≅⟨ sym ass ⟩ 
+         comp (comp m'' s') s
+         ≅⟨ cong (λ x → comp x s) p' ⟩ 
+         comp m' s
+         ≅⟨ p ⟩ 
+         m ∎)
+        (proof 
+         comp f'' (comp s' s) 
+         ≅⟨ sym ass ⟩ 
+         comp (comp f'' s') s
+         ≅⟨ cong (λ x → comp x s) q' ⟩ 
+         comp f' s
+         ≅⟨ q ⟩ 
+         f ∎)
 
     Span~EqR : ∀{A B} → EqR (Span A B)
     Span~EqR = record { 
       _~_    = _~Span~_; 
-      ~refl  = {!!}; 
-      ~sym   = {!!}; 
-      ~trans = {!!} }
+      ~refl  = ~refl; 
+      ~sym   = ~sym; 
+      ~trans = ~trans }
 
     postulate quotient : ∀{A B}(mf m'f' : Span A B) → 
                          (s : Hom (Span.A' mf) (Span.A' m'f')) → 

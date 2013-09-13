@@ -11,7 +11,7 @@ record EqR (A : Set) : Set where
         ~sym   : ∀{a a'} → a ~ a' → a' ~ a
         ~trans : ∀{a a' a''} → a ~ a' → a' ~ a'' → a ~ a''
 
-record Quotient (A : Set)(EQ : EqR A) : Set where
+record Quotient (A : Set) (EQ : EqR A) : Set where
   open EqR EQ
   field Q : Set
         abs : A → Q
@@ -23,4 +23,4 @@ record Quotient (A : Set)(EQ : EqR A) : Set where
 --[_] : ∀{A EQ} → Quotient A EQ → Set
 --[ q ] = Quotient.Q q
 
-postulate quot : (A : Set)(EQ : EqR A) → Quotient A EQ
+postulate quot : (A : Set) (EQ : EqR A) → Quotient A EQ
