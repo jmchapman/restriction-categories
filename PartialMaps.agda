@@ -127,13 +127,6 @@ module PartialMaps (X : Cat)(M : StableSys X) where
       ~sym   = ~sym; 
       ~trans = ~trans }
 
-    postulate quotient : ∀{A B}(mf m'f' : Span A B) → 
-                         (s : Hom (Span.A' mf) (Span.A' m'f')) → 
-                         Iso s → 
-                         comp (Span.mhom m'f') s ≅ (Span.mhom mf) →
-                         comp (Span.fhom m'f') s ≅ (Span.fhom mf) → 
-                         mf ≅ m'f'
-
     idspan : {X : Obj} → Span X X
     idspan = record { 
       A' = _; 
