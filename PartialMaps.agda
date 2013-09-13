@@ -155,24 +155,11 @@ module PartialMaps (X : Cat)(M : StableSys X) where
         fhom = comp (fhom m'f') (k y); 
         m∈ = com (proj₂ x) (m∈ mf)}
 
-{-
-    .idlspan : {X Y : Obj} {mf : Span X Y} → compspan idspan mf ≅ mf
-    idlspan {mf = mf} =                    
-      let open Pullback
-          open Square
-          open Span mf
-      in quotient
-        _ 
-        mf 
-        (h (sq (proj₁ (pul fhom  (iso idiso))))) 
-        (pullbackiso (trivialpul fhom) 
-                     (proj₁ (pul fhom 
-                                 (iso idiso)))) 
-        refl
-        (scom (sq (proj₁ (pul fhom
-                              (iso idiso)))))
--}
- 
+    ~cong : {X Y Z : Obj}{mf m'f' : Span Y Z} → mf ~Span~ m'f' → 
+                         {ng n'g' : Span X Y} → ng ~Span~ n'g' → 
+                         compspan mf ng ~Span~ compspan m'f' n'g'
+    ~cong (spaneq s invs rinvs linvs) (spaneq s' invs' rinvs' linvs') = ?
+
     .idlspan : {X Y : Obj} {mf : Span X Y} → compspan idspan mf ~Span~ mf
     idlspan {X}{Y}{mf} = 
       let open Pullback
@@ -186,22 +173,23 @@ module PartialMaps (X : Cat)(M : StableSys X) where
       refl 
       (scom (sq (proj₁ (pul fhom (iso idiso)))))
 
-    .idrspan : {X Y : Obj} {mf : Span X Y} → compspan mf idspan ≅ mf
+    .idrspan : {X Y : Obj} {mf : Span X Y} → compspan mf idspan ~Span~ mf
     idrspan {mf = mf} =
       let open Pullback
           open Square
           open Span mf
-      in quotient
-      _ 
-      mf 
+      in spaneq
       (k (sq (proj₁ (pul iden m∈)))) 
       (pullbackiso (sympul (trivialpul mhom))
                    (proj₁ (pul iden m∈)))
       (sym (scom (sq (proj₁ (pul iden m∈))))) 
       refl
 
-    .assspan : {W X Y Z : Obj} {m''f'' : Span Y Z} {m'f' : Span X Y} {mf : Span W X} →
-              compspan (compspan m''f'' m'f') mf ≅ compspan m''f'' (compspan m'f' mf)
+    .assspan : {W X Y Z : Obj} 
+      {m''f'' : Span Y Z} {m'f' : Span X Y} {mf : Span W X} →
+      compspan (compspan m''f'' m'f') mf 
+      ~Span~ 
+      compspan m''f'' (compspan m'f' mf)
     assspan {m''f'' = m''f''} {m'f' = m'f'} {mf = mf} = 
       let open Span mf renaming (mhom to m; fhom to f)
           open Span m'f' renaming (mhom to m'; 
@@ -305,9 +293,7 @@ module PartialMaps (X : Cat)(M : StableSys X) where
                                  prop1 to prop1α; 
                                  prop2 to prop2α)
 
-      in quotient
-        _ 
-        _ 
+      in spaneq
         α 
         (pullbackiso upul u'pul) 
         (proof 
@@ -333,31 +319,49 @@ module PartialMaps (X : Cat)(M : StableSys X) where
          comp (comp f'' k'') k'''
          ∎)    
 
-
-  
     open Quotient
     Par : Cat
     Par = record {
       Obj = Obj;
       Hom = λ A B → Q (quot (Span A B) (Span~EqR));
-      iden = λ {A} → abs (quot (Span A A) (Span~EqR)) idspan; --idspan;                
-      comp = λ {A} {B} {C} f g → abs (quot (Span A C) Span~EqR) 
-                                     (compspan (rep (quot (Span B C) Span~EqR) f) 
-                                               (rep (quot (Span A B) Span~EqR) g)); -- compspan;
-      idl = λ {A}{B}{mf} → trans (ax1 (quot (Span A B) Span~EqR) 
-                                      _ 
-                                      _ 
-                                      {!idlspan {mf = rep (quot (Span A B) Span~EqR) mf}!}) 
-                                 (ax2 (quot (Span A B) Span~EqR) mf);
-{-
-trans (ax1 (quot (Span A B) Span~EqR) 
-                                      (rep (quot (Span A B) Span~EqR) mf) 
-                                      {!!} 
-                                      {!idlspan {mf = rep (quot (Span A B) Span~EqR) mf}!}) 
-                                 (ax2 (quot (Span A B) Span~EqR) mf); 
--}
-          -- λ {X}{Y}{mf} → idlspan {mf = mf};
-      idr = {!!}; -- λ {X}{Y}{mf} → idrspan {mf = mf};
-      ass = {!!}} -- λ {_}{_}{_}{_}{m''f''}{m'f'}{mf} →  assspan {m''f'' = m''f''}
-              --                                          {m'f' = m'f'}
-              --                                          {mf = mf}}
+      iden = λ {A} → abs (quot (Span A A) (Span~EqR)) idspan; 
+      comp = λ {A} {B} {C} f g → abs 
+        (quot (Span A C) Span~EqR) 
+        (compspan (rep (quot (Span B C) Span~EqR) f) 
+                  (rep (quot (Span A B) Span~EqR) g));
+      idl = λ {A}{B}{mf} → trans 
+        (ax1 (quot (Span A B) Span~EqR) 
+             _ 
+             _ 
+             (~trans (~cong (ax3 (quot (Span B B) Span~EqR) idspan) ~refl) 
+                     (idlspan {mf = rep (quot (Span A B) Span~EqR) mf}))) 
+        (ax2 (quot (Span A B) Span~EqR) mf);
+
+      idr = λ {A} {B} {mf} → trans 
+        (ax1 (quot (Span A B) Span~EqR) 
+             _ 
+             _ 
+             (~trans (~cong ~refl (ax3 (quot (Span A A) Span~EqR) idspan)) 
+                     (idrspan {mf = rep (quot (Span A B) Span~EqR) mf}))) 
+        (ax2 (quot (Span A B) Span~EqR) mf);
+      ass = λ {W}{X}{Y}{Z} {m''f''} {m'f'} {mf} → 
+        ax1 (quot (Span W Z) Span~EqR) 
+            _ 
+            _ 
+            (~trans (~trans (~cong (ax3 (quot (Span X Z) Span~EqR) 
+                                        (compspan (rep (quot (Span Y Z) 
+                                                             Span~EqR) 
+                                                       m''f'')
+                                                  (rep (quot (Span X Y) 
+                                                             Span~EqR) 
+                                                       m'f'))) 
+                                   ~refl)
+                            assspan) 
+                    (~cong ~refl 
+                           (~sym (ax3 (quot (Span W Y) Span~EqR) 
+                                            (compspan (rep (quot (Span X Y) 
+                                                                 Span~EqR)  
+                                                           m'f') 
+                                                      (rep (quot (Span W X)
+                                                                 Span~EqR)
+                                                           mf))))))} 
