@@ -61,3 +61,20 @@ fixtypes' {p = p}{q = q} r = fixtypes r (trans (sym p) (trans r q))
 fixtypes'' : ∀{A}{a a' a'' a''' : A}{p : a ≅ a'}{q : a'' ≅ a'''} →
             a' ≅ a''' → p ≅ q
 fixtypes'' {p = p}{q = q} r = fixtypes (trans p (trans r (sym q))) r 
+
+record EqR (A : Set) : Set where
+  field _~_    : A → A → Set
+        ~refl  : ∀{a} → a ~ a
+        ~sym   : ∀{a a'} → a ~ a' → a' ~ a
+        ~trans : ∀{a a' a''} → a ~ a' → a' ~ a'' → a ~ a''
+
+record Quotient (A : Set) (EQ : EqR A) : Set where
+  open EqR EQ
+  field Q : Set
+        abs : A → Q
+        rep : Q → A
+        ax1 : (a b : A) → a ~ b → abs a ≅ abs b
+        ax2 : (q : Q) → abs (rep q) ≅ q
+        ax3 : (a : A) → rep (abs a) ~ a
+
+postulate quot : (A : Set) (EQ : EqR A) → Quotient A EQ

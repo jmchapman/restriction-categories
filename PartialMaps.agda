@@ -6,7 +6,6 @@ open ≅-Reasoning renaming (begin_ to proof_)
 open import Utilities
 open import Data.Product
 open import Function
-open import Quotients
 
 module PartialMaps (X : Cat)(M : StableSys X) where
 
@@ -352,7 +351,6 @@ module PartialMaps (X : Cat)(M : StableSys X) where
       idl = λ {A}{B}{mf} → trans 
         (ax1' _  _ (~trans (~cong (ax3' idspan) ~refl) (idlspan {mf = rep' mf}))) 
         (ax2' mf);
-
       idr = λ {A} {B} {mf} → trans 
         (ax1' _ _  (~trans (~cong ~refl (ax3' idspan)) (idrspan {mf = rep' mf}))) 
         (ax2' mf);
