@@ -6,7 +6,7 @@ open ≅-Reasoning renaming (begin_ to proof_)
 open import Utilities
 open import Data.Product
 open import Function
-
+open import Quotients
 
 module PartialMaps (X : Cat)(M : StableSys X) where
 
@@ -23,6 +23,19 @@ module PartialMaps (X : Cat)(M : StableSys X) where
             mhom : Hom A' A
             fhom : Hom A' B
             m∈ : ∈ mhom
+
+    data _~Span~_ {A B}(mf m'f' : Span A B) : Set where
+      spaneq : (s : Hom (Span.A' mf) (Span.A' m'f')) → 
+                         Iso s → 
+                         comp (Span.mhom m'f') s ≅ (Span.mhom mf) →
+                         comp (Span.fhom m'f') s ≅ (Span.fhom mf) → mf ~Span~ m'f'
+
+    Span~EqR : ∀{A B} → EqR (Span A B)
+    Span~EqR = record { 
+      _~_    = _~Span~_; 
+      ~refl  = {!!}; 
+      ~sym   = {!!}; 
+      ~trans = {!!} }
 
     postulate quotient : ∀{A B}(mf m'f' : Span A B) → 
                          (s : Hom (Span.A' mf) (Span.A' m'f')) → 
@@ -51,6 +64,7 @@ module PartialMaps (X : Cat)(M : StableSys X) where
         fhom = comp (fhom m'f') (k y); 
         m∈ = com (proj₂ x) (m∈ mf)}
 
+{-
     .idlspan : {X Y : Obj} {mf : Span X Y} → compspan idspan mf ≅ mf
     idlspan {mf = mf} =                    
       let open Pullback
@@ -66,6 +80,20 @@ module PartialMaps (X : Cat)(M : StableSys X) where
         refl
         (scom (sq (proj₁ (pul fhom
                               (iso idiso)))))
+-}
+ 
+    .idlspan : {X Y : Obj} {mf : Span X Y} → compspan idspan mf ~Span~ mf
+    idlspan {X}{Y}{mf} = 
+      let open Pullback
+          open Square
+          open Span mf
+      in spaneq 
+      (h (sq (proj₁ (pul fhom (iso idiso))))) 
+      (pullbackiso (trivialpul fhom) 
+                     (proj₁ (pul fhom 
+                                 (iso idiso)))) 
+      refl 
+      (scom (sq (proj₁ (pul fhom (iso idiso)))))
 
     .idrspan : {X Y : Obj} {mf : Span X Y} → compspan mf idspan ≅ mf
     idrspan {mf = mf} =
@@ -214,14 +242,31 @@ module PartialMaps (X : Cat)(M : StableSys X) where
          comp (comp f'' k'') k'''
          ∎)    
 
+
+  
+    open Quotient
     Par : Cat
     Par = record {
       Obj = Obj;
-      Hom = Span;
-      iden = idspan;                
-      comp = compspan;
-      idl = λ {X}{Y}{mf} → idlspan {mf = mf};
-      idr = λ {X}{Y}{mf} → idrspan {mf = mf};
-      ass = λ {_}{_}{_}{_}{m''f''}{m'f'}{mf} →  assspan {m''f'' = m''f''}
-                                                        {m'f' = m'f'}
-                                                        {mf = mf}}
+      Hom = λ A B → Q (quot (Span A B) (Span~EqR));
+      iden = λ {A} → abs (quot (Span A A) (Span~EqR)) idspan; --idspan;                
+      comp = λ {A} {B} {C} f g → abs (quot (Span A C) Span~EqR) 
+                                     (compspan (rep (quot (Span B C) Span~EqR) f) 
+                                               (rep (quot (Span A B) Span~EqR) g)); -- compspan;
+      idl = λ {A}{B}{mf} → trans (ax1 (quot (Span A B) Span~EqR) 
+                                      _ 
+                                      _ 
+                                      {!idlspan {mf = rep (quot (Span A B) Span~EqR) mf}!}) 
+                                 (ax2 (quot (Span A B) Span~EqR) mf);
+{-
+trans (ax1 (quot (Span A B) Span~EqR) 
+                                      (rep (quot (Span A B) Span~EqR) mf) 
+                                      {!!} 
+                                      {!idlspan {mf = rep (quot (Span A B) Span~EqR) mf}!}) 
+                                 (ax2 (quot (Span A B) Span~EqR) mf); 
+-}
+          -- λ {X}{Y}{mf} → idlspan {mf = mf};
+      idr = {!!}; -- λ {X}{Y}{mf} → idrspan {mf = mf};
+      ass = {!!}} -- λ {_}{_}{_}{_}{m''f''}{m'f'}{mf} →  assspan {m''f'' = m''f''}
+              --                                          {m'f' = m'f'}
+              --                                          {mf = mf}}
