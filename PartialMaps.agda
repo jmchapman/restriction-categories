@@ -161,6 +161,7 @@ module PartialMaps (X : Cat)(M : StableSys X) where
           p , h∈ = pul g m∈
           open Square (sq p) 
           p' , h'∈ = pul g' m'∈
+          open Square (sq p') renaming (W to W';h to h'; k to k'; scom to scom')
 
           .hexcom : comp g' (comp s' h) ≅ comp m' (comp s k) 
           hexcom = 
@@ -192,7 +193,7 @@ module PartialMaps (X : Cat)(M : StableSys X) where
               let open Square sq' renaming (W to W''; 
                                             h to h''; 
                                             k to k'';
-                                            scom to scom')
+                                            scom to scom'')
 
                   .invrtri' : comp g invs' ≅ g'
                   invrtri' = proof 
@@ -220,15 +221,15 @@ module PartialMaps (X : Cat)(M : StableSys X) where
                     comp m invs 
                     ∎
 
-                  .scom'' : comp g (comp invs' h'') ≅ comp m (comp invs k'') 
-                  scom'' = 
+                  .scom''' : comp g (comp invs' h'') ≅ comp m (comp invs k'') 
+                  scom''' = 
                     proof 
                     comp g (comp invs' h'') 
                     ≅⟨ sym ass ⟩ 
                     comp (comp g invs') h''
                     ≅⟨ cong (λ x → comp x h'') invrtri' ⟩ 
                     comp g' h''
-                    ≅⟨ scom' ⟩ 
+                    ≅⟨ scom'' ⟩ 
                     comp m' k''
                     ≅⟨ cong (λ x → comp x k'') invltri ⟩ 
                     comp (comp m invs) k''
@@ -241,7 +242,7 @@ module PartialMaps (X : Cat)(M : StableSys X) where
                     W = W''; 
                     h    = comp invs' h''; 
                     k    = comp invs k''; 
-                    scom = scom'' }
+                    scom = scom''' }
 
                   pmap u' prop1 prop2 ,, pu' = prop p sq''
 
@@ -312,7 +313,35 @@ module PartialMaps (X : Cat)(M : StableSys X) where
                   in pu' (pmap u'' prop1''' prop2'''))} 
 
           iso = pullbackiso p' hexpul
-      in spaneq (PMap.mor (fst (prop p' hexsq))) iso {!!} {!!}
+          pmap u p1 p2 = fst (prop p' hexsq)
+
+          .t1 : comp (comp n' h') u ≅ comp n h
+          t1 = proof 
+            comp (comp n' h') u 
+            ≅⟨ ass ⟩ 
+            comp n' (comp h' u)
+            ≅⟨ cong (comp n') p1 ⟩ 
+            comp n' (comp s' h)
+            ≅⟨ sym ass ⟩ 
+            comp (comp n' s') h
+            ≅⟨ cong (λ x → comp x h) ltri' ⟩ 
+            comp n h 
+            ∎
+
+          .t2 : comp (comp f' k') u ≅ comp f k
+          t2 = proof 
+            comp (comp f' k') u
+            ≅⟨ ass ⟩ 
+            comp f' (comp k' u)
+            ≅⟨ cong (comp f') p2 ⟩ 
+            comp f' (comp s k)
+            ≅⟨ sym ass ⟩ 
+            comp (comp f' s) k
+            ≅⟨ cong (λ x → comp x k) rtri ⟩ 
+            comp f k 
+            ∎
+          
+      in spaneq u iso t1 t2
 
     .idlspan : {X Y : Obj} {mf : Span X Y} → compspan idspan mf ~Span~ mf
     idlspan {X}{Y}{mf} = 
