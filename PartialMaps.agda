@@ -150,11 +150,169 @@ module PartialMaps (X : Cat)(M : StableSys X) where
     ~cong : {X Y Z : Obj}{mf m'f' : Span Y Z} → mf ~Span~ m'f' → 
                          {ng n'g' : Span X Y} → ng ~Span~ n'g' → 
                          compspan mf ng ~Span~ compspan m'f' n'g'
-    ~cong (spaneq s invs rinvs linvs) (spaneq s' invs' rinvs' linvs') = spaneq 
-      {!!} 
-      {!!} 
-      {!!} 
-      {!!}
+    ~cong {A}{B}{C}
+          {mf}{m'f'}(spaneq s (invs ,, rinv ,, linv) ltri rtri)
+          {ng}{n'g'}(spaneq s' (invs' ,, rinv' ,, linv') ltri' rtri') = 
+      let open Pullback
+          open Span mf   renaming (mhom to m;  fhom to f)
+          open Span m'f' renaming (mhom to m'; fhom to f'; m∈ to m'∈)
+          open Span ng   renaming (mhom to n;  fhom to g; m∈ to n∈)
+          open Span n'g' renaming (mhom to n'; fhom to g'; m∈ to n'∈)
+          p , h∈ = pul g m∈
+          open Square (sq p) 
+          p' , h'∈ = pul g' m'∈
+
+          .hexcom : comp g' (comp s' h) ≅ comp m' (comp s k) 
+          hexcom = 
+            proof 
+            comp g' (comp s' h) 
+            ≅⟨ sym ass ⟩ 
+            comp (comp g' s') h
+            ≅⟨ cong (λ x → comp x h) rtri' ⟩ 
+            comp g h
+            ≅⟨ scom ⟩ 
+            comp m k 
+            ≅⟨ cong (λ x → comp x k) (sym ltri) ⟩ 
+            comp (comp m' s) k 
+            ≅⟨ ass ⟩ 
+            comp m' (comp s k) 
+            ∎
+
+          hexsq : Square g' m'
+          hexsq = record { 
+            W = W; 
+            h = comp s' h; 
+            k = comp s k; 
+            scom = hexcom }
+
+          hexpul : Pullback g' m'
+          hexpul = record { 
+            sq   = hexsq; 
+            prop = λ sq' → 
+              let open Square sq' renaming (W to W''; 
+                                            h to h''; 
+                                            k to k'';
+                                            scom to scom')
+
+                  .invrtri' : comp g invs' ≅ g'
+                  invrtri' = proof 
+                    comp g invs' 
+                    ≅⟨ cong (λ x → comp x invs') (sym rtri') ⟩  
+                    comp (comp g' s') invs' 
+                    ≅⟨ ass ⟩  
+                    comp g' (comp s' invs')
+                    ≅⟨ cong (comp g') rinv' ⟩  
+                    comp g' iden
+                    ≅⟨ idr ⟩  
+                    g' 
+                    ∎
+                  
+                  .invltri : m' ≅ comp m invs
+                  invltri = proof 
+                    m' 
+                    ≅⟨ sym idr ⟩ 
+                    comp m' iden
+                    ≅⟨ cong (comp m') (sym rinv) ⟩ 
+                    comp m' (comp s invs)
+                    ≅⟨ sym ass ⟩ 
+                    comp (comp m' s) invs 
+                    ≅⟨ cong (λ x → comp x invs) ltri ⟩ 
+                    comp m invs 
+                    ∎
+
+                  .scom'' : comp g (comp invs' h'') ≅ comp m (comp invs k'') 
+                  scom'' = 
+                    proof 
+                    comp g (comp invs' h'') 
+                    ≅⟨ sym ass ⟩ 
+                    comp (comp g invs') h''
+                    ≅⟨ cong (λ x → comp x h'') invrtri' ⟩ 
+                    comp g' h''
+                    ≅⟨ scom' ⟩ 
+                    comp m' k''
+                    ≅⟨ cong (λ x → comp x k'') invltri ⟩ 
+                    comp (comp m invs) k''
+                    ≅⟨ ass ⟩ 
+                    comp m (comp invs k'') 
+                    ∎
+                  
+                  sq'' : Square g m
+                  sq'' = record { 
+                    W = W''; 
+                    h    = comp invs' h''; 
+                    k    = comp invs k''; 
+                    scom = scom'' }
+
+                  pmap u' prop1 prop2 ,, pu' = prop p sq''
+
+                  .prop1' : comp (comp s' h) u' ≅ h''
+                  prop1' = proof 
+                    comp (comp s' h) u' 
+                    ≅⟨ ass ⟩ 
+                    comp s' (comp h u')
+                    ≅⟨ cong (comp s') prop1 ⟩ 
+                    comp s' (comp invs' h'')
+                    ≅⟨ sym ass ⟩ 
+                    comp (comp s' invs') h''
+                    ≅⟨ cong (λ x → comp x h'') rinv' ⟩ 
+                    comp iden h''
+                    ≅⟨ idl ⟩ 
+                    h'' 
+                    ∎ 
+
+                  .prop2' : comp (comp s k) u' ≅ k''
+                  prop2' = proof 
+                    comp (comp s k) u' 
+                    ≅⟨ ass ⟩ 
+                    comp s (comp k u')
+                    ≅⟨ cong (comp s) prop2 ⟩ 
+                    comp s (comp invs k'')
+                    ≅⟨ sym ass ⟩ 
+                    comp (comp s invs) k''
+                    ≅⟨ cong (λ x → comp x k'') rinv ⟩ 
+                    comp iden k''
+                    ≅⟨ idl ⟩ 
+                    k'' 
+                    ∎
+                 -- using the constructor didn't work here...
+              in record { mor = u'; prop1 = prop1'; prop2 = prop2' } 
+                ,, 
+                (λ u'' → 
+                  let pmap u'' prop1'' prop2'' = u'' 
+
+                      .prop1''' : comp h u'' ≅ comp invs' h''
+                      prop1''' = proof 
+                        comp h u'' 
+                        ≅⟨ sym idl ⟩ 
+                        comp iden (comp h u'' )
+                        ≅⟨ cong (λ x → comp x (comp h u'')) (sym linv') ⟩ 
+                        comp (comp invs' s') (comp h u'' )
+                        ≅⟨ ass ⟩ 
+                        comp invs' (comp s' (comp h u''))
+                        ≅⟨ cong (comp invs') (sym ass) ⟩ 
+                        comp invs' (comp (comp s' h) u'') 
+                        ≅⟨ cong (comp invs') prop1'' ⟩ 
+                        comp invs' h'' 
+                        ∎
+
+                      .prop2''' : comp k u'' ≅ comp invs k''
+                      prop2''' = proof
+                        comp k u'' 
+                        ≅⟨ sym idl ⟩
+                        comp iden (comp k u'')
+                        ≅⟨ cong (λ x → comp x (comp k u'')) (sym linv) ⟩
+                        comp (comp invs s) (comp k u'')
+                        ≅⟨ ass ⟩
+                        comp invs (comp s (comp k u''))
+                        ≅⟨ cong (comp invs) (sym ass) ⟩
+                        comp invs (comp (comp s k) u'')
+                        ≅⟨ cong (comp invs) prop2'' ⟩
+                        comp invs k''
+                        ∎
+                  in pu' (pmap u'' prop1''' prop2'''))} 
+
+          iso = pullbackiso p' hexpul
+      in spaneq (PMap.mor (fst (prop p' hexsq))) iso {!!} {!!}
 
     .idlspan : {X Y : Obj} {mf : Span X Y} → compspan idspan mf ~Span~ mf
     idlspan {X}{Y}{mf} = 
@@ -314,7 +472,6 @@ module PartialMaps (X : Cat)(M : StableSys X) where
          ≅⟨ cong (comp (comp f'' k'')) prop2α ⟩ 
          comp (comp f'' k'') k'''
          ∎)    
-
 
     Q' : {_ _ : Obj} → Set
     Q' {A} {B} = Quotient.Q (quot (Span A B) Span~EqR)
