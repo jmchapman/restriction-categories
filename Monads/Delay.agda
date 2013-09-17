@@ -8,13 +8,14 @@ open import Function
 open import Relation.Binary.HeterogeneousEquality
 open import Utilities
 open import Functors
-open import Data.Product hiding (map)
+open import Data.Product renaming (map to pmap)
+open import Data.Unit
 
 data Delay (X : Set) : Set where
   now : X → Delay X
   later : ∞ (Delay X) → Delay X
 
--- strong bisimilarity
+-- Strong bisimilarity
 
 data _∼_ {X : Set} : Delay X → Delay X → Set where
   now∼ : ∀{x} → now x ∼ now x
@@ -32,7 +33,7 @@ trans∼ : ∀{X}{dx dx' dx'' : Delay X} → dx ∼ dx' → dx' ∼ dx'' → dx 
 trans∼ now∼ now∼ = now∼
 trans∼ (later∼ p) (later∼ q) = later∼ (♯ trans∼ (♭ p) (♭ q))
 
--- convergence
+-- Convergence
 
 data _↓_ {X : Set} : Delay X → X → Set where
   now↓ : ∀{y} → now y ↓ y
@@ -46,7 +47,7 @@ unique↓ : ∀{X}{dx : Delay X}{x y : X} → dx ↓ x → dx ↓ y → x ≅ y
 unique↓ now↓ now↓ = refl
 unique↓ (later↓ p) (later↓ q) = unique↓ p q
 
--- weak bisimilarity
+-- Weak bisimilarity
 
 data _≈_ {X : Set} : Delay X → Delay X → Set where
   ↓≈ : ∀{dy dy' y} → dy ↓ y → dy' ↓ y → dy ≈ dy'
@@ -98,23 +99,11 @@ trans≈ (↓≈ p (later↓ r)) (later≈ q) = ↓≈ p (later↓ (≈↓ (♭ 
 trans≈ (later≈ p) (↓≈ (later↓ q) s) = ↓≈ (later↓ (≈↓ (sym≈ (♭ p)) q)) s
 trans≈ (later≈ p) (later≈ q) = later≈ (♯ (trans≈ (♭ p) (♭ q)))
 
--- monad operations
+-- Monad operations
 
 dbind : ∀{X Y} → (X → Delay Y) → Delay X → Delay Y
 dbind f (now x)   = f x
 dbind f (later x) = later (♯ dbind f (♭ x))
-
-{-
-dbindconv-val : ∀{X Y}{f : X → Delay Y}{y : Y}(dx : Delay X) → dbind f dx ↓ y → 
-                X
-dbindconv-val (now x) p = x
-dbindconv-val (later dx) (later↓ p) = dbindconv-val (♭ dx) p
-
-dbindconv : ∀{X Y}{f : X → Delay Y}{y : Y}(dx : Delay X)(p : dbind f dx ↓ y) → 
-            dx ↓ dbindconv-val dx p
-dbindconv (now x) p = now↓
-dbindconv (later dx) (later↓ p) = later↓ (dbindconv (♭ dx) p)
--}
 
 dbindlater' : ∀{X Y}{f : X → ∞ (Delay Y)}(dx : Delay X)(dz : Delay Y) → 
               later (♯ (dbind (♭ ∘ f) dx)) ∼ dz →
@@ -140,7 +129,6 @@ dlaw3 : ∀{X Y Z}{f : X → Delay Y} {g : Y → Delay Z}(dx : Delay X) →
 dlaw3 {f = f}{g = g} (now x)   = refl≈
 dlaw3 {f = f}{g = g} (later x) = later≈ (♯ dlaw3 (♭ x))
 
-
 DelayM : Monad Sets
 DelayM = record { 
   T    = Delay; 
@@ -155,6 +143,39 @@ map = Fun.HMap (TFun DelayM)
 str : ∀{X Y} → X × Delay Y → Delay (X × Y)
 str (x , dy) = map (λ y → (x , y)) dy
 
+{-
+-- Strength laws
+
+μ : ∀{X} → Delay (Delay X) → Delay X
+μ ddx = dbind (λ dx → dx) ddx
+
+open import Data.Unit
+
+strlaw1 : ∀{X}{dx : Delay X} → map proj₂ (str (tt , dx)) ≈ dx
+strlaw1 {X} {now x} = ↓≈ now↓ now↓
+strlaw1 {X} {later dx} = later≈ (♯ strlaw1)
+
+strlaw2 : ∀{X Y}{x : X}{y : Y} → str (x , now y) ≈ now (x , y)
+strlaw2 = ↓≈ now↓ now↓
+
+α : {X Y Z : Set} → (X × Y) × Z → X × (Y × Z)
+α ((x , y) , z) = x , (y , z)
+
+strlaw3 : ∀{X Y Z}{x : X}{y : Y}{dz : Delay Z} → 
+          map α (str ((x , y) , dz)) ≈ 
+          str (pmap (λ a → a) str (α ((x , y) , dz)))
+strlaw3 {X} {Y} {Z} {x} {y} {now z} = ↓≈ now↓ now↓
+strlaw3 {X} {Y} {Z} {x} {y} {later dz} = later≈ (♯ strlaw3 {dz = ♭ dz})
+
+strlaw4 : ∀{X Y}{x : X}{ddy : Delay (Delay Y)} → 
+          μ (map str (str (x , ddy))) ≈ str (x , (μ ddy))
+strlaw4 {ddy = now dy} = refl≈
+strlaw4 {ddy = later ddy} = later≈ (♯ (strlaw4 {ddy = ♭ ddy}))
+-}
+
+
+-- Another composition called dcomp, weakly bisimilar to dbind but
+-- easier to use.
 
 dbindlater≈ : ∀{X Y}{f : X → ∞ (Delay Y)}(dx : Delay X) → 
               dbind (♭ ∘ f) dx ≈ dbind (later ∘ f) dx
@@ -209,7 +230,7 @@ dcomp≈dbind : ∀{X Y}{dx : Delay X}{dy : Delay Y} →
               dcomp dx dy ≈ dbind (λ _ → dy) dx
 dcomp≈dbind {dx = dx} {dy = dy} = dcomp≈dbind' dx dy _ refl≈ 
 
--- dcomp lemmata
+-- Some lemmata involving dcomp
 
 dcomp≈fst : ∀{X}{dx dy : Delay X} → dx ≈ dy → dcomp dx dy ≈ dx
 dcomp≈fst (↓≈ now↓ now↓) = ↓≈ now↓ now↓
@@ -249,8 +270,26 @@ a ≅' b = a ≅ b
 open import Relation.Binary
 open import Relation.Nullary.Core
 
+-- with decidability of equality in codomains
+
+dmeet-aux : ∀{X}{_≟_ : Decidable {A = X} _≅'_} → Delay X → Delay X → Delay X
+dmeet-aux {X}{_≟_} (now x) (now y) with x ≟ y
+dmeet-aux {X}{_≟_} (now x) (now .x) | yes refl = now x
+dmeet-aux {X}{_≟_} (now x) (now y) | no ¬p = 
+  later (♯ (dmeet-aux {X}{_≟_} (now x) (now y)))
+dmeet-aux {X}{_≟_} (now x) (later dy) = 
+  later (♯ (dmeet-aux {X}{_≟_} (now x) (♭ dy)))
+dmeet-aux {X}{_≟_} (later dx) (now y) = 
+  later (♯ (dmeet-aux {X}{_≟_} (♭ dx) (now y)))
+dmeet-aux {X}{_≟_} (later dx) (later dy) = 
+  later (♯ (dmeet-aux {X}{_≟_} (♭ dx) (♭ dy)))
+
+dmeet : {X Y : Set}{_≟_ : Decidable {A = Y}{B = Y} _≅'_}
+        (f g : X → Delay Y) → X → Delay Y
+dmeet {X}{Y}{_≟_} f g x = dmeet-aux {Y}{_≟_} (f x) (g x)
+
 {-
--- We have to require at least the semidecidability of equality in codomains 
+-- with semidecidability of equality in codomains 
 
 data SemiDec {p} (P : Set p) : Set p where
   yes  : ( p :   P) → SemiDec P
@@ -279,23 +318,21 @@ dmeet : {X Y : Set}{_≟_ : SemiDecidable {A = Y}{B = Y} _≅'_}
 dmeet {X}{Y}{_≟_} f g x = dmeet-aux {Y}{_≟_} (f x) (g x)
 -}
 
--- Meets with decidable equality
 
-dmeet-aux : ∀{X}{_≟_ : Decidable {A = X} _≅'_} → Delay X → Delay X → Delay X
-dmeet-aux {X}{_≟_} (now x) (now y) with x ≟ y
-dmeet-aux {X}{_≟_} (now x) (now .x) | yes refl = now x
-dmeet-aux {X}{_≟_} (now x) (now y) | no ¬p = 
-  later (♯ (dmeet-aux {X}{_≟_} (now x) (now y)))
-dmeet-aux {X}{_≟_} (now x) (later dy) = 
-  later (♯ (dmeet-aux {X}{_≟_} (now x) (♭ dy)))
-dmeet-aux {X}{_≟_} (later dx) (now y) = 
-  later (♯ (dmeet-aux {X}{_≟_} (♭ dx) (now y)))
-dmeet-aux {X}{_≟_} (later dx) (later dy) = 
-  later (♯ (dmeet-aux {X}{_≟_} (♭ dx) (♭ dy)))
 
-dmeet : {X Y : Set}{_≟_ : Decidable {A = Y}{B = Y} _≅'_}
-        (f g : X → Delay Y) → X → Delay Y
-dmeet {X}{Y}{_≟_} f g x = dmeet-aux {Y}{_≟_} (f x) (g x)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 {-
 

@@ -20,6 +20,7 @@ open Cat (Kl DelayM)
 drest : ∀{X Y} → (X → Delay Y) → X → Delay X
 drest f x = map proj₁ (str (x , f x))
 
+{-
 -- A lemma we need for R4
 
 funcong∼ : ∀{X Y}(dx : Delay X)(f g : X → Delay Y) → ((x : X) → f x ∼ g x) → 
@@ -431,6 +432,29 @@ dJn1a {f = f}{g = g}{p = p} = ext (λ x →
   ≅⟨ quotient (∼→≈ (dJn1a-aux {_} {f x} {g x} {p})) ⟩
   f x
   ∎)
+-}
+
+-- Independence (also called disjointness)
+
+data _d⊥_  {X Y : Set} : Delay X → Delay Y → Set where
+  now⊥later   : ∀{x dy} → ∞ (now x d⊥ (♭ dy)) → now x d⊥ later dy
+  later⊥now   : ∀{dx y} → ∞ ((♭ dx) d⊥ now y) → later dx d⊥ now y
+  later⊥later : ∀{dx dy} → ∞ ((♭ dx) d⊥ (♭ dy)) → later dx d⊥ later dy
+
+_⊥_ : ∀{X Y} → (X → Delay X) → (X → Delay Y) → Set
+f ⊥ g = ∀ x → f x d⊥ g x
+
+-- Iteration
+
+d† : ∀{X Y} → (X → Delay X) → Delay X → Delay Y → Delay Y
+d† f (now x) dy = later (♯ (d† f (f x) dy))
+d† f (later dx) (now y) = now y
+d† f (later dx) (later dy) = later (♯ (d† f (♭ dx) (♭ dy)))
+
+_†_ : ∀{X Y} → (X → Delay X) → (X → Delay Y) → X → Delay Y
+(f † g) x = d† f (f x) (g x)
+
+
 
 
 
