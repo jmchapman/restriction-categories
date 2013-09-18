@@ -250,9 +250,7 @@ module Completeness (X : SplitRestCat) where
       _ 
       (~trans (fcomp {g = g}{f = f}) (~sym (~cong (ax3' _) (ax3' _))))}
 
-{-
-
-  .frest : ∀{A B}{f : Hom A B} → restp (HMap1 f) ≅ HMap1 (rest f)
+  .frest : ∀{A B}{f : Hom A B} → restp (HMap1 f) ~Span~ HMap1 (rest f)
   frest {A}{B}{f = f} = 
     let open Split (rsplit f) renaming (B to A'; s to m)
         open Split (rsplit (rest f)) renaming (B to A''; s to m'; r to r'; law1 to law1'; law2 to law2')
@@ -305,19 +303,19 @@ module Completeness (X : SplitRestCat) where
           m
           ∎
 
-    in quotient (restp (HMap1 f)) 
-                (HMap1 (rest f)) 
-                (record { hom = proj₁ umap; tot = lemiii rcat (iso→mono cat (proj₂ umap)) }) 
-                (IsoTot (record { hom = proj₁ umap; tot = lemiii rcat (iso→mono cat (proj₂ umap))}) (proj₂ umap))
-                (TotEq _ _ ulaw2)
-                (TotEq _ _ eq)
+    in spaneq
+      (record { hom = proj₁ umap; tot = lemiii rcat (iso→mono cat (proj₂ umap)) }) 
+      (IsoTot (record { hom = proj₁ umap; tot = lemiii rcat (iso→mono cat (proj₂ umap))}) (proj₂ umap))
+      (TotEq _ _ ulaw2)
+      (TotEq _ _ eq)
 
   RFunct : RestFun rcat RestPartials
   RFunct = record {
     fun = Funct;
-    frest = λ {_}{_}{f} → frest {f = f} }
-
--}
+    frest = λ {_}{_}{f} → ax1'
+      _
+      _
+      (~trans (Span~restp (ax3' _)) (frest {f = f})) }
 
 {-
   HMap2 : ∀{A C} → Q' {A} {C} → Hom A C
