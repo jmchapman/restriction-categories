@@ -430,13 +430,10 @@ module Completeness (X : SplitRestCat) where
     fun = Funct2;
     frest = frest2 }
 
-{-
 -- Iso proof
 
-
-
-  .HIso1 : ∀{A C}(sp : Span A C) → HMap1 (HMap2 sp) ≅ sp
-  HIso1 {A}{C} sp = 
+  .HIso1' : ∀{A C}(sp : Span A C) → HMap1 (HMap2 sp) ~Span~ sp
+  HIso1' {A}{C} sp = 
     let open Span sp renaming (mhom to nt; fhom to gt; m∈ to n∈)
         open Tot nt renaming (hom to n)
         open Tot gt renaming (hom to g; tot to gp)
@@ -499,13 +496,17 @@ module Completeness (X : SplitRestCat) where
           g
           ∎
 
-    in sym (quotient sp 
-                (HMap1 (HMap2 sp)) 
+    in ~sym (spaneq
                 αt 
                 (IsoTot αt (proj₂ (lemmamap (record { E = A; e = rest r; law = lemii rcat}) spl spl')))
                 (TotEq _ nt (lemmalaw2 (record { E = A; e = rest r; law = lemii rcat}) spl spl'))
                 (TotEq _ gt equat))
 
+  .HIso1 : ∀{A C}(q : Q' {A} {C}) → abs' (HMap1 (HMap2 (rep' q))) ≅ q
+  HIso1 {A}{C} q = trans (ax1' _ _ (HIso1' (rep' q))) (ax2' q)
+
+
+{-
   .HIso2 : ∀{A C}(f : Hom A C) → HMap2 (HMap1 f) ≅ f
   HIso2 {A}{C} f = 
     let open Split (rsplit f)
