@@ -31,7 +31,7 @@ module Completeness (X : SplitRestCat) where
   open import Categories.Monos cat
   open import Categories.Isos
 
-
+{-
 -- Functor definition
 
   .totcomprest : {A C : Obj}(f : Hom A C) → (sp : Split (record { E = A; e = rest f; law = lemii rcat })) →
@@ -316,20 +316,9 @@ module Completeness (X : SplitRestCat) where
       _
       _
       (~trans (Span~restp (ax3' _)) (frest {f = f})) }
-
-{-
-  HMap2 : ∀{A C} → Q' {A} {C} → Hom A C
-  HMap2 {A}{C} q =
-    let open Span (rep' q)
-        open Tot fhom renaming (hom to g)
-        open SRestIde m∈
-    in comp g rs
-
-  fid2 : ∀{A} → HMap2 (abs' (idspan {A})) ≅ iden {A}
-  fid2 {A} = trans {!!} {!!}
 -}
 
-{-
+
   HMap2 : ∀{A C} → Span A C → Hom A C
   HMap2 {A}{C} sp = 
     let open Span sp
@@ -337,11 +326,13 @@ module Completeness (X : SplitRestCat) where
         open SRestIde m∈
     in comp g rs
 
-  .fid2 : ∀{A} → HMap2 (idspan {A}) ≅ iden {A}
-  fid2 {A} = idl
+  postulate HMap2~Span : ∀{A B}{sp sp' : Span A B} → sp ~Span~ sp' → HMap2 sp ≅ HMap2 sp'
 
-  .fcomp2 : ∀{A B C}{sp' : Span B C}{sp : Span A B} → HMap2 (compspan sp' sp) ≅ comp (HMap2 sp') (HMap2 sp)
-  fcomp2 {A}{B}{C}{sp'}{sp} =
+  .fid2 : ∀{A} → HMap2 (rep' (abs' (idspan {A}))) ≅ iden {A}
+  fid2 = trans (HMap2~Span (ax3' _)) idl
+
+  .fcomp2' : ∀{A B C}{sp' : Span B C}{sp : Span A B} → HMap2 (compspan sp' sp) ≅ comp (HMap2 sp') (HMap2 sp)
+  fcomp2' {A}{B}{C}{sp'}{sp} =
     let open Span sp 
         open Span sp' renaming (A' to A''; mhom to mhom'; fhom to fhom'; m∈ to m∈')
         open Span (compspan sp' sp) renaming (A' to A'''; mhom to mhom''; fhom to fhom''; m∈ to m∈'')
@@ -403,14 +394,16 @@ module Completeness (X : SplitRestCat) where
       comp (comp g rg) (comp f rf) 
       ∎
 
+  .fcomp2 : ∀{A B C}{q' : Q' {B} {C}}{q : Q' {A} {B}} → HMap2 (rep' (abs' (compspan (rep' q') (rep' q)))) ≅ comp (HMap2 (rep' q')) (HMap2 (rep' q))
+  fcomp2 {A}{B}{C}{q'}{q} = trans (HMap2~Span (ax3' _)) (fcomp2' {sp' = rep' q'}{sp = rep' q})
 
   Funct2 : Fun Par cat
   Funct2 = record {
     OMap = λ A → A; 
     HMap = HMap2 ∘ rep';
     fid = fid2;
-    fcomp = λ {_}{_}{_}{sp'}{sp} → fcomp2 {sp' = sp'} {sp = sp} }
--}
+    fcomp = fcomp2 }
+
 
 {-
   open Fun
