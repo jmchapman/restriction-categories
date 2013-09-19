@@ -31,7 +31,6 @@ module Completeness (X : SplitRestCat) where
   open import Categories.Monos cat
   open import Categories.Isos
 
-{-
 -- Functor definition
 
   .totcomprest : {A C : Obj}(f : Hom A C) → (sp : Split (record { E = A; e = rest f; law = lemii rcat })) →
@@ -316,8 +315,6 @@ module Completeness (X : SplitRestCat) where
       _
       _
       (~trans (Span~restp (ax3' _)) (frest {f = f})) }
--}
-
 
   HMap2 : ∀{A C} → Span A C → Hom A C
   HMap2 {A}{C} sp = 
@@ -404,12 +401,10 @@ module Completeness (X : SplitRestCat) where
     fid = fid2;
     fcomp = fcomp2 }
 
-
-{-
   open Fun
 
-  .frest2 : ∀{A B}{sp : Span A B} → rest (HMap Funct2 sp) ≅ HMap Funct2 (restp sp)
-  frest2 {sp = sp} = 
+  .frest2' : ∀{A B}{sp : Span A B} → rest (HMap2 sp) ≅ HMap2 (restp sp)
+  frest2' {sp = sp} = 
     let open Span sp renaming (mhom to mp; fhom to fp)
         open Tot mp renaming (hom to m)
         open Tot fp renaming (hom to f; tot to ft)
@@ -427,12 +422,15 @@ module Completeness (X : SplitRestCat) where
       comp m r
       ∎
 
+  .frest2 : ∀{A B}{q : Q' {A} {B}} → rest (HMap2 (rep' q)) ≅ HMap2 (rep' (abs' (restp (rep' q))))
+  frest2 {q = q} = trans (frest2' {sp = rep' q}) (HMap2~Span (~sym (ax3' _)))
+
   RFunct2 : RestFun RestPartials rcat
   RFunct2 = record {
     fun = Funct2;
-    frest = λ {_}{_}{sp} → frest2 {sp = sp} }
+    frest = frest2 }
 
-
+{-
 -- Iso proof
 
 
@@ -521,7 +519,10 @@ module Completeness (X : SplitRestCat) where
       ≅⟨ R1 ⟩
       f
       ∎
+-}
 
+
+{-
   IsoCompl : Iso CCat Funct
   IsoCompl = Funct2 ,, 
              Fun≅ refl HIso1 ,, 
