@@ -505,10 +505,8 @@ module Completeness (X : SplitRestCat) where
   .HIso1 : ∀{A C}(q : Q' {A} {C}) → abs' (HMap1 (HMap2 (rep' q))) ≅ q
   HIso1 {A}{C} q = trans (ax1' _ _ (HIso1' (rep' q))) (ax2' q)
 
-
-{-
-  .HIso2 : ∀{A C}(f : Hom A C) → HMap2 (HMap1 f) ≅ f
-  HIso2 {A}{C} f = 
+  .HIso2' : ∀{A C}(f : Hom A C) → HMap2 (HMap1 f) ≅ f
+  HIso2' {A}{C} f = 
     let open Split (rsplit f)
     in 
       proof
@@ -520,7 +518,9 @@ module Completeness (X : SplitRestCat) where
       ≅⟨ R1 ⟩
       f
       ∎
--}
+
+  .HIso2 : ∀{A C}(f : Hom A C) → HMap2 (rep' (abs' (HMap1 f))) ≅ f
+  HIso2 f = trans (HMap2~Span (ax3' _)) (HIso2' f)
 
 
 {-
