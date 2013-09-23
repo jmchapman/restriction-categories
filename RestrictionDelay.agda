@@ -454,17 +454,56 @@ d† f (later dx) (later dy) = later (♯ (d† f (♭ dx) (♭ dy)))
 _†_ : ∀{X Y} → (X → Delay X) → (X → Delay Y) → X → Delay Y
 (f † g) x = d† f (f x) (g x)
 
+open import Data.Sum
 
 
+iter' : ∀{X Y} → (X → Delay (X ⊎ Y)) → Delay (X ⊎ Y) → Delay Y
+iter' f (now (inj₁ x)) = later (♯ (iter' f (f x)))
+iter' f (now (inj₂ y)) = now y
+iter' f (later dx) = later (♯ (iter' f (♭ dx)))
+
+iter : ∀{X Y} → (X → Delay (X ⊎ Y)) → X → Delay Y
+iter f x = iter' f (f x)
+
+d⊎' : ∀{X Y} → Delay X → Delay Y → Delay (X ⊎ Y)
+d⊎' (now x)    dy         = now (inj₁ x)
+d⊎' (later dx) (now y)    = now (inj₂ y)
+d⊎' (later dx) (later dy) = later (♯ (d⊎' (♭ dx) (♭ dy)))
+
+d⊎ : {X Y Z : Set} → (Z → Delay X) → (Z → Delay Y) → Z → Delay (X ⊎ Y)
+d⊎ f g z = d⊎' (f z) (g z)
+
+d†→iter' : ∀{X Y}(f : X → Delay X)(dx : Delay X)(dy dy' : Delay Y) → dy ≈ dy' → 
+           d† f dx dy ≈ iter' (d⊎ f (λ _ → dy')) (d⊎' dx dy)
+d†→iter' f (now x) dy dy' p = later≈ (♯ {!!})
+--trans≈ (d†→iter' f (f x) dy dy' p) (iter'≈ (d⊎ f (λ _ → dy')) (d⊎' (f x) dy) (d⊎ f (λ _ → dy') x) ?)
+d†→iter' f (later dx) (now y) dy' p = ↓≈ now↓ now↓
+d†→iter' f (later dx) (later dy) dy' p = later≈ (♯ (d†→iter' f (♭ dx) (♭ dy) dy' (trans≈ laterlem (trans≈ (later≈ (♯ refl≈)) p))))
 
 
+{-
+d†→iter' : ∀{X Y}(f : X → Delay X)(g : X → Delay Y) → 
+           (dx : Delay X)(dy : Delay Y) → 
+           d† f dx dy ≈ iter' (d⊎ f g) (d⊎' dx dy)
+d†→iter' f g (now x) dy = later≈ (♯ {!d†→iter' f g (f x) dy!})
+d†→iter' f g (later dx) dy = {!!}
 
 
+iter'≈ : ∀{X Y}(f : X → Delay (X ⊎ Y))(dx dy : Delay (X ⊎ Y)) → dx ≈ dy → 
+         iter' f dx ≈ iter' f dy
+iter'≈ f dx dy p = {!!}
 
+d†→iter' : ∀{X Y}(f : X → Delay X)(g : X → Delay Y) → 
+           (dx : Delay X)(dy : Delay Y) → 
+           d† f dx dy ≈ iter' (d⊎ f g) (d⊎' dx dy)
+d†→iter' f g (now x) dy = later≈ (♯ {!trans≈ (d†→iter' f g (f x) dy) (iter'≈ (d⊎ f g) (d⊎' (f x) dy) (d⊎ f g x) ?)!})
+d†→iter' f g (later dx) (now y) = refl≈
+d†→iter' f g (later dx) (later dy) = later≈ (♯ (d†→iter' f g (♭ dx) (♭ dy)))
 
-
-
-
+d†→iter : ∀{X Y}(f : X → Delay X)(g : X → Delay Y)(x : X) → 
+          (f † g) x ≈ iter (d⊎ f g) x
+d†→iter f g x = d†→iter' f g (f x) (g x)
+-}
 
 
 
