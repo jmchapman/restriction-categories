@@ -1,4 +1,3 @@
-{-# OPTIONS --experimental-irrelevance #-}
 open import SplitRestCats
 
 module Completeness (X : SplitRestCat) where
