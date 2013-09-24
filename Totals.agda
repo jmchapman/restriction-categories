@@ -86,3 +86,6 @@ module Totals (X : RestCat) where
     in gt  ,, 
      TotEq (comptot f gt) identot p ,,
      TotEq (comptot gt f) identot q
+
+  TotEqHom : ∀{A B}{f g : Tot A B} → f ≅ g → hom f ≅ hom g
+  TotEqHom refl = refl

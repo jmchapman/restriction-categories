@@ -325,6 +325,125 @@ module Completeness (X : SplitRestCat) where
 
   postulate HMap2~Span : ∀{A B}{sp sp' : Span A B} → sp ~Span~ sp' → HMap2 sp ≅ HMap2 sp'
 
+{-
+  .HMap2~Span : ∀{A B}{sp sp' : Span A B} → sp ~Span~ sp' → HMap2 sp ≅ HMap2 sp'
+  HMap2~Span {A}{B}{sp}{sp'} (spaneq iso (inv ,, rinv ,, linv) p q) = 
+    let open Span sp 
+        open Span sp' renaming (A' to A''; mhom to mhom'; fhom to fhom'; m∈ to m∈')
+
+        open Tot mhom renaming (hom to m)
+        open Tot mhom' renaming (hom to m')
+        open Tot fhom renaming (hom to f)
+        open Tot fhom' renaming (hom to g)
+        open Tot iso renaming (hom to s; tot to st) 
+        open Tot inv renaming (hom to s⁻¹)
+
+
+        open SRestIde m∈ renaming (As to Af; rs to rf; law1s to law1f; law2s to law2f)        
+        open SRestIde m∈' renaming (As to Ag; fs to e; rs to rg; law1s to law1g; law2s to law2g)
+
+        .seq1 : s ≅ comp rg m
+        seq1 = 
+          proof 
+          s
+          ≅⟨ sym idl ⟩
+          comp iden s
+          ≅⟨ cong (λ y → comp y s) (sym law2g) ⟩
+          comp (comp rg m') s
+          ≅⟨ ass ⟩
+          comp rg (comp m' s)
+          ≅⟨ cong (comp rg) (TotEqHom p) ⟩
+          comp rg m
+          ∎
+
+        .seq2 : s⁻¹ ≅ comp rf m'
+        seq2 = 
+          proof 
+          s⁻¹
+          ≅⟨ sym idl ⟩
+          comp iden s⁻¹
+          ≅⟨ cong (λ y → comp y s⁻¹) (sym law2f) ⟩
+          comp (comp rf m) s⁻¹
+          ≅⟨ ass ⟩
+          comp rf (comp m s⁻¹)
+          ≅⟨ cong (λ y → comp rf (comp y s⁻¹)) (sym (TotEqHom p)) ⟩
+          comp rf (comp (comp m' s) s⁻¹)
+          ≅⟨ cong (comp rf) ass ⟩
+          comp rf (comp m' (comp s s⁻¹))
+          ≅⟨ cong ((comp rf) ∘ (comp m')) (TotEqHom rinv) ⟩
+          comp rf (comp m' iden)
+          ≅⟨ cong (comp rf) idr ⟩
+          comp rf m'
+          ∎
+
+        .rgeq1 : rg ≅ comp s (comp rf (rest rg))
+        rgeq1 = 
+          proof
+          rg
+          ≅⟨ sym idl ⟩
+          comp iden rg
+          ≅⟨ cong (λ y → comp y rg) (sym (TotEqHom rinv)) ⟩
+          comp (comp s s⁻¹) rg
+          ≅⟨ ass ⟩
+          comp s (comp s⁻¹ rg)
+          ≅⟨ cong (λ y → comp s (comp y rg)) seq2 ⟩
+          comp s (comp (comp rf m') rg)
+          ≅⟨ cong (comp s) ass ⟩
+          comp s (comp rf (comp m' rg))
+          ≅⟨ cong ((comp s) ∘ (comp rf)) (SRIdeProp m∈') ⟩
+          comp s (comp rf (rest rg))
+          ∎
+
+        .restrgeq : rest rg ≅ comp (rest rg) (rest rf)
+        restrgeq = 
+          proof
+          rest rg
+          ≅⟨ cong rest rgeq1 ⟩
+          rest (comp s (comp rf (rest rg)))
+          ≅⟨ lemiv ⟩
+          rest (comp (rest s) (comp rf (rest rg)))
+          ≅⟨ cong (λ y → rest (comp y (comp rf (rest rg)))) st ⟩
+          rest (comp iden (comp rf (rest rg)))
+          ≅⟨ cong rest idl ⟩
+          rest (comp rf (rest rg))
+          ≅⟨ sym R3 ⟩
+          comp (rest rf) (rest rg)
+          ≅⟨ R2 ⟩
+          comp (rest rg) (rest rf)
+          ∎
+
+        .rgeq2 : rg ≅ comp rg (rest rf)
+        rgeq2 = 
+          proof
+          rg
+          ≅⟨ sym R1 ⟩
+          comp rg (rest rg)
+          ≅⟨ cong (comp rg) restrgeq ⟩
+          comp rg (comp (rest rg) (rest rf))
+          ≅⟨ sym ass ⟩
+          comp (comp rg (rest rg)) (rest rf)
+          ≅⟨ cong (λ y → comp y (rest rf)) R1 ⟩
+          comp rg (rest rf)
+          ∎
+
+    in 
+      proof
+      comp f rf
+      ≅⟨ cong (λ y → comp y rf) (sym (TotEqHom q)) ⟩
+      comp (comp g s) rf
+      ≅⟨ ass ⟩
+      comp g (comp s rf)
+      ≅⟨ cong (λ y → comp g (comp y rf)) seq1 ⟩
+      comp g (comp (comp rg m) rf)
+      ≅⟨ cong (comp g) ass ⟩
+      comp g (comp rg (comp m rf))
+      ≅⟨ cong ((comp g) ∘ (comp rg)) (SRIdeProp m∈) ⟩
+      comp g (comp rg (rest rf))
+      ≅⟨ cong (comp g) (sym rgeq2) ⟩
+      comp g rg
+      ∎
+-}
+
   .fid2 : ∀{A} → HMap2 (rep' (abs' (idspan {A}))) ≅ iden {A}
   fid2 = trans (HMap2~Span (ax3' _)) idl
 
