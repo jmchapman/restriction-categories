@@ -23,12 +23,12 @@ module PartialMaps (X : Cat)(M : StableSys X) where
             fhom : Hom A' B
             m∈ : ∈ mhom
 
-    data _~Span~_ {A B}(mf m'f' : Span A B) : Set where
-      spaneq : (s : Hom (Span.A' mf) (Span.A' m'f')) → 
-               Iso s → 
-               .(comp (Span.mhom m'f') s ≅ (Span.mhom mf)) →
-               .(comp (Span.fhom m'f') s ≅ (Span.fhom mf)) → 
-               mf ~Span~ m'f'
+    record _~Span~_ {A B}(mf m'f' : Span A B) : Set where
+      constructor spaneq 
+      field s : Hom (Span.A' mf) (Span.A' m'f')
+            siso :   Iso s
+            .p  : comp (Span.mhom m'f') s ≅ (Span.mhom mf)
+            .q  : comp (Span.fhom m'f') s ≅ (Span.fhom mf)
 
     ~refl : ∀{A B}{mf : Span A B} → mf ~Span~ mf
     ~refl {A}{B}{mf} = 

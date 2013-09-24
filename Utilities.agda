@@ -16,7 +16,7 @@ postulate ext : {A : Set}{B B' : A → Set}{f : ∀ a → B a}{g : ∀ a → B' 
 
 postulate iext : {A : Set}{B B' : A → Set}{f : ∀ {a} → B a}{g : ∀{a} → B' a} → 
                  (∀ a → f {a} ≅ g {a}) → 
-                 _≅_ {_}{ {a : A} → B a} f {_} { {a : A} → B' a} g
+                 _≅_ {_}{ {a : A} → B a} f { {a : A} → B' a} g
 
 --data Reveal_is_ {A : Set} (x : Hidden A) (y : A) : Set where
 --  [_] : (eq : reveal x ≅ y) → Reveal x is y
@@ -78,3 +78,5 @@ record Quotient (A : Set) (EQ : EqR A) : Set where
         ax3 : (a : A) → rep (abs a) ~ a
 
 postulate quot : (A : Set) (EQ : EqR A) → Quotient A EQ
+
+postulate .irrelevant : {A : Set} → .A → A

@@ -68,7 +68,7 @@ module Totals (X : RestCat) where
   .MonoTot : ∀{A B}(f : Tot A B) → Mono cat (hom f) → Mono Total f
   MonoTot f p {C}{g}{h} q = TotEq g h (p (cong hom q))
 
-  .IsoTot : ∀{A B}(f : Tot A B) → Iso cat (hom f) → Iso Total f
+  IsoTot : ∀{A B}(f : Tot A B) → Iso cat (hom f) → Iso Total f
   IsoTot f fiso = 
     let open Iso cat fiso renaming (inv to g; rinv to p; linv to q) 
         open Tot f renaming (hom to fhom)
@@ -88,4 +88,4 @@ module Totals (X : RestCat) where
      TotEq (comptot gt f) identot q
 
   TotEqHom : ∀{A B}{f g : Tot A B} → f ≅ g → hom f ≅ hom g
-  TotEqHom refl = refl
+  TotEqHom p = cong hom p
