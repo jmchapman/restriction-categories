@@ -79,4 +79,4 @@ record Quotient (A : Set) (EQ : EqR A) : Set where
 
 postulate quot : (A : Set) (EQ : EqR A) → Quotient A EQ
 
-postulate .irrelevant : {A : Set} → .A → A
+--postulate .irrelevant : {A : Set} → .A → A

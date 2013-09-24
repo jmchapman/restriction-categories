@@ -342,7 +342,7 @@ module Completeness (X : SplitRestCat) where
         open SRestIde m∈ renaming (As to Af; rs to rf; law1s to law1f; law2s to law2f)        
         open SRestIde m∈' renaming (As to Ag; fs to e; rs to rg; law1s to law1g; law2s to law2g)
 
-        .seq1 : s ≅ comp rg m
+        seq1 : s ≅ comp rg m
         seq1 = 
           proof 
           s
@@ -356,7 +356,7 @@ module Completeness (X : SplitRestCat) where
           comp rg m
           ∎
 
-        .seq2 : s⁻¹ ≅ comp rf m'
+        seq2 : s⁻¹ ≅ comp rf m'
         seq2 = 
           proof 
           s⁻¹
@@ -376,7 +376,7 @@ module Completeness (X : SplitRestCat) where
           comp rf m'
           ∎
 
-        .rgeq1 : rg ≅ comp s (comp rf (rest rg))
+        rgeq1 : rg ≅ comp s (comp rf (rest rg))
         rgeq1 = 
           proof
           rg
@@ -394,7 +394,7 @@ module Completeness (X : SplitRestCat) where
           comp s (comp rf (rest rg))
           ∎
 
-        .restrgeq : rest rg ≅ comp (rest rg) (rest rf)
+        restrgeq : rest rg ≅ comp (rest rg) (rest rf)
         restrgeq = 
           proof
           rest rg
@@ -412,7 +412,7 @@ module Completeness (X : SplitRestCat) where
           comp (rest rg) (rest rf)
           ∎
 
-        .rgeq2 : rg ≅ comp rg (rest rf)
+        rgeq2 : rg ≅ comp rg (rest rf)
         rgeq2 = 
           proof
           rg
@@ -426,8 +426,7 @@ module Completeness (X : SplitRestCat) where
           comp rg (rest rf)
           ∎
 
-    in irrelevant
-      (proof
+    in proof
        comp f rf
        ≅⟨ cong (λ y → comp y rf) (sym (TotEqHom q)) ⟩
        comp (comp g s) rf
@@ -441,7 +440,7 @@ module Completeness (X : SplitRestCat) where
        comp g (comp rg (rest rf))
        ≅⟨ cong (comp g) (sym rgeq2) ⟩
        comp g rg
-       ∎)
+       ∎
 
 
   .fid2 : ∀{A} → HMap2 (rep' (abs' (idspan {A}))) ≅ iden {A}
