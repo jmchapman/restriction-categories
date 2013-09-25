@@ -47,6 +47,9 @@ unique↓ : ∀{X}{dx : Delay X}{x y : X} → dx ↓ x → dx ↓ y → x ≅ y
 unique↓ now↓ now↓ = refl
 unique↓ (later↓ p) (later↓ q) = unique↓ p q
 
+never : ∀{X} → Delay X
+never = later (♯ never)
+
 -- Weak bisimilarity
 
 data _≈_ {X : Set} : Delay X → Delay X → Set where
@@ -264,7 +267,7 @@ dcomp↓snd {X}{Y}{later dx}{later dy} (later↓ p) =
 
 -- Meets
 
-_≅'_ : ∀{a b}{A : Set a}{B : Set b} → A → B → Set
+_≅'_ : ∀{a}{A B : Set a} → A → B → Set a
 a ≅' b = a ≅ b
 
 open import Relation.Binary

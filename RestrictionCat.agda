@@ -80,7 +80,8 @@ module Lemmata {a b}(X : RestCat {a}{b}) where
     rest (comp (rest g) f) 
     ∎
 
-  _≤_ : ∀{A B} → Hom A B → Hom A B → Set
+{-
+  _≤_ : ∀{A B} → Hom A B → Hom A B → Set b
   f ≤ g = comp g (rest f) ≅ f
 
   -- antisymmetry
@@ -103,7 +104,7 @@ module Lemmata {a b}(X : RestCat {a}{b}) where
     ≅⟨ q ⟩ 
     g 
     ∎
-
+-}
 
 
 Trivial : ∀{a b} → Cat {a}{b} → RestCat

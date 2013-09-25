@@ -22,8 +22,7 @@ prod≅ : ∀{a b}{A : Set a}{B : A → Set b}{x y : Σ A B} → proj₁ x ≅ p
         proj₂ x ≅ proj₂ y → x ≅ y
 prod≅ refl refl = refl
 
-prod≅' : ∀{a b c d}{A : Set a}{A' : Set b}{B : Set c}{B' : Set d}
-         {x : A × B}{y : A' × B'} → 
+prod≅' : ∀{a b}{A A' : Set a}{B B' : Set b}{x : A × B}{y : A' × B'} → 
          proj₁ x ≅ proj₁ y → proj₂ x ≅ proj₂ y → x ≅ y
 prod≅' refl refl = refl
 

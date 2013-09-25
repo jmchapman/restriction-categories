@@ -55,7 +55,7 @@ F ○ G = record{
   fid   = ○fid F G;
   fcomp = ○fcomp F G}
 
-Faithful : ∀{a b c d}{C : Cat {a}{b}}{D : Cat {c}{d}} → Fun C D → Set (a ⊔ b)
+Faithful : ∀{a b c d}{C : Cat {a}{b}}{D : Cat {c}{d}} → Fun C D → Set (d ⊔ (b ⊔ a))
 Faithful {_}{_}{_}{_}{C} F = ∀{A B}{f g : Hom C A B} → HMap F f ≅ HMap F g → f ≅ g
 
 Full : ∀{a b c d}{C : Cat {a}{b}}{D : Cat {c}{d}} → Fun C D → Set (d ⊔ b ⊔ a)

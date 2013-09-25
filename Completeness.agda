@@ -96,7 +96,7 @@ module Completeness {a b}(X : SplitRestCat {a}{b}) where
         _ 
         _ 
         (record { hom = s; tot = lemiii rcat (smon s (r , law2)) })
-        (Iso.inv Total (IsoTot stot isos) ,,
+        (Iso.inv (IsoTot stot isos) ,,
         TotEq _ _ (
           proof
           comp s r
