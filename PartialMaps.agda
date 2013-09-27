@@ -1,4 +1,4 @@
-
+{-# OPTIONS --type-in-type #-}
 open import Categories
 open import Stable
 open import Relation.Binary.HeterogeneousEquality
@@ -121,11 +121,20 @@ module PartialMaps (X : Cat)(M : StableSys X) where
          f ∎)
 
     Span~EqR : ∀{A B} → EqR (Span A B)
+    Span~EqR = _~Span~_ , 
+               record { 
+                 refl  = ~refl; 
+                 sym   = ~sym; 
+                 trans = ~trans }
+
+{-
+    Span~EqR : ∀{A B} → EqR (Span A B)
     Span~EqR = record { 
       _~_    = _~Span~_; 
       ~refl  = ~refl; 
       ~sym   = ~sym; 
       ~trans = ~trans }
+-}
 
     idspan : {X : Obj} → Span X X
     idspan = record { 

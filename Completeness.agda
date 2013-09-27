@@ -93,7 +93,7 @@ module Completeness (X : SplitRestCat) where
 
       in spaneq
         (record { hom = s; tot = lemiii rcat (smon s (r , law2)) })
-        (Iso.inv Total (IsoTot stot isos) ,,
+        (Iso.inv (IsoTot stot isos) ,,
         TotEq _ _ (
           proof
           comp s r
