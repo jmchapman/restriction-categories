@@ -241,12 +241,12 @@ module Completeness (X : SplitRestCat) where
   Funct : Fun cat Par
   Funct = record { 
     OMap = λ A → A; 
-    HMap = abs' ∘ HMap1;
-    fid = ax1' _ _ fid;
-    fcomp = λ {_}{_}{_}{g}{f} → ax1' 
+    HMap = abs ∘ HMap1;
+    fid = ax1 _ _ fid;
+    fcomp = λ {_}{_}{_}{g}{f} → ax1 
       _ 
       _ 
-      (~trans (fcomp {g = g}{f = f}) (~sym (~cong (ax3' _) (ax3' _))))}
+      (~trans (fcomp {g = g}{f = f}) (~sym (~cong (ax3 _) (ax3 _))))}
 
   .frest : ∀{A B}{f : Hom A B} → restp (HMap1 f) ~Span~ HMap1 (rest f)
   frest {A}{B}{f = f} = 
@@ -310,10 +310,10 @@ module Completeness (X : SplitRestCat) where
   RFunct : RestFun rcat RestPartials
   RFunct = record {
     fun = Funct;
-    frest = λ {_}{_}{f} → ax1'
+    frest = λ {_}{_}{f} → ax1
       _
       _
-      (~trans (Span~restp (ax3' _)) (frest {f = f})) }
+      (~trans (Span~restp (ax3 _)) (frest {f = f})) }
 
   HMap2 : ∀{A C} → Span A C → Hom A C
   HMap2 {A}{C} sp = 
@@ -443,8 +443,8 @@ module Completeness (X : SplitRestCat) where
        ∎
 
 
-  .fid2 : ∀{A} → HMap2 (rep' (abs' (idspan {A}))) ≅ iden {A}
-  fid2 = trans (HMap2~Span (ax3' _)) idl
+  .fid2 : ∀{A} → HMap2 (rep (abs (idspan {A}))) ≅ iden {A}
+  fid2 = trans (HMap2~Span (ax3 _)) idl
 
   .fcomp2' : ∀{A B C}{sp' : Span B C}{sp : Span A B} → HMap2 (compspan sp' sp) ≅ comp (HMap2 sp') (HMap2 sp)
   fcomp2' {A}{B}{C}{sp'}{sp} =
@@ -509,13 +509,13 @@ module Completeness (X : SplitRestCat) where
       comp (comp g rg) (comp f rf) 
       ∎
 
-  .fcomp2 : ∀{A B C}{q' : Q' {B} {C}}{q : Q' {A} {B}} → HMap2 (rep' (abs' (compspan (rep' q') (rep' q)))) ≅ comp (HMap2 (rep' q')) (HMap2 (rep' q))
-  fcomp2 {A}{B}{C}{q'}{q} = trans (HMap2~Span (ax3' _)) (fcomp2' {sp' = rep' q'}{sp = rep' q})
+  .fcomp2 : ∀{A B C}{q' : QSpan B C}{q : QSpan A B} → HMap2 (rep (abs (compspan (rep q') (rep q)))) ≅ comp (HMap2 (rep q')) (HMap2 (rep q))
+  fcomp2 {A}{B}{C}{q'}{q} = trans (HMap2~Span (ax3 _)) (fcomp2' {sp' = rep q'}{sp = rep q})
 
   Funct2 : Fun Par cat
   Funct2 = record {
     OMap = λ A → A; 
-    HMap = HMap2 ∘ rep';
+    HMap = HMap2 ∘ rep;
     fid = fid2;
     fcomp = fcomp2 }
 
@@ -540,8 +540,8 @@ module Completeness (X : SplitRestCat) where
       comp m r
       ∎
 
-  .frest2 : ∀{A B}{q : Q' {A} {B}} → rest (HMap2 (rep' q)) ≅ HMap2 (rep' (abs' (restp (rep' q))))
-  frest2 {q = q} = trans (frest2' {sp = rep' q}) (HMap2~Span (~sym (ax3' _)))
+  .frest2 : ∀{A B}{q : QSpan A B} → rest (HMap2 (rep q)) ≅ HMap2 (rep (abs (restp (rep q))))
+  frest2 {q = q} = trans (frest2' {sp = rep q}) (HMap2~Span (~sym (ax3 _)))
 
   RFunct2 : RestFun RestPartials rcat
   RFunct2 = record {
@@ -620,8 +620,8 @@ module Completeness (X : SplitRestCat) where
                 (TotEq _ nt (lemmalaw2 (record { E = A; e = rest r; law = lemii rcat}) spl spl'))
                 (TotEq _ gt equat))
 
-  .HIso1 : ∀{A C}(q : Q' {A} {C}) → abs' (HMap1 (HMap2 (rep' q))) ≅ q
-  HIso1 {A}{C} q = trans (ax1' _ _ (HIso1' (rep' q))) (ax2' q)
+  .HIso1 : ∀{A C}(q : QSpan A C) → abs (HMap1 (HMap2 (rep q))) ≅ q
+  HIso1 {A}{C} q = trans (ax1 _ _ (HIso1' (rep q))) (ax2 q)
 
   .HIso2' : ∀{A C}(f : Hom A C) → HMap2 (HMap1 f) ≅ f
   HIso2' {A}{C} f = 
@@ -637,8 +637,8 @@ module Completeness (X : SplitRestCat) where
       f
       ∎
 
-  .HIso2 : ∀{A C}(f : Hom A C) → HMap2 (rep' (abs' (HMap1 f))) ≅ f
-  HIso2 f = trans (HMap2~Span (ax3' _)) (HIso2' f)
+  .HIso2 : ∀{A C}(f : Hom A C) → HMap2 (rep (abs (HMap1 f))) ≅ f
+  HIso2 f = trans (HMap2~Span (ax3 _)) (HIso2' f)
 
   IsoCompl : Iso CCat Funct
   IsoCompl = Funct2 ,, 

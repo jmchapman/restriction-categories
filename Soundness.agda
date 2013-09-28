@@ -180,32 +180,32 @@ R4p {mf = mf} {m'f' = m'f'} =
 RestPartials : RestCat
 RestPartials = record {
   cat = Par; 
-  rest = λ f → abs' (restp (rep' f)); 
+  rest = λ f → abs (restp (rep f)); 
   R1 = λ {A B mf} → trans 
-    (ax1' _ _ (~trans (~cong ~refl (ax3' _)) 
-                      (R1p {mf = rep' mf}))) 
-    (ax2' _); 
-  R2 = λ {A B C mf m'f'} → ax1' 
+    (ax1 _ _ (~trans (~cong ~refl (ax3 _)) 
+                      (R1p {mf = rep mf}))) 
+    (ax2 _); 
+  R2 = λ {A B C mf m'f'} → ax1 
     _ 
     _ 
-    (~trans (~trans (~cong (ax3' _) (ax3' _))
-                    (R2p {mf = rep' mf} {m'f' = rep' m'f'})) 
-            (~sym (~cong (ax3' _) (ax3' _))));
-  R3 = λ {A B C mf m'f'} → ax1' 
+    (~trans (~trans (~cong (ax3 _) (ax3 _))
+                    (R2p {mf = rep mf} {m'f' = rep m'f'})) 
+            (~sym (~cong (ax3 _) (ax3 _))));
+  R3 = λ {A B C mf m'f'} → ax1 
     _ 
     _  
-    (~trans (~cong (ax3' _) (ax3' _)) 
-            (~trans (R3p {mf = rep' mf} {m'f' = rep' m'f'}) 
-                    (Span~restp (~sym (~trans (ax3' _) 
-                                              (~cong ~refl (ax3' _)))))));
-  R4 = λ {A B C mf m'f'} → ax1' 
+    (~trans (~cong (ax3 _) (ax3 _)) 
+            (~trans (R3p {mf = rep mf} {m'f' = rep m'f'}) 
+                    (Span~restp (~sym (~trans (ax3 _) 
+                                              (~cong ~refl (ax3 _)))))));
+  R4 = λ {A B C mf m'f'} → ax1 
     _ 
     _ 
-    (~trans (~cong (ax3' _) ~refl) 
-            (~trans (R4p {mf = rep' mf} {m'f' = rep' m'f'}) 
+    (~trans (~cong (ax3 _) ~refl) 
+            (~trans (R4p {mf = rep mf} {m'f' = rep m'f'}) 
                     (~cong ~refl 
-                           (~trans (Span~restp (~sym (ax3' _))) 
-                                   (~sym (ax3' _))))))}
+                           (~trans (Span~restp (~sym (ax3 _))) 
+                                   (~sym (ax3 _))))))}
 
 -- every restriction in Par splits
 
@@ -215,15 +215,15 @@ open Categories.Isos X
 restpIdem : ∀{A B}(f : Span A B) → Idem
 restpIdem {A}{B} f = record {
   E = A; 
-  e = abs' (restp f); 
-  law = ax1' _ _ (~trans (~cong (ax3' _) (ax3' _)) R1p)}
+  e = abs (restp f); 
+  law = ax1 _ _ (~trans (~cong (ax3 _) (ax3 _)) R1p)}
 
 restpSplit : ∀{A B}(f : Span A B) → Split (restpIdem f)
 restpSplit {A}{B} f = let open Span f
   in record { 
   B    = A'; 
-  s    = abs' (record {A' = A'; mhom = iden; fhom = mhom; m∈ = iso idiso }); 
-  r    = abs' (record { A' = A'; mhom = mhom; fhom = iden; m∈ = m∈ });
+  s    = abs (record {A' = A'; mhom = iden; fhom = mhom; m∈ = iso idiso }); 
+  r    = abs (record { A' = A'; mhom = mhom; fhom = iden; m∈ = m∈ });
   law1 = let open Pullback (proj₁ (pul (iden {A'}) (iso idiso)))
              open Square sq
   
@@ -240,10 +240,10 @@ restpSplit {A}{B} f = let open Span f
                    ≅⟨ idl ⟩
                    k 
                    ∎
-         in ax1' 
+         in ax1 
          _ 
          _ 
-         (~trans (~cong (ax3' _) (ax3' _)) 
+         (~trans (~cong (ax3 _) (ax3 _)) 
                  (spaneq (PMap.mor (fst (Pullback.prop myp sq))) 
                          (pullbackiso myp (proj₁ (pul (iden {A'}) (iso idiso))))
                          refl
@@ -256,10 +256,10 @@ restpSplit {A}{B} f = let open Span f
              open Square sq
              myp : Pullback mhom mhom 
              myp = monic→pullback (mon m∈)
-         in ax1' 
+         in ax1 
          _ 
          _ 
-         (~trans (~cong (ax3' _) (ax3' _)) 
+         (~trans (~cong (ax3 _) (ax3 _)) 
                  (spaneq (PMap.mor (fst (Pullback.prop myp sq))) 
                         (pullbackiso myp (proj₁ (pul mhom m∈))) 
                         refl 

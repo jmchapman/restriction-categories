@@ -511,40 +511,45 @@ module PartialMaps (X : Cat)(M : StableSys X) where
          comp (comp f'' k'') k'''
          ∎)    
 
-    Q' : {_ _ : Obj} → Set
-    Q' {A} {B} = Quotient.Q (quot (Span A B) Span~EqR)
+    QSpan : Obj → Obj → Set
+    QSpan A B = Quotient.Q (quot (Span A B) Span~EqR) 
     
-    abs' : {A B : Obj} → Span A B → Q' {A}{B}
-    abs' {A}{B} = Quotient.abs (quot (Span A B) Span~EqR)
+    abs : {A B : Obj} → Span A B → QSpan A B
+    abs {A}{B} = Quotient.abs (quot (Span A B) Span~EqR)
 
-    rep' : {A B : Obj} → Q' {A}{B} → Span A B
-    rep' {A}{B} = Quotient.rep (quot (Span A B) Span~EqR)
+    rep : {A B : Obj} → QSpan A B → Span A B
+    rep {A}{B} = Quotient.rep (quot (Span A B) Span~EqR)
 
-    ax1' : {A B : Obj} → (mf m'f' : Span A B) → 
-          mf ~Span~ m'f' → abs' {A}{B} mf ≅ abs' {A}{B} m'f'
-    ax1' {A}{B} = Quotient.ax1 (quot (Span A B) Span~EqR)
+    ax1 : {A B : Obj} → (mf m'f' : Span A B) → 
+          mf ~Span~ m'f' → abs mf ≅ abs m'f'
+    ax1 {A}{B} = Quotient.ax1 (quot (Span A B) Span~EqR)
 
-    ax2' : {A B : Obj} → (mf : Q' {A}{B}) → abs' {A}{B} (rep' {A}{B} mf) ≅ mf
-    ax2' {A}{B} = Quotient.ax2 (quot (Span A B) Span~EqR)
+    ax2 : {A B : Obj} → (mf : QSpan A B) → abs (rep mf) ≅ mf
+    ax2 {A}{B} = Quotient.ax2 (quot (Span A B) Span~EqR)
 
-    ax3' : {A B : Obj} → (mf : Span A B) → rep' {A}{B} (abs' {A}{B} mf) ~Span~ mf
-    ax3' {A}{B} = Quotient.ax3 (quot (Span A B) Span~EqR)
+    ax3 : {A B : Obj} → (mf : Span A B) → rep (abs mf) ~Span~ mf
+    ax3 {A}{B} = Quotient.ax3 (quot (Span A B) Span~EqR)
 
     Par : Cat
     Par = record {
       Obj = Obj;
-      Hom = λ A B → Q';
-      iden = λ {A} → abs' idspan; 
-      comp = λ {A} {B} {C} f g → abs' {A}{C} (compspan (rep' f) (rep' g));
-      idl = λ {A}{B}{mf} → trans 
-        (ax1' _  _ (~trans (~cong (ax3' idspan) ~refl) (idlspan {mf = rep' mf}))) 
-        (ax2' mf);
+      Hom = QSpan;
+      iden = abs idspan; 
+      comp = λ f g → abs (compspan (rep f) (rep g));
+      idl = λ {A}{B}{mf} → 
+        proof 
+        abs (compspan (rep (abs idspan)) (rep mf)) 
+        ≅⟨ ax1 _ _ (~trans (~cong (ax3 idspan) ~refl) idlspan) ⟩ 
+        abs (rep mf)
+        ≅⟨ ax2 mf ⟩ 
+        mf 
+        ∎; 
       idr = λ {A} {B} {mf} → trans 
-        (ax1' _ _  (~trans (~cong ~refl (ax3' idspan)) (idrspan {mf = rep' mf}))) 
-        (ax2' mf);
-      ass = λ {W}{X}{Y}{Z} {m''f''} {m'f'} {mf} →  ax1' 
+        (ax1 _ _  (~trans (~cong ~refl (ax3 idspan)) (idrspan {mf = rep mf}))) 
+        (ax2 mf);
+      ass = λ {W}{X}{Y}{Z} {m''f''} {m'f'} {mf} →  ax1 
         _ 
         _ 
-        (~trans (~trans (~cong (ax3' (compspan (rep' m''f'') (rep'  m'f'))) ~refl)
+        (~trans (~trans (~cong (ax3 (compspan (rep m''f'') (rep  m'f'))) ~refl)
                         assspan) 
-                (~cong ~refl (~sym (ax3' (compspan (rep' m'f') (rep' mf))))))} 
+                (~cong ~refl (~sym (ax3 (compspan (rep m'f') (rep mf))))))} 
