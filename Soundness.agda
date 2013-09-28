@@ -26,7 +26,7 @@ restp mf = record {
 
 Span~restp : ∀{A B}{mf m'f' : Span A B} → mf ~Span~ m'f' → 
              restp mf ~Span~ restp m'f'
-Span~restp {A}{B}{mf}{m'f'} (spaneq s i q r) = spaneq s i q q
+Span~restp (spaneq s i q r) = spaneq s i q q
 
 .R1p : ∀{A B} → {mf : Span A B} → compspan mf (restp mf) ~Span~ mf
 R1p {A}{B}{mf} =
