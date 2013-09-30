@@ -61,3 +61,5 @@ fixtypes' {p = p}{q = q} r = fixtypes r (trans (sym p) (trans r q))
 fixtypes'' : ∀{i}{A : Set i}{a a' a'' a''' : A}{p : a ≅ a'}{q : a'' ≅ a'''} →
             a' ≅ a''' → p ≅ q
 fixtypes'' {p = p}{q = q} r = fixtypes (trans p (trans r (sym q))) r 
+
+postulate irrelevant : ∀{i}{A : Set i} → .A → A

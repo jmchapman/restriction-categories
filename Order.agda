@@ -13,7 +13,7 @@ open import Function
 
 infix 4 _≤_
 
-_⌣_ : ∀{A B} → Hom A B → Hom A B → Set
+_⌣_ : ∀{A B} → Hom A B → Hom A B → Set b
 f ⌣ g = comp g (rest f) ≅ comp f (rest g)
 
 .comp⌣ : ∀{A B C}{f g : Hom A B}(p : f ⌣ g){h : Hom C _} → comp f h ⌣ comp g h
@@ -36,7 +36,7 @@ comp⌣ {f = f}{g = g} p {h = h} =
   comp (comp f h) (rest (comp g h))  
   ∎
 
-_≤_ : ∀{A B} → Hom A B → Hom A B → Set
+_≤_ : ∀{A B} → Hom A B → Hom A B → Set b
 f ≤ g = comp g (rest f) ≅ f
 
 .refl≤ : ∀{A B}{f : Hom A B} → f ≤ f
@@ -108,10 +108,11 @@ module Meets where
 module Joins where
 
   record Join : Set (a ⊔ b) where
-    field _∨_∣_ : ∀{A B}(f g : Hom A B) → .(f ⌣ g) → Hom A B
+    field _∨_∣_ : ∀{A B}(f g : Hom A B) → f ⌣ g → Hom A B
           Jn1a  : ∀{A B}{f g : Hom A B}{p : f ⌣ g} → f ≤ f ∨ g ∣ p
           Jn1b  : ∀{A B}{f g : Hom A B}{p : f ⌣ g} → g ≤ f ∨ g ∣ p
           Jn2   : ∀{A B}{f g h : Hom A B}{p : f ⌣ g} → f ≤ h  → g ≤ h → 
                   f ∨ g ∣ p ≤ h
           Jn3   : ∀{A B C}{f g : Hom A B}{p : f ⌣ g}{h : Hom C _} →
-                  comp (f ∨ g ∣ p) h ≅ (comp f h) ∨ (comp g h) ∣ comp⌣ p
+                  comp (f ∨ g ∣ p) h ≅ (comp f h) ∨ (comp g h) ∣ 
+                  irrelevant (comp⌣ p)

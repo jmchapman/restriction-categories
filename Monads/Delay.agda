@@ -102,6 +102,98 @@ trans≈ (↓≈ p (later↓ r)) (later≈ q) = ↓≈ p (later↓ (≈↓ (♭ 
 trans≈ (later≈ p) (↓≈ (later↓ q) s) = ↓≈ (later↓ (≈↓ (sym≈ (♭ p)) q)) s
 trans≈ (later≈ p) (later≈ q) = later≈ (♯ (trans≈ (♭ p) (♭ q)))
 
+-- Convergence order
+
+data _⊑_ {X : Set} : Delay X → Delay X → Set where
+  ⊑now : ∀{x dx dy} → dx ↓ x → dy ↓ x → dx ⊑ dy
+  ⊑later : ∀{dx dy} → ∞ (♭ dx ⊑ ♭ dy) → later dx ⊑ later dy
+  ⊑leftlater : ∀{dx dy} → ∞ (♭ dx ⊑ dy) → later dx ⊑ dy
+
+≈subrel⊑ : ∀{X}{dx dy : Delay X} → dx ≈ dy → dx ⊑ dy
+≈subrel⊑ (↓≈ p q) = ⊑now p q
+≈subrel⊑ (later≈ p) = ⊑later (♯ (≈subrel⊑ (♭ p)))
+
+⊑implies↓ : ∀{X}{dx dy : Delay X} → dx ⊑ dy → ∀ {x} → dx ↓ x → dy ↓ x
+⊑implies↓ (⊑now now↓ p) now↓ = p
+⊑implies↓ (⊑now (later↓ p) p') (later↓ q) with unique↓ p q
+⊑implies↓ (⊑now (later↓ p) p') (later↓ q) | refl = p'
+⊑implies↓ (⊑later p) (later↓ q) = later↓ (⊑implies↓ (♭ p) q)
+⊑implies↓ (⊑leftlater p) (later↓ q) = ⊑implies↓ (♭ p) q
+
+↓implies⊑ : ∀{X}{dx dy : Delay X} → (∀{x} → dx ↓ x → dy ↓ x) → dx ⊑ dy
+↓implies⊑ {X} {now x} p = ⊑now now↓ (p now↓)
+↓implies⊑ {X} {later dx} p = ⊑leftlater (♯ (↓implies⊑ (λ q → p (later↓ q))))
+
+later⊑prop : ∀{X}{dx : Delay X}{dy} → dx ⊑ later dy → dx ⊑ ♭ dy
+later⊑prop (⊑now p (later↓ q)) = ⊑now p q
+later⊑prop (⊑later p) = ⊑leftlater p
+later⊑prop (⊑leftlater p) = ⊑leftlater (♯ (later⊑prop (♭ p)))
+
+refl⊑ : ∀{X}{dx : Delay X} → dx ⊑ dx
+refl⊑ {X} {now x} = ⊑now now↓ now↓
+refl⊑ {X} {later dx} = ⊑later (♯ refl⊑)
+
+antisym⊑ : ∀{X}{dx dy : Delay X} → dx ⊑ dy → dy ⊑ dx → dx ≈ dy
+antisym⊑ (⊑now p p') q = ↓≈ p p'
+antisym⊑ (⊑later p) (⊑now q q') = ↓≈ q' q
+antisym⊑ (⊑later p) (⊑later q) = later≈ (♯ (antisym⊑ (♭ p) (♭ q)))
+antisym⊑ (⊑later p) (⊑leftlater q) = 
+  later≈ (♯ (antisym⊑ (♭ p) (later⊑prop (♭ q))))
+antisym⊑ (⊑leftlater p) (⊑now q q') = ↓≈ q' q
+antisym⊑ (⊑leftlater p) (⊑later q) = 
+  later≈ (♯ (antisym⊑ (later⊑prop (♭ p)) (♭ q)))
+antisym⊑ (⊑leftlater p) (⊑leftlater q) = 
+  later≈ (♯ (antisym⊑ (later⊑prop (♭ p)) (later⊑prop (♭ q))))
+
+trans⊑ : ∀{X}{dx dy dz : Delay X} → dx ⊑ dy → dy ⊑ dz → dx ⊑ dz
+trans⊑ (⊑now p p') (⊑now q q') with unique↓ p' q
+trans⊑ (⊑now p p') (⊑now q q') | refl = ⊑now p q'
+trans⊑ (⊑now now↓ (later↓ p')) (⊑later q) = 
+  ⊑now now↓ (later↓ (⊑implies↓ (♭ q) p'))
+trans⊑ (⊑now (later↓ p) (later↓ p')) (⊑later q) = 
+  ⊑later (♯ (trans⊑ (⊑now p p') (♭ q)))
+trans⊑ (⊑now now↓ (later↓ p')) (⊑leftlater q) = 
+  ⊑now now↓ (⊑implies↓ (♭ q) p')
+trans⊑ (⊑now (later↓ p) (later↓ p')) (⊑leftlater q) = 
+  ⊑leftlater (♯ (trans⊑ (⊑now p p') (♭ q)))
+trans⊑ (⊑later p) (⊑now (later↓ q) q') = 
+  ⊑leftlater (♯ (trans⊑ (♭ p) (⊑now q q')))
+trans⊑ (⊑later p) (⊑later q) = ⊑later (♯ (trans⊑ (♭ p) (♭ q)))
+trans⊑ (⊑later p) (⊑leftlater q) = ⊑leftlater (♯ (trans⊑ (♭ p) (♭ q)))
+trans⊑ (⊑leftlater p) q = ⊑leftlater (♯ (trans⊑ (♭ p) q))
+
+_map⊑_ : {X Y : Set} → (X → Delay Y) → (X → Delay Y) → Set
+f map⊑ g = ∀ x → f x ⊑ g x
+
+
+-- A function that computes the first converging of two partial objects
+
+_∧_ : ∀{X} → Delay X → Delay X → Delay X
+now x ∧ dy = now x
+later dx ∧ now x = now x
+later dx ∧ later dy = later (♯ ((♭ dx) ∧ (♭ dy)))
+
+open import Data.Sum hiding (map)
+
+∧convergence₁ : ∀{X}{dx dy : Delay X}{x} → (dx ∧ dy) ↓ x → dx ↓ x ⊎ dy ↓ x
+∧convergence₁ {X} {now x} now↓ = inj₁ now↓
+∧convergence₁ {X} {later dx} {now x} now↓ = inj₂ now↓
+∧convergence₁ {X} {later dx} {later dy} (later↓ p) with 
+  ∧convergence₁ {X}{♭ dx}{♭ dy} p
+∧convergence₁ {X} {later dx} {later dy} (later↓ p) | inj₁ q = inj₁ (later↓ q)
+∧convergence₁ {X} {later dx} {later dy} (later↓ p) | inj₂ q = inj₂ (later↓ q)
+
+∧convergence₂ : ∀{X}{dx dy : Delay X}{x} → dx ⊑ dy → dx ↓ x → (dx ∧ dy) ↓ x
+∧convergence₂ p now↓ = now↓
+∧convergence₂ (⊑now (later↓ p) now↓) (later↓ q) with unique↓ p q
+∧convergence₂ (⊑now (later↓ p) now↓) (later↓ q) | refl = now↓
+∧convergence₂ (⊑now (later↓ p) (later↓ p')) (later↓ q) = 
+  later↓ (∧convergence₂ (⊑now p p') q)
+∧convergence₂ (⊑later p) (later↓ q) = later↓ (∧convergence₂ (♭ p) q)
+∧convergence₂ {dy = now x} (⊑leftlater p) (later↓ q) = ⊑implies↓ (♭ p) q
+∧convergence₂ {dy = later dy} (⊑leftlater p) (later↓ q) = 
+  later↓ (∧convergence₂ (later⊑prop (♭ p)) q)
+
 -- Monad operations
 
 dbind : ∀{X Y} → (X → Delay Y) → Delay X → Delay Y
