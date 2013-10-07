@@ -11,7 +11,6 @@ open import Function
 open import Relation.Binary.HeterogeneousEquality
 open import Utilities
 open import Data.Product hiding (map)
-open ≅-Reasoning renaming (begin_ to proof_)
 open import RestrictionCat
 open import Monads.Delay
 
@@ -150,19 +149,28 @@ lemma3 {Y}{Z}{dy}{g} = lemma3' {Y}{Z}{dy}{_}{g} refl≈
 
 -- The Kleisli category of the Delay monad is a restriction category
 
-dR1 : ∀{X Y}{f : X → Delay Y}(x : X) → (dbind f ∘ (drest f)) x ≅ f x
-dR1 {f = f} x = 
-  let open Monad DelayM 
-  in proof
-     dbind f (dbind (now ∘ proj₁) (dbind (λ y → now (x , y)) (f x)))
-     ≅⟨ cong (λ f' → dbind f (f' (f x))) (sym law3) ⟩
-     dbind f (dbind (λ _ → now x) (f x))
-     ≅⟨ cong (λ f' → f' (f x)) (sym law3) ⟩
-     dbind (λ _ → f x) (f x)
-     ≅⟨ quotient (sym≈ (lemma {_}{f x})) ⟩
-     f x 
-     ∎
+import Relation.Binary.EqReasoning
 
+dR1 : ∀{X Y}{f : X → Delay Y}(x : X) → (dbind f ∘ (drest f)) x ≈ f x
+dR1 {X}{Y}{f = f} x = 
+  let open Monad DelayM 
+      open Relation.Binary.EqReasoning 
+        (record {Carrier = Delay Y;_≈_ = proj₁ ≈EqR;isEquivalence = proj₂ ≈EqR})        renaming (begin_ to proof_) in
+  proof 
+  dbind f (drest f x)
+  ≡⟨⟩ 
+  dbind f (dbind (now ∘ proj₁) (dbind (λ y → now (x , y)) (f x)))
+  ≈⟨ dbindcong1 f (sym≈ (dlaw3 (f x))) ⟩ 
+  dbind f (dbind (dbind (now ∘ proj₁) ∘ (λ y → now (x , y))) (f x))
+  ≡⟨⟩ 
+  dbind f (dbind (λ _ → now x) (f x))
+  ≈⟨ sym≈ (dlaw3 (f x)) ⟩ 
+  dbind (λ _ → f x) (f x)
+  ≈⟨ sym≈ lemma ⟩ 
+  f x 
+  ∎
+
+{-
 dR2 : ∀{X Y Z}{f : X → Delay Y}{g : X → Delay Z}(x : X) → 
       (dbind (drest f) ∘ (drest g)) x ≅ (dbind (drest g) ∘ (drest f)) x
 dR2 {f = f}{g = g} x =
@@ -194,7 +202,9 @@ dR2 {f = f}{g = g} x =
         (dbind (λ z → now (y , z)) (g y)))
      (dbind (now ∘ proj₁) (dbind (λ y → now (x , y)) (f x)))
      ∎
+-}
 
+{-
 dR3 : ∀{X Y Z}{f : X → Delay Y}{g : X → Delay Z}(x : X) → 
       (dbind (drest g) ∘ (drest f)) x ≅ drest (dbind g ∘ (drest f)) x
 dR3 {f = f}{g = g} x = 
@@ -232,7 +242,9 @@ dR3 {f = f}{g = g} x =
         (dbind (now ∘ proj₁)
          (dbind (λ y → now (x , y)) (f x)))))
      ∎
+-}
 
+{-
 dR4 : ∀{X Y Z}{f : X → Delay Y}{g : Y → Delay Z}(x : X) →
       (dbind (drest g) ∘ f) x ≅ (dbind f ∘ (drest (dbind g ∘ f))) x
 dR4 {X}{Y}{Z}{f = f}{g = g} x = 
@@ -256,12 +268,47 @@ dR4 {X}{Y}{Z}{f = f}{g = g} x =
     (dbind (now ∘ proj₁)
      (dbind (λ y → now (x , y)) (dbind g (f x))))
     ∎
+-}
+
+{-
+abs (dbind (rep ∘ f) (rep (abs (dbind (now ∘ proj₁₁)) (dbind (λ y → now (x , y)) (rep (f x)))))))
+-}
+
+postulate R2 : {A B C : Set} {f : Hom A B} {g : Hom A C} →
+               comp (λ x → abs (drest ((λ {x} → rep) ∘ f) x))
+               (λ x → abs (drest ((λ {x} → rep) ∘ g) x))
+               ≅
+               comp (λ x → abs (drest ((λ {x} → rep) ∘ g) x))
+               (λ x → abs (drest ((λ {x} → rep) ∘ f) x))
+
+postulate R3 : {A B C : Set} {f : Hom A B} {g : Hom A C} →
+               comp (λ x → abs (drest ((λ {x} → rep) ∘ g) x))
+               (λ x → abs (drest ((λ {x} → rep) ∘ f) x))
+               ≅
+               (λ x → abs
+                 (drest (rep ∘ comp g (λ x₁ → abs (drest (rep ∘ f) x₁))) x))
+
+postulate R4 : {A B C : Set} {f : Hom A B} {g : Hom B C} →
+               comp (λ x → abs (drest ((λ {x} → rep) ∘ g) x)) f 
+               ≅
+               comp f (λ x → abs (drest ((λ {x} → rep) ∘ comp g f) x))
+
 
 DelayR : RestCat
-DelayR = record { 
-  cat  = Kl DelayM; 
-  rest = drest; 
-  R1   = λ {_}{_}{f} → ext (dR1 {f = f});
-  R2   = λ {_}{_}{_}{f}{g} → ext (dR2 {f = f} {g = g}); 
-  R3   = λ {_}{_}{_}{f}{g} → ext (dR3 {f = f} {g = g}); 
-  R4   = λ {_}{_}{_}{f}{g} → ext (dR4 {f = f} {g = g})}
+DelayR = let open ≅-Reasoning renaming (begin_ to proof_) in
+  record { 
+    cat  = Kl DelayM; 
+    rest = λ f x → abs (drest (rep ∘ f) x);
+    R1   = λ {A} {B} {f} → ext λ x → 
+      proof
+      abs (dbind (rep ∘ f) (rep (abs (drest (rep ∘ f) x))))
+      ≅⟨ ax1 _ _ (dbindcong1 (rep ∘ f) (ax3 _)) ⟩
+      abs (dbind (rep ∘ f) (drest (rep ∘ f) x))
+      ≅⟨ ax1 _ _ (dR1 {f = rep ∘ f} x) ⟩
+      abs (rep (f x))
+      ≅⟨ ax2 _ ⟩
+      f x ∎;
+    R2   = R2; --λ {_}{_}{_}{f}{g} → ext (dR2 {f = f} {g = g}); 
+    R3   = R3; --λ {_}{_}{_}{f}{g} → ext (dR3 {f = f} {g = g}); 
+    R4   = R4} --λ {_}{_}{_}{f}{g} → ext (dR4 {f = f} {g = g})}
+

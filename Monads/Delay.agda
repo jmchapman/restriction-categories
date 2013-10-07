@@ -2,10 +2,12 @@
 module Monads.Delay where
 
 open import Coinduction
+open import Categories
 open import Monads
 open import Sets
 open import Function
 open import Relation.Binary.HeterogeneousEquality
+open ≅-Reasoning renaming (begin_ to proof_)
 open import Utilities
 open import Functors
 open import Data.Product hiding (map)
@@ -52,8 +54,6 @@ data _≈_ {X : Set} : Delay X → Delay X → Set where
   ↓≈ : ∀{dy dy' y} → dy ↓ y → dy' ↓ y → dy ≈ dy'
   later≈ : ∀{dy dy'} → ∞ (♭ dy ≈ ♭ dy') → later dy ≈ later dy'
 
-postulate quotient : ∀{X}{dx dx' : Delay X} → dx ≈ dx' → dx ≅ dx'
-
 refl≈ : ∀{X}{dx : Delay X} → dx ≈ dx
 refl≈ {dx = now x}    = ↓≈ now↓ now↓
 refl≈ {dx = later dx} = later≈ (♯ refl≈)
@@ -74,17 +74,6 @@ laterlem' {X}{later dx}{later dz} (later∼ p) =
 laterlem : ∀{X}{dx : Delay X} → dx ≈ later (♯ dx)
 laterlem = laterlem' (later∼ (♯ refl∼))
 
-{-
-stable≈ : ∀{X}{dx dy dz dw : Delay X} → dx ∼ dy → dy ≈ dz → dz ∼ dw → dx ≈ dw
-stable≈ now∼ q now∼ = q
-stable≈ now∼ (↓≈ p (later↓ q)) (later∼ r) = ↓≈ p (later↓ (∼↓ (♭ r) q))
-stable≈ (later∼ p) (↓≈ (later↓ q) r) now∼ = ↓≈ (later↓ (∼↓ (sym∼ (♭ p)) q)) r
-stable≈ (later∼ p) (↓≈ (later↓ q) (later↓ q')) (later∼ r) = 
-  later≈ (♯ (stable≈ (♭ p) (↓≈ q q') (♭ r)))
-stable≈ (later∼ p) (later≈ q) (later∼ r) = 
-  later≈ (♯ (stable≈ (♭ p) (♭ q) (♭ r)))
--}
-
 ≈↓ : ∀{X}{dx dy : Delay X}{x : X} → dx ≈ dy → dx ↓ x → dy ↓ x
 ≈↓ (↓≈ now↓ q) now↓ = q
 ≈↓ (↓≈ (later↓ p) r) (later↓ q) with unique↓ p q
@@ -98,11 +87,48 @@ trans≈ (↓≈ p (later↓ r)) (later≈ q) = ↓≈ p (later↓ (≈↓ (♭ 
 trans≈ (later≈ p) (↓≈ (later↓ q) s) = ↓≈ (later↓ (≈↓ (sym≈ (♭ p)) q)) s
 trans≈ (later≈ p) (later≈ q) = later≈ (♯ (trans≈ (♭ p) (♭ q)))
 
+≈EqR : ∀{X} → EqR (Delay X)
+≈EqR = _≈_ , record {refl = refl≈; sym = sym≈; trans = trans≈ }
+
+QDelay : Set → Set
+QDelay X = Quotient.Q (quot (Delay X) ≈EqR)
+
+abs : ∀{X} → Delay X → QDelay X
+abs {X} = Quotient.abs (quot (Delay X) ≈EqR)
+
+rep : ∀{X} → QDelay X → Delay X
+rep {X} = Quotient.rep (quot (Delay X) ≈EqR)
+
+ax1 : ∀{X}(dx dx' : Delay X) → dx ≈ dx' → abs dx ≅ abs dx'
+ax1 {X} = Quotient.ax1 (quot (Delay X) ≈EqR)
+
+ax2 : ∀{X}(dx : QDelay X) → abs (rep dx) ≅ dx
+ax2 {X} = Quotient.ax2 (quot (Delay X) ≈EqR)
+
+ax3 : ∀{X}(dx : Delay X) → rep (abs dx) ≈ dx
+ax3 {X} = Quotient.ax3 (quot (Delay X) ≈EqR)
+
 -- monad operations
 
 dbind : ∀{X Y} → (X → Delay Y) → Delay X → Delay Y
 dbind f (now x)   = f x
 dbind f (later x) = later (♯ dbind f (♭ x))
+
+postulate dbindcong1 : ∀{X Y}(f : X → Delay Y){dx dx' : Delay X} → dx ≈ dx' → 
+            dbind f dx ≈ dbind f dx'
+{-
+dbindcong1 : ∀{X Y}(f : X → Delay Y){dx dx' : Delay X} → dx ≈ dx' → 
+            dbind f dx ≈ dbind f dx'
+dbindcong1 f (↓≈ now↓ now↓) = refl≈
+dbindcong1 f (↓≈ now↓ (later↓ q)) = {!!}
+dbindcong1 f (↓≈ (later↓ p) now↓) = {!!}
+dbindcong1 f (↓≈ (later↓ p) (later↓ q)) = later≈ (♯ dbindcong1 f (↓≈ p q))
+dbindcong1 f (later≈ p) = later≈ (♯ dbindcong1 f (♭ p))
+-}
+
+postulate dbindcong2 : ∀{X Y}{f f' : X → Delay Y} → 
+                       (∀ x → f x ≈ f' x) → (dx : Delay X) → 
+                       dbind f dx ≈ dbind f' dx
 
 dbindlater' : ∀{X Y}{f : X → ∞ (Delay Y)}(dx : Delay X)(dz : Delay Y) → 
               later (♯ (dbind (♭ ∘ f) dx)) ∼ dz →
@@ -128,20 +154,49 @@ dlaw3 : ∀{X Y Z}{f : X → Delay Y} {g : Y → Delay Z}(dx : Delay X) →
 dlaw3 {f = f}{g = g} (now x)   = refl≈
 dlaw3 {f = f}{g = g} (later x) = later≈ (♯ dlaw3 (♭ x))
 
-
+open Cat Sets
 DelayM : Monad Sets
 DelayM = record { 
-  T    = Delay; 
-  η    = now; 
-  bind = dbind; 
-  law1 = ext (quotient ∘ dlaw1); 
-  law2 = refl; 
-  law3 = ext (quotient ∘ dlaw3) }
+  T    = QDelay; 
+  η    = abs ∘ now;
+  bind = λ f dx → abs (dbind (rep ∘ f) (rep dx)); --dbind; 
+  law1 = ext λ dx → 
+    proof 
+    abs (dbind (rep ∘ abs ∘ now) (rep dx)) 
+    ≅⟨ ax1 _ _ (dbindcong2 (ax3 ∘ now) (rep dx)) ⟩
+    abs (dbind now (rep dx)) 
+    ≅⟨ ax1 _ _ (dlaw1 (rep dx)) ⟩ 
+    abs (rep dx) 
+    ≅⟨ ax2 _ ⟩ 
+    dx 
+    ∎;
+  law2 = λ{X}{Y}{f} → ext λ x → 
+    proof
+    abs (dbind (rep ∘ f) (rep (abs (now x))))
+    ≅⟨ ax1 _ _ (dbindcong1 (rep ∘ f) (ax3 (now x))) ⟩ 
+    abs (rep (f x)) 
+    ≅⟨ ax2 _ ⟩ 
+    f x 
+    ∎; 
+  law3 = λ{X}{Y}{Z}{f}{g} → ext λ dx → 
+    proof
+    abs (dbind (rep ∘ abs ∘ dbind (rep ∘ g) ∘ rep ∘ f) (rep dx))
+    ≅⟨ ax1 _ _ (dbindcong2 (λ _ → ax3 _) (rep dx)) ⟩
+    abs (dbind (dbind (rep ∘ g) ∘ rep ∘ f) (rep dx))
+    ≅⟨ ax1 _ _ (dlaw3 (rep dx)) ⟩
+    abs (dbind (rep ∘ g) (dbind (rep ∘ f) (rep dx)))
+    ≅⟨ ax1 _ _ (dbindcong1 (rep ∘ g) (sym≈ (ax3 _))) ⟩
+    abs (dbind (rep ∘ g) (rep (abs (dbind (rep ∘ f) (rep dx)))))
+    ∎}
 
-map = Fun.HMap (TFun DelayM)
+
+map : ∀{X Y} → (X → Y) → Delay X → Delay Y
+map f = dbind (now ∘ f) --rep (Fun.HMap (TFun DelayM) f (abs x))
 
 str : ∀{X Y} → X × Delay Y → Delay (X × Y)
 str (x , dy) = map (λ y → (x , y)) dy
+
+{-
 
 -- Products
 
@@ -236,3 +291,4 @@ Agree {X} f g = Σ X (λ x → f x ∼ g x)
 
 Meet : ∀{X Y}(f g : X → Delay Y) → Agree f g → Delay Y
 Meet f g (x , p) = f x
+-}
