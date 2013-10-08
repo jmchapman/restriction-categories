@@ -155,7 +155,8 @@ dR1 : ∀{X Y}{f : X → Delay Y}(x : X) → (dbind f ∘ (drest f)) x ≈ f x
 dR1 {X}{Y}{f = f} x = 
   let open Monad DelayM 
       open Relation.Binary.EqReasoning 
-        (record {Carrier = Delay Y;_≈_ = proj₁ ≈EqR;isEquivalence = proj₂ ≈EqR})        renaming (begin_ to proof_) in
+        (record {Carrier = Delay Y;_≈_ = proj₁ ≈EqR;isEquivalence = proj₂ ≈EqR})
+        renaming (begin_ to proof_) in
   proof 
   dbind f (drest f x)
   ≡⟨⟩ 
@@ -170,40 +171,37 @@ dR1 {X}{Y}{f = f} x =
   f x 
   ∎
 
-{-
-dR2 : ∀{X Y Z}{f : X → Delay Y}{g : X → Delay Z}(x : X) → 
-      (dbind (drest f) ∘ (drest g)) x ≅ (dbind (drest g) ∘ (drest f)) x
-dR2 {f = f}{g = g} x =
-  let open Monad DelayM 
-  in proof 
-     dbind
-     (drest f)
-     (dbind (now ∘ proj₁) (dbind (λ y → now (x , y)) (g x)))
-     ≅⟨ cong (λ f' → dbind (drest f) (f' (g x))) (sym law3) ⟩ 
-     dbind (drest f) (dbind (λ _ → now x) (g x))
-     ≅⟨ cong (λ f' → f' (g x)) (sym law3) ⟩ 
-     dbind 
-       (λ _ → dbind (now ∘ proj₁) (dbind (λ y → now (x , y)) (f x)))
-       (g x)
-     ≅⟨ cong (λ z → dbind (λ _ → z) (g x)) (cong (λ f' → f' (f x)) (sym law3)) ⟩
-     dbind (λ _ → (dbind (λ _ → now x) (f x))) (g x)
-     ≅⟨ quotient (∼→≈ (lemma2 {dy = f x}{dz = g x})) ⟩ 
-     dbind (λ _ → (dbind (λ _ → now x) (g x))) (f x)
-     ≅⟨ cong (λ z → dbind (λ _ → z) (f x)) (cong (λ f' → f' (g x)) law3) ⟩
-     dbind 
-       (λ _ → dbind (now ∘ proj₁) (dbind (λ y → now (x , y)) (g x)))
-       (f x)
-     ≅⟨ cong (λ f' → f' (f x)) law3 ⟩ 
-     dbind (drest g) (dbind (λ _ → now x) (f x))
-     ≅⟨ cong (λ f' → dbind (drest g) (f' (f x))) law3 ⟩ 
-     dbind
-     (λ y →
-        dbind (now ∘ proj₁)
-        (dbind (λ z → now (y , z)) (g y)))
-     (dbind (now ∘ proj₁) (dbind (λ y → now (x , y)) (f x)))
-     ∎
--}
 
+dR2 : ∀{X Y Z}{f : X → Delay Y}{g : X → Delay Z}(x : X) → 
+      (dbind (drest f) ∘ (drest g)) x ≈ (dbind (drest g) ∘ (drest f)) x
+dR2 {X}{Y}{Z}{f}{g} x = 
+  let open Monad DelayM
+      open Relation.Binary.EqReasoning (record {Carrier      = Delay X;
+                                                _≈_          = proj₁ ≈EqR;
+                                               isEquivalence = proj₂ ≈EqR })
+                                       renaming (begin_ to proof_) in
+      proof
+      dbind (drest f) (drest g x)
+      ≡⟨⟩
+      dbind (drest f) (dbind (now ∘ proj₁) (dbind (λ y → now (x , y)) (g x)))
+      ≈⟨ (dbindcong1 (drest f) (sym≈ (dlaw3 (g x)))) ⟩
+      dbind (drest f) (dbind (λ _ → now x) (g x))
+      ≈⟨ sym≈ (dlaw3 {f = λ _ → now x} {g = drest f} (g x)) ⟩
+      dbind (λ _ → dbind (now ∘ proj₁) (dbind (λ y → now (x , y)) (f x))) (g x)
+      ≈⟨ dbindcong2 (λ _ → sym≈ (dlaw3 {f = λ y → now (x , y)} {g = now ∘ proj₁} (f x))) (g x) ⟩
+      dbind (λ _ → dbind (λ _ → now x) (f x)) (g x)
+      ≈⟨ ∼→≈ (lemma2 {dy = f x} {dz = g x}) ⟩
+      dbind (λ _ → dbind (λ _ → now x) (g x)) (f x)
+      ≈⟨ dbindcong2 (λ _ → dlaw3 {f = λ y → now (x , y)} {g = now ∘ proj₁} (g x)) (f x) ⟩
+      dbind (λ _ → dbind (now ∘ proj₁) (dbind (λ y → now (x , y)) (g x))) (f x)
+      ≈⟨ dlaw3 {f = λ _ → now x} {g = drest g} (f x) ⟩
+      dbind (drest g) (dbind (λ _ → now x) (f x))
+      ≈⟨ (dbindcong1 (drest g) (dlaw3 (f x))) ⟩
+      dbind (drest g) (dbind (now ∘ proj₁) (dbind (λ y → now (x , y)) (f x)))
+      ≡⟨⟩
+      dbind (drest g) (drest f x)
+      ∎
+ 
 {-
 dR3 : ∀{X Y Z}{f : X → Delay Y}{g : X → Delay Z}(x : X) → 
       (dbind (drest g) ∘ (drest f)) x ≅ drest (dbind g ∘ (drest f)) x
@@ -308,7 +306,28 @@ DelayR = let open ≅-Reasoning renaming (begin_ to proof_) in
       abs (rep (f x))
       ≅⟨ ax2 _ ⟩
       f x ∎;
-    R2   = R2; --λ {_}{_}{_}{f}{g} → ext (dR2 {f = f} {g = g}); 
+    R2   = λ {_}{_}{_}{f}{g} → ext λ x → 
+      proof
+      abs (dbind (rep ∘ abs ∘ (drest (rep ∘ f))) (rep (abs (drest (rep ∘ g) x))))
+      ≅⟨ ax1 _ _ (dbindcong2 (λ x → ax3 (drest (rep ∘ f) x)) (rep (abs (drest (rep ∘ g) x)))) ⟩
+      abs (dbind (drest (rep ∘ f)) (rep (abs (drest (rep ∘ g) x))))
+      ≅⟨ ax1 _ _ (dbindcong1 (drest (rep ∘ f)) (ax3 _)) ⟩
+      abs (dbind (drest (rep ∘ f)) (drest (rep ∘ g) x))
+      ≅⟨ ax1 _ _ (dR2 {f = rep ∘ f} {g = rep ∘ g} x) ⟩
+      abs (dbind (drest (rep ∘ g)) (drest (rep ∘ f) x))
+      ≅⟨ ax1 _ _ (sym≈ (dbindcong1 (drest (rep ∘ g)) (ax3 _))) ⟩
+      abs (dbind (drest (rep ∘ g)) (rep (abs (drest (rep ∘ f) x))))
+      ≅⟨ ax1 _ _ (sym≈ (dbindcong2 (λ x → ax3 (drest (rep ∘ g) x)) (rep (abs (drest (rep ∘ f) x))))) ⟩
+      abs (dbind (rep ∘ abs ∘ (drest (rep ∘ g))) (rep (abs (drest (rep ∘ f) x))))
+      ∎;
+    --λ {_}{_}{_}{f}{g} → ext (dR2 {f = f} {g = g}); 
+
+{-
+abs (dbind (λ x₁ → rep (abs (dbind (λ x₂ → now (proj₁ x₂)) 
+                                   (dbind (λ x₂ → now (x₁ , x₂)) (rep (f x₁)))))) 
+           (rep (abs (dbind (λ x₁ → now (proj₁ x₁)) 
+                            (dbind (λ x₁ → now (x , x₁)) (rep (g x)))))))
+-}
     R3   = R3; --λ {_}{_}{_}{f}{g} → ext (dR3 {f = f} {g = g}); 
     R4   = R4} --λ {_}{_}{_}{f}{g} → ext (dR4 {f = f} {g = g})}
 
