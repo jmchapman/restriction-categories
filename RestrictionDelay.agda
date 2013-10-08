@@ -272,13 +272,6 @@ dR4 {X}{Y}{Z}{f = f}{g = g} x =
 abs (dbind (rep ∘ f) (rep (abs (dbind (now ∘ proj₁₁)) (dbind (λ y → now (x , y)) (rep (f x)))))))
 -}
 
-postulate R2 : {A B C : Set} {f : Hom A B} {g : Hom A C} →
-               comp (λ x → abs (drest ((λ {x} → rep) ∘ f) x))
-               (λ x → abs (drest ((λ {x} → rep) ∘ g) x))
-               ≅
-               comp (λ x → abs (drest ((λ {x} → rep) ∘ g) x))
-               (λ x → abs (drest ((λ {x} → rep) ∘ f) x))
-
 postulate R3 : {A B C : Set} {f : Hom A B} {g : Hom A C} →
                comp (λ x → abs (drest ((λ {x} → rep) ∘ g) x))
                (λ x → abs (drest ((λ {x} → rep) ∘ f) x))
