@@ -320,14 +320,6 @@ DelayR = let open ≅-Reasoning renaming (begin_ to proof_) in
       ≅⟨ ax1 _ _ (sym≈ (dbindcong2 (λ x → ax3 (drest (rep ∘ g) x)) (rep (abs (drest (rep ∘ f) x))))) ⟩
       abs (dbind (rep ∘ abs ∘ (drest (rep ∘ g))) (rep (abs (drest (rep ∘ f) x))))
       ∎;
-    --λ {_}{_}{_}{f}{g} → ext (dR2 {f = f} {g = g}); 
-
-{-
-abs (dbind (λ x₁ → rep (abs (dbind (λ x₂ → now (proj₁ x₂)) 
-                                   (dbind (λ x₂ → now (x₁ , x₂)) (rep (f x₁)))))) 
-           (rep (abs (dbind (λ x₁ → now (proj₁ x₁)) 
-                            (dbind (λ x₁ → now (x , x₁)) (rep (g x)))))))
--}
     R3   = R3; --λ {_}{_}{_}{f}{g} → ext (dR3 {f = f} {g = g}); 
     R4   = R4} --λ {_}{_}{_}{f}{g} → ext (dR4 {f = f} {g = g})}
 
