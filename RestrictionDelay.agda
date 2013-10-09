@@ -201,7 +201,20 @@ dR2 {X}{Y}{Z}{f}{g} x =
       ≡⟨⟩
       dbind (drest g) (drest f x)
       ∎
- 
+
+dR4 : ∀{X Y Z}{f : X → Delay Y}{g : Y → Delay Z}(x : X) →
+      (dbind (drest g) ∘ f) x ≈ (dbind f ∘ (drest (dbind g ∘ f))) x
+dR4 {X}{Y}{Z}{f = f}{g = g} x = 
+  let open Monad DelayM 
+      open Relation.Binary.EqReasoning 
+        (record {Carrier = Delay Y;_≈_ = proj₁ ≈EqR;isEquivalence = proj₂ ≈EqR})
+        renaming (begin_ to proof_) in
+      proof 
+      (dbind (drest g) ∘ f) x
+      ≈⟨ {!!} ⟩
+      (dbind f ∘ (drest (dbind g ∘ f))) x
+      ∎
+      
 {-
 dR3 : ∀{X Y Z}{f : X → Delay Y}{g : X → Delay Z}(x : X) → 
       (dbind (drest g) ∘ (drest f)) x ≅ drest (dbind g ∘ (drest f)) x
