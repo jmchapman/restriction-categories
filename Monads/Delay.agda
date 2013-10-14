@@ -34,7 +34,8 @@ trans∼ : ∀{X}{dx dx' dx'' : Delay X} → dx ∼ dx' → dx' ∼ dx'' → dx 
 trans∼ now∼ now∼ = now∼
 trans∼ (later∼ p) (later∼ q) = later∼ (♯ trans∼ (♭ p) (♭ q))
 
--- For any set X, Delay X is the final coalgebra of F = X + _
+{-
+-- For any set X, Delay X is the final coalgebra of F = X + _ (in Set)
 
 module FinalCoalgebra (X : Set) where
 
@@ -77,6 +78,7 @@ module FinalCoalgebra (X : Set) where
                   ((a : A) → α-Delay (u' a) ⊎∼ Fmap u' (α a)) → 
                   (a : A) → u A α a ∼ u' a
   univ-property A α u' p a = univ-property' A α u' p a (u' a) refl∼
+-}
 
 -- Convergence
 
@@ -310,6 +312,35 @@ strlaw4 : ∀{X Y}{x : X}{ddy : Delay (Delay Y)} →
 strlaw4 {ddy = now dy} = refl∼
 strlaw4 {ddy = later ddy} = later∼ (♯ (strlaw4 {ddy = ♭ ddy}))
 
+-- For any set X, Delay X is the final coalgebra of F = X + _ (in Set)
+
+module InitialAlgebra (X : Set) where
+
+  ⊎str : {A B : Set} → A ⊎ Delay B → Delay (A ⊎ B)
+  ⊎str (inj₁ a) = now (inj₁ a)
+  ⊎str (inj₂ (now b)) = now (inj₂ b)
+  ⊎str (inj₂ (later b)) = later (♯ (⊎str (inj₂ (♭ b))))
+
+  Fmap : {A B : Set} → (A → Delay B) → X ⊎ A → Delay (X ⊎ B)
+  Fmap f (inj₁ x) = now (inj₁ x)
+  Fmap f (inj₂ a) = ⊎str (inj₂ (f a))
+
+  α-Delay : X ⊎ Delay X → Delay (Delay X)
+  α-Delay (inj₁ x) = now (now x)
+  α-Delay (inj₂ (now x)) = now (now x)
+  α-Delay (inj₂ (later x)) = later (♯ (α-Delay (inj₂ (♭ x))))
+
+  u : {A : Set}(α : X ⊎ A → Delay A) → Delay X → Delay A
+  u α (now x) = α (inj₁ x)
+  u α (later x) = later (♯ (u α (♭ x)))
+
+  u-comm : {A : Set}(α : X ⊎ A → Delay A)(x : X ⊎ Delay X) → 
+           dbind (u α) (α-Delay x) ≅ dbind α (Fmap (u α) x)
+  u-comm α (inj₁ x) = refl
+  u-comm α (inj₂ (now x)) with α (inj₁ x)
+  u-comm α (inj₂ (now x)) | now a = {!!}
+  u-comm α (inj₂ (now x)) | later a = {!!}
+  u-comm α (inj₂ (later x)) = {!!}
 
 
 -- Another composition called dcomp, weakly bisimilar to dbind but
