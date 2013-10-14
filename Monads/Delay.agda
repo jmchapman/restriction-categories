@@ -10,6 +10,7 @@ open import Utilities
 open import Functors
 open import Data.Product renaming (map to pmap)
 open import Data.Unit
+open import Data.Sum hiding (map)
 
 data Delay (X : Set) : Set where
   now : X → Delay X
@@ -32,6 +33,50 @@ sym∼ (later∼ p) = later∼ (♯ (sym∼ (♭ p)))
 trans∼ : ∀{X}{dx dx' dx'' : Delay X} → dx ∼ dx' → dx' ∼ dx'' → dx ∼ dx''
 trans∼ now∼ now∼ = now∼
 trans∼ (later∼ p) (later∼ q) = later∼ (♯ trans∼ (♭ p) (♭ q))
+
+-- For any set X, Delay X is the final coalgebra of F = X + _
+
+module FinalCoalgebra (X : Set) where
+
+  Fmap : {A B : Set} → (A → B) → X ⊎ A → X ⊎ B
+  Fmap f (inj₁ x) = inj₁ x
+  Fmap f (inj₂ a) = inj₂ (f a)
+
+  data _⊎∼_ {A B : Set} : A ⊎ Delay B → A ⊎ Delay B → Set where
+    inj₁∼ : ∀{a a'} → a ≅ a' → inj₁ a ⊎∼ inj₁ a'
+    inj₂∼ : ∀{b b'} → b ∼ b' → inj₂ b ⊎∼ inj₂ b'
+
+  α-Delay : Delay X → X ⊎ Delay X
+  α-Delay (now x) = inj₁ x
+  α-Delay (later x) = inj₂ (♭ x)
+
+  u : (A : Set)(α : A → X ⊎ A) → A → Delay X
+  u A α a with α a
+  u A α a | inj₁ x = now x
+  u A α a | inj₂ a' = later (♯ (u A α a'))
+
+  u-comm : (A : Set)(α : A → X ⊎ A)(a : A) → 
+           α-Delay (u A α a) ⊎∼ Fmap (u A α) (α a)
+  u-comm A α a with α a
+  u-comm A α a | inj₁ x = inj₁∼ refl
+  u-comm A α a | inj₂ a' = inj₂∼ refl∼
+
+  univ-property' : (A : Set)(α : A → X ⊎ A)(u' : A → Delay X) →
+                   ((a : A) → α-Delay (u' a) ⊎∼ Fmap u' (α a)) → 
+                   (a : A)(c : Delay X) → u' a ∼ c → u A α a ∼ c
+  univ-property' A α u' p a c q with α a | u' a | p a 
+  univ-property' A α u' p a c q | inj₁ x | now .x | inj₁∼ refl = q
+  univ-property' A α u' p a c q | inj₁ x | later x₁ | ()
+  univ-property' A α u' p a c q | inj₂ a' | now x | ()
+  univ-property' A α u' p a (later c) (later∼ q) | inj₂ a' | 
+                                                   later c' | 
+                                                   inj₂∼ r = 
+    later∼ (♯ univ-property' A α u' p a' (♭ c) (trans∼ (sym∼ r) (♭ q)))
+
+  univ-property : (A : Set)(α : A → X ⊎ A)(u' : A → Delay X) →
+                  ((a : A) → α-Delay (u' a) ⊎∼ Fmap u' (α a)) → 
+                  (a : A) → u A α a ∼ u' a
+  univ-property A α u' p a = univ-property' A α u' p a (u' a) refl∼
 
 -- Convergence
 
@@ -173,8 +218,6 @@ now x ∧ dy = now x
 later dx ∧ now x = now x
 later dx ∧ later dy = later (♯ ((♭ dx) ∧ (♭ dy)))
 
-open import Data.Sum hiding (map)
-
 ∧convergence₁ : ∀{X}{dx dy : Delay X}{x} → (dx ∧ dy) ↓ x → dx ↓ x ⊎ dy ↓ x
 ∧convergence₁ {X} {now x} now↓ = inj₁ now↓
 ∧convergence₁ {X} {later dx} {now x} now↓ = inj₂ now↓
@@ -238,7 +281,7 @@ map = Fun.HMap (TFun DelayM)
 str : ∀{X Y} → X × Delay Y → Delay (X × Y)
 str (x , dy) = map (λ y → (x , y)) dy
 
-{-
+
 -- Strength laws
 
 μ : ∀{X} → Delay (Delay X) → Delay X
@@ -246,27 +289,27 @@ str (x , dy) = map (λ y → (x , y)) dy
 
 open import Data.Unit
 
-strlaw1 : ∀{X}{dx : Delay X} → map proj₂ (str (tt , dx)) ≈ dx
-strlaw1 {X} {now x} = ↓≈ now↓ now↓
-strlaw1 {X} {later dx} = later≈ (♯ strlaw1)
+strlaw1 : ∀{X}{dx : Delay X} → map proj₂ (str (tt , dx)) ∼ dx
+strlaw1 {X} {now x} = now∼
+strlaw1 {X} {later dx} = later∼ (♯ strlaw1)
 
-strlaw2 : ∀{X Y}{x : X}{y : Y} → str (x , now y) ≈ now (x , y)
-strlaw2 = ↓≈ now↓ now↓
+strlaw2 : ∀{X Y}{x : X}{y : Y} → str (x , now y) ∼ now (x , y)
+strlaw2 = now∼
 
 α : {X Y Z : Set} → (X × Y) × Z → X × (Y × Z)
 α ((x , y) , z) = x , (y , z)
 
 strlaw3 : ∀{X Y Z}{x : X}{y : Y}{dz : Delay Z} → 
-          map α (str ((x , y) , dz)) ≈ 
+          map α (str ((x , y) , dz)) ∼ 
           str (pmap (λ a → a) str (α ((x , y) , dz)))
-strlaw3 {X} {Y} {Z} {x} {y} {now z} = ↓≈ now↓ now↓
-strlaw3 {X} {Y} {Z} {x} {y} {later dz} = later≈ (♯ strlaw3 {dz = ♭ dz})
+strlaw3 {X} {Y} {Z} {x} {y} {now z} = now∼
+strlaw3 {X} {Y} {Z} {x} {y} {later dz} = later∼ (♯ strlaw3 {dz = ♭ dz})
 
 strlaw4 : ∀{X Y}{x : X}{ddy : Delay (Delay Y)} → 
-          μ (map str (str (x , ddy))) ≈ str (x , (μ ddy))
-strlaw4 {ddy = now dy} = refl≈
-strlaw4 {ddy = later ddy} = later≈ (♯ (strlaw4 {ddy = ♭ ddy}))
--}
+          μ (map str (str (x , ddy))) ∼ str (x , (μ ddy))
+strlaw4 {ddy = now dy} = refl∼
+strlaw4 {ddy = later ddy} = later∼ (♯ (strlaw4 {ddy = ♭ ddy}))
+
 
 
 -- Another composition called dcomp, weakly bisimilar to dbind but
@@ -412,13 +455,6 @@ dmeet : {X Y : Set}{_≟_ : SemiDecidable {A = Y}{B = Y} _≅'_}
        (f g : X → Delay Y) → X → Delay Y
 dmeet {X}{Y}{_≟_} f g x = dmeet-aux {Y}{_≟_} (f x) (g x)
 -}
-
-
-
-
-
-
-
 
 
 
