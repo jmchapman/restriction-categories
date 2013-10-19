@@ -34,52 +34,6 @@ trans∼ : ∀{X}{dx dx' dx'' : Delay X} → dx ∼ dx' → dx' ∼ dx'' → dx 
 trans∼ now∼ now∼ = now∼
 trans∼ (later∼ p) (later∼ q) = later∼ (♯ trans∼ (♭ p) (♭ q))
 
-{-
--- For any set X, Delay X is the final coalgebra of F = X + _ (in Set)
-
-module FinalCoalgebra (X : Set) where
-
-  Fmap : {A B : Set} → (A → B) → X ⊎ A → X ⊎ B
-  Fmap f (inj₁ x) = inj₁ x
-  Fmap f (inj₂ a) = inj₂ (f a)
-
-  data _⊎∼_ {A B : Set} : A ⊎ Delay B → A ⊎ Delay B → Set where
-    inj₁∼ : ∀{a a'} → a ≅ a' → inj₁ a ⊎∼ inj₁ a'
-    inj₂∼ : ∀{b b'} → b ∼ b' → inj₂ b ⊎∼ inj₂ b'
-
-  α-Delay : Delay X → X ⊎ Delay X
-  α-Delay (now x) = inj₁ x
-  α-Delay (later x) = inj₂ (♭ x)
-
-  u : (A : Set)(α : A → X ⊎ A) → A → Delay X
-  u A α a with α a
-  u A α a | inj₁ x = now x
-  u A α a | inj₂ a' = later (♯ (u A α a'))
-
-  u-comm : (A : Set)(α : A → X ⊎ A)(a : A) → 
-           α-Delay (u A α a) ⊎∼ Fmap (u A α) (α a)
-  u-comm A α a with α a
-  u-comm A α a | inj₁ x = inj₁∼ refl
-  u-comm A α a | inj₂ a' = inj₂∼ refl∼
-
-  univ-property' : (A : Set)(α : A → X ⊎ A)(u' : A → Delay X) →
-                   ((a : A) → α-Delay (u' a) ⊎∼ Fmap u' (α a)) → 
-                   (a : A)(c : Delay X) → u' a ∼ c → u A α a ∼ c
-  univ-property' A α u' p a c q with α a | u' a | p a 
-  univ-property' A α u' p a c q | inj₁ x | now .x | inj₁∼ refl = q
-  univ-property' A α u' p a c q | inj₁ x | later x₁ | ()
-  univ-property' A α u' p a c q | inj₂ a' | now x | ()
-  univ-property' A α u' p a (later c) (later∼ q) | inj₂ a' | 
-                                                   later c' | 
-                                                   inj₂∼ r = 
-    later∼ (♯ univ-property' A α u' p a' (♭ c) (trans∼ (sym∼ r) (♭ q)))
-
-  univ-property : (A : Set)(α : A → X ⊎ A)(u' : A → Delay X) →
-                  ((a : A) → α-Delay (u' a) ⊎∼ Fmap u' (α a)) → 
-                  (a : A) → u A α a ∼ u' a
-  univ-property A α u' p a = univ-property' A α u' p a (u' a) refl∼
--}
-
 -- Convergence
 
 data _↓_ {X : Set} : Delay X → X → Set where
@@ -149,70 +103,7 @@ trans≈ (↓≈ p (later↓ r)) (later≈ q) = ↓≈ p (later↓ (≈↓ (♭ 
 trans≈ (later≈ p) (↓≈ (later↓ q) s) = ↓≈ (later↓ (≈↓ (sym≈ (♭ p)) q)) s
 trans≈ (later≈ p) (later≈ q) = later≈ (♯ (trans≈ (♭ p) (♭ q)))
 
--- Convergence order
-
-data _⊑_ {X : Set} : Delay X → Delay X → Set where
-  ⊑now : ∀{x dx dy} → dx ↓ x → dy ↓ x → dx ⊑ dy
-  ⊑later : ∀{dx dy} → ∞ (♭ dx ⊑ ♭ dy) → later dx ⊑ later dy
-  ⊑leftlater : ∀{dx dy} → ∞ (♭ dx ⊑ dy) → later dx ⊑ dy
-
-≈subrel⊑ : ∀{X}{dx dy : Delay X} → dx ≈ dy → dx ⊑ dy
-≈subrel⊑ (↓≈ p q) = ⊑now p q
-≈subrel⊑ (later≈ p) = ⊑later (♯ (≈subrel⊑ (♭ p)))
-
-⊑implies↓ : ∀{X}{dx dy : Delay X} → dx ⊑ dy → ∀ {x} → dx ↓ x → dy ↓ x
-⊑implies↓ (⊑now now↓ p) now↓ = p
-⊑implies↓ (⊑now (later↓ p) p') (later↓ q) with unique↓ p q
-⊑implies↓ (⊑now (later↓ p) p') (later↓ q) | refl = p'
-⊑implies↓ (⊑later p) (later↓ q) = later↓ (⊑implies↓ (♭ p) q)
-⊑implies↓ (⊑leftlater p) (later↓ q) = ⊑implies↓ (♭ p) q
-
-↓implies⊑ : ∀{X}{dx dy : Delay X} → (∀{x} → dx ↓ x → dy ↓ x) → dx ⊑ dy
-↓implies⊑ {X} {now x} p = ⊑now now↓ (p now↓)
-↓implies⊑ {X} {later dx} p = ⊑leftlater (♯ (↓implies⊑ (λ q → p (later↓ q))))
-
-later⊑prop : ∀{X}{dx : Delay X}{dy} → dx ⊑ later dy → dx ⊑ ♭ dy
-later⊑prop (⊑now p (later↓ q)) = ⊑now p q
-later⊑prop (⊑later p) = ⊑leftlater p
-later⊑prop (⊑leftlater p) = ⊑leftlater (♯ (later⊑prop (♭ p)))
-
-refl⊑ : ∀{X}{dx : Delay X} → dx ⊑ dx
-refl⊑ {X} {now x} = ⊑now now↓ now↓
-refl⊑ {X} {later dx} = ⊑later (♯ refl⊑)
-
-antisym⊑ : ∀{X}{dx dy : Delay X} → dx ⊑ dy → dy ⊑ dx → dx ≈ dy
-antisym⊑ (⊑now p p') q = ↓≈ p p'
-antisym⊑ (⊑later p) (⊑now q q') = ↓≈ q' q
-antisym⊑ (⊑later p) (⊑later q) = later≈ (♯ (antisym⊑ (♭ p) (♭ q)))
-antisym⊑ (⊑later p) (⊑leftlater q) = 
-  later≈ (♯ (antisym⊑ (♭ p) (later⊑prop (♭ q))))
-antisym⊑ (⊑leftlater p) (⊑now q q') = ↓≈ q' q
-antisym⊑ (⊑leftlater p) (⊑later q) = 
-  later≈ (♯ (antisym⊑ (later⊑prop (♭ p)) (♭ q)))
-antisym⊑ (⊑leftlater p) (⊑leftlater q) = 
-  later≈ (♯ (antisym⊑ (later⊑prop (♭ p)) (later⊑prop (♭ q))))
-
-trans⊑ : ∀{X}{dx dy dz : Delay X} → dx ⊑ dy → dy ⊑ dz → dx ⊑ dz
-trans⊑ (⊑now p p') (⊑now q q') with unique↓ p' q
-trans⊑ (⊑now p p') (⊑now q q') | refl = ⊑now p q'
-trans⊑ (⊑now now↓ (later↓ p')) (⊑later q) = 
-  ⊑now now↓ (later↓ (⊑implies↓ (♭ q) p'))
-trans⊑ (⊑now (later↓ p) (later↓ p')) (⊑later q) = 
-  ⊑later (♯ (trans⊑ (⊑now p p') (♭ q)))
-trans⊑ (⊑now now↓ (later↓ p')) (⊑leftlater q) = 
-  ⊑now now↓ (⊑implies↓ (♭ q) p')
-trans⊑ (⊑now (later↓ p) (later↓ p')) (⊑leftlater q) = 
-  ⊑leftlater (♯ (trans⊑ (⊑now p p') (♭ q)))
-trans⊑ (⊑later p) (⊑now (later↓ q) q') = 
-  ⊑leftlater (♯ (trans⊑ (♭ p) (⊑now q q')))
-trans⊑ (⊑later p) (⊑later q) = ⊑later (♯ (trans⊑ (♭ p) (♭ q)))
-trans⊑ (⊑later p) (⊑leftlater q) = ⊑leftlater (♯ (trans⊑ (♭ p) (♭ q)))
-trans⊑ (⊑leftlater p) q = ⊑leftlater (♯ (trans⊑ (♭ p) q))
-
-_map⊑_ : {X Y : Set} → (X → Delay Y) → (X → Delay Y) → Set
-f map⊑ g = ∀ x → f x ⊑ g x
-
-
+{-
 -- A function that computes the first converging of two partial objects
 
 _∧_ : ∀{X} → Delay X → Delay X → Delay X
@@ -238,6 +129,7 @@ later dx ∧ later dy = later (♯ ((♭ dx) ∧ (♭ dy)))
 ∧convergence₂ {dy = now x} (⊑leftlater p) (later↓ q) = ⊑implies↓ (♭ p) q
 ∧convergence₂ {dy = later dy} (⊑leftlater p) (later↓ q) = 
   later↓ (∧convergence₂ (later⊑prop (♭ p)) q)
+-}
 
 -- Monad operations
 
@@ -283,7 +175,7 @@ map = Fun.HMap (TFun DelayM)
 str : ∀{X Y} → X × Delay Y → Delay (X × Y)
 str (x , dy) = map (λ y → (x , y)) dy
 
-
+{-
 -- Strength laws
 
 μ : ∀{X} → Delay (Delay X) → Delay X
@@ -311,37 +203,7 @@ strlaw4 : ∀{X Y}{x : X}{ddy : Delay (Delay Y)} →
           μ (map str (str (x , ddy))) ∼ str (x , (μ ddy))
 strlaw4 {ddy = now dy} = refl∼
 strlaw4 {ddy = later ddy} = later∼ (♯ (strlaw4 {ddy = ♭ ddy}))
-
--- For any set X, Delay X is the final coalgebra of F = X + _ (in Set)
-
-module InitialAlgebra (X : Set) where
-
-  ⊎str : {A B : Set} → A ⊎ Delay B → Delay (A ⊎ B)
-  ⊎str (inj₁ a) = now (inj₁ a)
-  ⊎str (inj₂ (now b)) = now (inj₂ b)
-  ⊎str (inj₂ (later b)) = later (♯ (⊎str (inj₂ (♭ b))))
-
-  Fmap : {A B : Set} → (A → Delay B) → X ⊎ A → Delay (X ⊎ B)
-  Fmap f (inj₁ x) = now (inj₁ x)
-  Fmap f (inj₂ a) = ⊎str (inj₂ (f a))
-
-  α-Delay : X ⊎ Delay X → Delay (Delay X)
-  α-Delay (inj₁ x) = now (now x)
-  α-Delay (inj₂ (now x)) = now (now x)
-  α-Delay (inj₂ (later x)) = later (♯ (α-Delay (inj₂ (♭ x))))
-
-  u : {A : Set}(α : X ⊎ A → Delay A) → Delay X → Delay A
-  u α (now x) = α (inj₁ x)
-  u α (later x) = later (♯ (u α (♭ x)))
-
-  u-comm : {A : Set}(α : X ⊎ A → Delay A)(x : X ⊎ Delay X) → 
-           dbind (u α) (α-Delay x) ≅ dbind α (Fmap (u α) x)
-  u-comm α (inj₁ x) = refl
-  u-comm α (inj₂ (now x)) with α (inj₁ x)
-  u-comm α (inj₂ (now x)) | now a = {!!}
-  u-comm α (inj₂ (now x)) | later a = {!!}
-  u-comm α (inj₂ (later x)) = {!!}
-
+-}
 
 -- Another composition called dcomp, weakly bisimilar to dbind but
 -- easier to use.
@@ -431,166 +293,3 @@ dcomp↓snd {X}{Y}{now x}{later dy} p = p
 dcomp↓snd {X}{Y}{later dx}{later dy} (later↓ p) = 
   later↓ (dcomp↓snd {_}{_}{♭ dx} p)
 
--- Meets
-
-_≅'_ : ∀{a}{A B : Set a} → A → B → Set a
-a ≅' b = a ≅ b
-
-open import Relation.Binary
-open import Relation.Nullary.Core
-
--- with decidability of equality in codomains
-
-dmeet-aux : ∀{X}{_≟_ : Decidable {A = X} _≅'_} → Delay X → Delay X → Delay X
-dmeet-aux {X}{_≟_} (now x) (now y) with x ≟ y
-dmeet-aux {X}{_≟_} (now x) (now .x) | yes refl = now x
-dmeet-aux {X}{_≟_} (now x) (now y) | no ¬p = 
-  later (♯ (dmeet-aux {X}{_≟_} (now x) (now y)))
-dmeet-aux {X}{_≟_} (now x) (later dy) = 
-  later (♯ (dmeet-aux {X}{_≟_} (now x) (♭ dy)))
-dmeet-aux {X}{_≟_} (later dx) (now y) = 
-  later (♯ (dmeet-aux {X}{_≟_} (♭ dx) (now y)))
-dmeet-aux {X}{_≟_} (later dx) (later dy) = 
-  later (♯ (dmeet-aux {X}{_≟_} (♭ dx) (♭ dy)))
-
-dmeet : {X Y : Set}{_≟_ : Decidable {A = Y}{B = Y} _≅'_}
-        (f g : X → Delay Y) → X → Delay Y
-dmeet {X}{Y}{_≟_} f g x = dmeet-aux {Y}{_≟_} (f x) (g x)
-
-{-
--- with semidecidability of equality in codomains 
-
-data SemiDec {p} (P : Set p) : Set p where
-  yes  : ( p :   P) → SemiDec P
-  no   : (¬p : ¬ P) → SemiDec P
-  wait : SemiDec P → SemiDec P
-
-SemiDecidable : ∀ {a b ℓ} {A : Set a} {B : Set b} → REL A B ℓ → Set _
-SemiDecidable _∼_ = ∀ x y → SemiDec (x ∼ y)
-
-dmeet-aux : ∀{X}{_≟_ : SemiDecidable {A = X} _≅'_} → Delay X → Delay X → Delay X
-dmeet-aux {X}{_≟_} (now x) (now y) with x ≟ y
-dmeet-aux {X}{_≟_} (now x) (now .x) | yes refl = now x
-dmeet-aux {X}{_≟_} (now x) (now y)  | no ¬p = 
-  later (♯ (dmeet-aux {X}{_≟_} (now x) (now y)))
-dmeet-aux {X}{_≟_} (now x) (now y)  | wait q = 
-  later (♯ (dmeet-aux {X}{_≟_} (now x) (now y)))
-dmeet-aux {X}{_≟_} (now x) (later dy) = 
-  later (♯ (dmeet-aux {X}{_≟_} (now x) (♭ dy)))
-dmeet-aux {X}{_≟_} (later dx) (now y) = 
-  later (♯ (dmeet-aux {X}{_≟_} (♭ dx) (now y)))
-dmeet-aux {X}{_≟_} (later dx) (later dy) = 
-  later (♯ (dmeet-aux {X}{_≟_} (♭ dx) (♭ dy)))
-
-dmeet : {X Y : Set}{_≟_ : SemiDecidable {A = Y}{B = Y} _≅'_}
-       (f g : X → Delay Y) → X → Delay Y
-dmeet {X}{Y}{_≟_} f g x = dmeet-aux {Y}{_≟_} (f x) (g x)
--}
-
-
-
-
-
-
-
-
-
-
-{-
-
--- First product definition. It is the product in Set but not in the
--- Kleisli cat. It is isomorphic to Delay X × Delay Y in Set, and that
--- make me think that there is no way to prove it isomorphic to the
--- actual product (defined in RestrictionDelay.agda) in the Klesli
--- cat.
-
-data _D×_ (X Y : Set) : Set where
-  nownow : X → Y → X D× Y
-  nowlater : X → Delay Y → X D× Y
-  laternow : Delay X → Y → X D× Y
-  laterlater : ∞ (X D× Y) → X D× Y
-
-data _D∼_ {X Y : Set} : X D× Y → X D× Y → Set where
-  nownow∼ : ∀{x y} → nownow x y D∼ nownow x y
-  nowlater∼ : ∀{x dy dy'} → dy ∼ dy' → nowlater x dy D∼ nowlater x dy'
-  laternow∼ : ∀{dx dx' y} → dx ∼ dx' → laternow dx y D∼ laternow dx' y
-  laterlater∼ : ∀{dxy dxy'} → ∞ (♭ dxy D∼ ♭ dxy') → 
-                laterlater dxy D∼ laterlater dxy'
-
-dproj₁ : ∀{X Y} → X D× Y → Delay X
-dproj₁ (nownow x y) = now x
-dproj₁ (nowlater x dy) = now x
-dproj₁ (laternow dx y) = later (♯ dx)
-dproj₁ (laterlater dxy) = later (♯ (dproj₁ (♭ dxy)))
-
-dproj₂ : ∀{X Y} → X D× Y → Delay Y
-dproj₂ (nownow x y) = now y
-dproj₂ (nowlater x dy) = later (♯ dy)
-dproj₂ (laternow dx y) = now y
-dproj₂ (laterlater dxy) = later (♯ (dproj₂ (♭ dxy)))
-
-D×→D : ∀{X Y} → X D× Y → Delay X × Delay Y
-D×→D dxy = (dproj₁ dxy) , (dproj₂ dxy)
-
-×→D× : ∀{X Y} → Delay X × Delay Y → X D× Y
-×→D× (now x , now y) = nownow x y
-×→D× (now x , later dy) = nowlater x (♭ dy)
-×→D× (later dx , now y) = laternow (♭ dx) y
-×→D× (later dx , later dy) = laterlater (♯ (×→D× (♭ dx , ♭ dy)))
-
-u : {X Y Z : Set} → (Z → Delay X) → (Z → Delay Y) → Z → X D× Y
-u f g z = ×→D× (f z , g z)
-
-comp-aux₁ : ∀{X Y}(dx : Delay X)(dy : Delay Y) → dproj₁ (×→D× (dx , dy)) ∼ dx
-comp-aux₁ (now x) (now y) = now∼
-comp-aux₁ (now x) (later dy) = now∼
-comp-aux₁ (later dx) (now y) = later∼ (♯ refl∼)
-comp-aux₁ (later dx) (later dy) = later∼ (♯ (comp-aux₁ (♭ dx) (♭ dy)))
-
-comp-aux₂ : ∀{X Y}(dx : Delay X)(dy : Delay Y) → dproj₂ (×→D× (dx , dy)) ∼ dy
-comp-aux₂ (now x) (now y) = now∼
-comp-aux₂ (now x) (later dy) = later∼ (♯ refl∼)
-comp-aux₂ (later dx) (now y) = now∼ 
-comp-aux₂ (later dx) (later dy) = later∼ (♯ (comp-aux₂ (♭ dx) (♭ dy)))
-
-iso₂ : ∀{X Y}(dxy : X D× Y) → ×→D× (D×→D dxy) D∼ dxy
-iso₂ (nownow x y) = nownow∼
-iso₂ (nowlater x dy) = nowlater∼ refl∼
-iso₂ (laternow dx y) = laternow∼ refl∼
-iso₂ (laterlater dxy) = laterlater∼ (♯ (iso₂ (♭ dxy)))
-
-comp₁ : ∀{X Y Z}(f : Z → Delay X)(g : Z → Delay Y)(z : Z) → 
-        dproj₁ (u f g z) ∼ f z
-comp₁ f g z = comp-aux₁ (f z) (g z)
-
-comp₂ : ∀{X Y Z}(f : Z → Delay X)(g : Z → Delay Y)(z : Z) → 
-        dproj₂ (u f g z) ∼ g z
-comp₂ f g z = comp-aux₂ (f z) (g z)
-
-uniq-aux : ∀{X Y}(dxy dxy' : X D× Y) → dproj₁ dxy ∼ dproj₁ dxy' → 
-           dproj₂ dxy ∼ dproj₂ dxy' → dxy D∼ dxy'
-uniq-aux (nownow x y) (nownow .x .y) now∼ now∼ = nownow∼
-uniq-aux (nownow x x₁) (nowlater x₂ x₃) p ()
-uniq-aux (nownow x x₁) (laternow x₂ x₃) () q
-uniq-aux (nownow x x₁) (laterlater x₂) () q
-uniq-aux (nowlater x x₁) (nownow x₂ x₃) p ()
-uniq-aux (nowlater x dy) (nowlater .x dy') now∼ (later∼ q) = nowlater∼ (♭ q)
-uniq-aux (nowlater x x₁) (laternow x₂ x₃) p ()
-uniq-aux (nowlater x x₁) (laterlater x₂) () q
-uniq-aux (laternow x x₁) (nownow x₂ x₃) () q
-uniq-aux (laternow x x₁) (nowlater x₂ x₃) p ()
-uniq-aux (laternow dx y) (laternow dx' .y) (later∼ p) now∼ = laternow∼ (♭ p)
-uniq-aux (laternow x x₁) (laterlater x₂) p ()
-uniq-aux (laterlater x) (nownow x₁ x₂) () q
-uniq-aux (laterlater x) (nowlater x₁ x₂) () q
-uniq-aux (laterlater x) (laternow x₁ x₂) p ()
-uniq-aux (laterlater dxy) (laterlater dxy') (later∼ p) (later∼ q) = 
-  laterlater∼ (♯ (uniq-aux (♭ dxy) (♭ dxy') (♭ p) (♭ q)))
-
-uniq : ∀{X Y Z}(f : Z → Delay X)(g : Z → Delay Y)(u' : Z → X D× Y)(z : Z) → 
-       dproj₁ (u' z) ∼ f z → dproj₂ (u' z) ∼ g z → u' z D∼ u f g z
-uniq f g u' z p q = uniq-aux (u' z) 
-                             (u f g z) 
-                             (trans∼ p (sym∼ (comp₁ f g z))) 
-                             (trans∼ q (sym∼ (comp₂ f g z)))
--}
