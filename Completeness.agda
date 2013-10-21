@@ -30,7 +30,6 @@ module Completeness {a b}(X : SplitRestCat {a}{b}) where
   open import Categories.Monos cat
   open import Categories.Isos
 
-
 -- Functor definition
 
   .totcomprest : {A C : Obj}(f : Hom A C) → (sp : Split (record { E = A; e = rest f; law = lemii rcat })) →
@@ -74,7 +73,7 @@ module Completeness {a b}(X : SplitRestCat {a}{b}) where
       fhom = fhom;
       m∈ = m∈ }
 
-  .fid : ∀{A} → HMap1 (iden {A}) ≅ idspan {A}
+  .fid : ∀{A} → HMap1 (iden {A}) ~Span~ idspan {A}
   fid {A} = 
     let open Split (rsplit (iden {A}))
                                  
@@ -92,9 +91,7 @@ module Completeness {a b}(X : SplitRestCat {a}{b}) where
         stot : Tot B A
         stot = record { hom = s; tot = lemiii rcat (smon s (r , law2)) }
 
-      in quotient 
-        _ 
-        _ 
+      in spaneq
         (record { hom = s; tot = lemiii rcat (smon s (r , law2)) })
         (Iso.inv (IsoTot stot isos) ,,
         TotEq _ _ (
@@ -109,7 +106,7 @@ module Completeness {a b}(X : SplitRestCat {a}{b}) where
         (TotEq _ _ idl) 
         (TotEq _ _ refl)
 
-  .fcomp : ∀{A B C}{g : Hom B C}{f : Hom A B} → HMap1 (comp g f) ≅ compspan (HMap1 g) (HMap1 f)
+  .fcomp : ∀{A B C}{g : Hom B C}{f : Hom A B} → HMap1 (comp g f) ~Span~ compspan (HMap1 g) (HMap1 f)
   fcomp {A}{B}{C}{g}{f} = 
     let open Split (rsplit f) renaming (B to Af; 
                                         s to mf; 
@@ -224,32 +221,34 @@ module Completeness {a b}(X : SplitRestCat {a}{b}) where
           ≅⟨ sym ass ⟩
           comp (comp g f) (comp mf m')
           ∎
-    in quotient _ 
-                _ 
-                (record { hom = u; tot = lemiii rcat (iso→mono cat (proj₂ isosplitmap))})
-                (IsoTot (record { hom = u; tot = lemiii rcat (iso→mono cat (proj₂ isosplitmap)) }) (proj₂ isosplitmap)) 
-                (TotEq _ _ isosplitlaw2) 
-                (TotEq _ 
-                       _ 
-                       (proof
-                        comp (comp (comp g mg) (comp rg (comp (comp f mf) m'))) u
-                        ≅⟨ cong (λ y → comp y u) equat ⟩
-                        comp (comp (comp g f) (comp mf m')) u
-                        ≅⟨ ass ⟩
-                        comp (comp g f) (comp (comp mf m') u)
-                        ≅⟨ cong (comp (comp g f)) isosplitlaw2 ⟩
-                        comp (comp g f) mgf
-                        ∎
-                        ))
+    in spaneq
+        (record { hom = u; tot = lemiii rcat (iso→mono cat (proj₂ isosplitmap))})
+        (IsoTot (record { hom = u; tot = lemiii rcat (iso→mono cat (proj₂ isosplitmap)) }) (proj₂ isosplitmap)) 
+        (TotEq _ _ isosplitlaw2) 
+        (TotEq _ 
+               _ 
+               (proof
+                comp (comp (comp g mg) (comp rg (comp (comp f mf) m'))) u
+                ≅⟨ cong (λ y → comp y u) equat ⟩
+                comp (comp (comp g f) (comp mf m')) u
+                ≅⟨ ass ⟩
+                comp (comp g f) (comp (comp mf m') u)
+                ≅⟨ cong (comp (comp g f)) isosplitlaw2 ⟩
+                comp (comp g f) mgf
+                ∎
+                ))
 
   Funct : Fun cat Par
   Funct = record { 
     OMap = λ A → A; 
-    HMap = HMap1;
-    fid = fid;
-    fcomp = λ {_}{_}{_}{g}{f} → fcomp {g = g} {f = f}}
+    HMap = abs ∘ HMap1;
+    fid = ax1 _ _ fid;
+    fcomp = λ {_}{_}{_}{g}{f} → ax1 
+      _ 
+      _ 
+      (~trans (fcomp {g = g}{f = f}) (~sym (~cong (ax3 _) (ax3 _))))}
 
-  .frest : ∀{A B}{f : Hom A B} → restp (HMap1 f) ≅ HMap1 (rest f)
+  .frest : ∀{A B}{f : Hom A B} → restp (HMap1 f) ~Span~ HMap1 (rest f)
   frest {A}{B}{f = f} = 
     let open Split (rsplit f) renaming (B to A'; s to m)
         open Split (rsplit (rest f)) renaming (B to A''; s to m'; r to r'; law1 to law1'; law2 to law2')
@@ -302,18 +301,19 @@ module Completeness {a b}(X : SplitRestCat {a}{b}) where
           m
           ∎
 
-    in quotient (restp (HMap1 f)) 
-                (HMap1 (rest f)) 
-                (record { hom = proj₁ umap; tot = lemiii rcat (iso→mono cat (proj₂ umap)) }) 
-                (IsoTot (record { hom = proj₁ umap; tot = lemiii rcat (iso→mono cat (proj₂ umap))}) (proj₂ umap))
-                (TotEq _ _ ulaw2)
-                (TotEq _ _ eq)
+    in spaneq
+      (record { hom = proj₁ umap; tot = lemiii rcat (iso→mono cat (proj₂ umap)) }) 
+      (IsoTot (record { hom = proj₁ umap; tot = lemiii rcat (iso→mono cat (proj₂ umap))}) (proj₂ umap))
+      (TotEq _ _ ulaw2)
+      (TotEq _ _ eq)
 
   RFunct : RestFun rcat RestPartials
   RFunct = record {
     fun = Funct;
-    frest = λ {_}{_}{f} → frest {f = f} }
-
+    frest = λ {_}{_}{f} → ax1
+      _
+      _
+      (~trans (Span~restp (ax3 _)) (frest {f = f})) }
 
   HMap2 : ∀{A C} → Span A C → Hom A C
   HMap2 {A}{C} sp = 
@@ -322,11 +322,132 @@ module Completeness {a b}(X : SplitRestCat {a}{b}) where
         open SRestIde m∈
     in comp g rs
 
-  .fid2 : ∀{A} → HMap2 (idspan {A}) ≅ iden {A}
-  fid2 {A} = idl
+--  postulate HMap2~Span : ∀{A B}{sp sp' : Span A B} → sp ~Span~ sp' → HMap2 sp ≅ HMap2 sp'
 
-  .fcomp2 : ∀{A B C}{sp' : Span B C}{sp : Span A B} → HMap2 (compspan sp' sp) ≅ comp (HMap2 sp') (HMap2 sp)
-  fcomp2 {A}{B}{C}{sp'}{sp} =
+  .HMap2~Span : ∀{A B}{sp sp' : Span A B} → sp ~Span~ sp' → HMap2 sp ≅ HMap2 sp'
+  HMap2~Span {A}{B}{sp}{sp'} y = --(spaneq iso (inv ,, rinv ,, linv) p q) = 
+    let open _~Span~_ y renaming (s to iso)
+        open Iso Total siso 
+        open Span sp 
+        open Span sp' renaming (A' to A''; mhom to mhom'; fhom to fhom'; m∈ to m∈')
+
+        open Tot mhom renaming (hom to m)
+        open Tot mhom' renaming (hom to m')
+        open Tot fhom renaming (hom to f)
+        open Tot fhom' renaming (hom to g)
+        open Tot iso renaming (hom to s; tot to st) 
+        open Tot inv renaming (hom to s⁻¹)
+
+
+        open SRestIde m∈ renaming (As to Af; rs to rf; law1s to law1f; law2s to law2f)        
+        open SRestIde m∈' renaming (As to Ag; fs to e; rs to rg; law1s to law1g; law2s to law2g)
+
+        seq1 : s ≅ comp rg m
+        seq1 = 
+          proof 
+          s
+          ≅⟨ sym idl ⟩
+          comp iden s
+          ≅⟨ cong (λ y → comp y s) (sym law2g) ⟩
+          comp (comp rg m') s
+          ≅⟨ ass ⟩
+          comp rg (comp m' s)
+          ≅⟨ cong (comp rg) (TotEqHom p) ⟩
+          comp rg m
+          ∎
+
+        seq2 : s⁻¹ ≅ comp rf m'
+        seq2 = 
+          proof 
+          s⁻¹
+          ≅⟨ sym idl ⟩
+          comp iden s⁻¹
+          ≅⟨ cong (λ y → comp y s⁻¹) (sym law2f) ⟩
+          comp (comp rf m) s⁻¹
+          ≅⟨ ass ⟩
+          comp rf (comp m s⁻¹)
+          ≅⟨ cong (λ y → comp rf (comp y s⁻¹)) (sym (TotEqHom p)) ⟩
+          comp rf (comp (comp m' s) s⁻¹)
+          ≅⟨ cong (comp rf) ass ⟩
+          comp rf (comp m' (comp s s⁻¹))
+          ≅⟨ cong ((comp rf) ∘ (comp m')) (TotEqHom rinv) ⟩
+          comp rf (comp m' iden)
+          ≅⟨ cong (comp rf) idr ⟩
+          comp rf m'
+          ∎
+
+        rgeq1 : rg ≅ comp s (comp rf (rest rg))
+        rgeq1 = 
+          proof
+          rg
+          ≅⟨ sym idl ⟩
+          comp iden rg
+          ≅⟨ cong (λ y → comp y rg) (sym (TotEqHom rinv)) ⟩
+          comp (comp s s⁻¹) rg
+          ≅⟨ ass ⟩
+          comp s (comp s⁻¹ rg)
+          ≅⟨ cong (λ y → comp s (comp y rg)) seq2 ⟩
+          comp s (comp (comp rf m') rg)
+          ≅⟨ cong (comp s) ass ⟩
+          comp s (comp rf (comp m' rg))
+          ≅⟨ cong ((comp s) ∘ (comp rf)) (SRIdeProp m∈') ⟩
+          comp s (comp rf (rest rg))
+          ∎
+
+        restrgeq : rest rg ≅ comp (rest rg) (rest rf)
+        restrgeq = 
+          proof
+          rest rg
+          ≅⟨ cong rest rgeq1 ⟩
+          rest (comp s (comp rf (rest rg)))
+          ≅⟨ lemiv rcat ⟩ 
+          rest (comp (rest s) (comp rf (rest rg)))
+          ≅⟨ cong (λ y → rest (comp y (comp rf (rest rg)))) st ⟩
+          rest (comp iden (comp rf (rest rg)))
+          ≅⟨ cong rest idl ⟩
+          rest (comp rf (rest rg))
+          ≅⟨ sym R3 ⟩
+          comp (rest rf) (rest rg)
+          ≅⟨ R2 ⟩
+          comp (rest rg) (rest rf)
+          ∎
+
+        rgeq2 : rg ≅ comp rg (rest rf)
+        rgeq2 = 
+          proof
+          rg
+          ≅⟨ sym R1 ⟩
+          comp rg (rest rg)
+          ≅⟨ cong (comp rg) restrgeq ⟩
+          comp rg (comp (rest rg) (rest rf))
+          ≅⟨ sym ass ⟩
+          comp (comp rg (rest rg)) (rest rf)
+          ≅⟨ cong (λ y → comp y (rest rf)) R1 ⟩
+          comp rg (rest rf)
+          ∎
+
+    in proof
+       comp f rf
+       ≅⟨ cong (λ y → comp y rf) (sym (TotEqHom q)) ⟩
+       comp (comp g s) rf
+       ≅⟨ ass ⟩
+       comp g (comp s rf)
+       ≅⟨ cong (λ y → comp g (comp y rf)) seq1 ⟩
+       comp g (comp (comp rg m) rf)
+       ≅⟨ cong (comp g) ass ⟩
+       comp g (comp rg (comp m rf))
+       ≅⟨ cong ((comp g) ∘ (comp rg)) (SRIdeProp m∈) ⟩
+       comp g (comp rg (rest rf))
+       ≅⟨ cong (comp g) (sym rgeq2) ⟩
+       comp g rg
+       ∎
+
+
+  .fid2 : ∀{A} → HMap2 (rep (abs (idspan {A}))) ≅ iden {A}
+  fid2 = trans (HMap2~Span (ax3 _)) idl
+
+  .fcomp2' : ∀{A B C}{sp' : Span B C}{sp : Span A B} → HMap2 (compspan sp' sp) ≅ comp (HMap2 sp') (HMap2 sp)
+  fcomp2' {A}{B}{C}{sp'}{sp} =
     let open Span sp 
         open Span sp' renaming (A' to A''; mhom to mhom'; fhom to fhom'; m∈ to m∈')
         open Span (compspan sp' sp) renaming (A' to A'''; mhom to mhom''; fhom to fhom''; m∈ to m∈'')
@@ -388,17 +509,20 @@ module Completeness {a b}(X : SplitRestCat {a}{b}) where
       comp (comp g rg) (comp f rf) 
       ∎
 
+  .fcomp2 : ∀{A B C}{q' : QSpan B C}{q : QSpan A B} → HMap2 (rep (abs (compspan (rep q') (rep q)))) ≅ comp (HMap2 (rep q')) (HMap2 (rep q))
+  fcomp2 {A}{B}{C}{q'}{q} = trans (HMap2~Span (ax3 _)) (fcomp2' {sp' = rep q'}{sp = rep q})
+
   Funct2 : Fun Par cat
   Funct2 = record {
     OMap = λ A → A; 
-    HMap = HMap2;
+    HMap = HMap2 ∘ rep;
     fid = fid2;
-    fcomp = λ {_}{_}{_}{sp'}{sp} → fcomp2 {sp' = sp'} {sp = sp} }
+    fcomp = fcomp2 }
 
   open Fun
 
-  .frest2 : ∀{A B}{sp : Span A B} → rest (HMap Funct2 sp) ≅ HMap Funct2 (restp sp)
-  frest2 {sp = sp} = 
+  .frest2' : ∀{A B}{sp : Span A B} → rest (HMap2 sp) ≅ HMap2 (restp sp)
+  frest2' {sp = sp} = 
     let open Span sp renaming (mhom to mp; fhom to fp)
         open Tot mp renaming (hom to m)
         open Tot fp renaming (hom to f; tot to ft)
@@ -416,18 +540,18 @@ module Completeness {a b}(X : SplitRestCat {a}{b}) where
       comp m r
       ∎
 
+  .frest2 : ∀{A B}{q : QSpan A B} → rest (HMap2 (rep q)) ≅ HMap2 (rep (abs (restp (rep q))))
+  frest2 {q = q} = trans (frest2' {sp = rep q}) (HMap2~Span (~sym (ax3 _)))
+
   RFunct2 : RestFun RestPartials rcat
   RFunct2 = record {
     fun = Funct2;
-    frest = λ {_}{_}{sp} → frest2 {sp = sp} }
-
+    frest = frest2 }
 
 -- Iso proof
 
-
-
-  .HIso1 : ∀{A C}(sp : Span A C) → HMap1 (HMap2 sp) ≅ sp
-  HIso1 {A}{C} sp = 
+  .HIso1' : ∀{A C}(sp : Span A C) → HMap1 (HMap2 sp) ~Span~ sp
+  HIso1' {A}{C} sp = 
     let open Span sp renaming (mhom to nt; fhom to gt; m∈ to n∈)
         open Tot nt renaming (hom to n)
         open Tot gt renaming (hom to g; tot to gp)
@@ -490,15 +614,17 @@ module Completeness {a b}(X : SplitRestCat {a}{b}) where
           g
           ∎
 
-    in sym (quotient sp 
-                (HMap1 (HMap2 sp)) 
+    in ~sym (spaneq
                 αt 
                 (IsoTot αt (proj₂ (lemmamap (record { E = A; e = rest r; law = lemii rcat}) spl spl')))
                 (TotEq _ nt (lemmalaw2 (record { E = A; e = rest r; law = lemii rcat}) spl spl'))
                 (TotEq _ gt equat))
 
-  .HIso2 : ∀{A C}(f : Hom A C) → HMap2 (HMap1 f) ≅ f
-  HIso2 {A}{C} f = 
+  .HIso1 : ∀{A C}(q : QSpan A C) → abs (HMap1 (HMap2 (rep q))) ≅ q
+  HIso1 {A}{C} q = trans (ax1 _ _ (HIso1' (rep q))) (ax2 q)
+
+  .HIso2' : ∀{A C}(f : Hom A C) → HMap2 (HMap1 f) ≅ f
+  HIso2' {A}{C} f = 
     let open Split (rsplit f)
     in 
       proof
@@ -510,6 +636,10 @@ module Completeness {a b}(X : SplitRestCat {a}{b}) where
       ≅⟨ R1 ⟩
       f
       ∎
+
+  .HIso2 : ∀{A C}(f : Hom A C) → HMap2 (rep (abs (HMap1 f))) ≅ f
+  HIso2 f = trans (HMap2~Span (ax3 _)) (HIso2' f)
+
 {-
   IsoCompl : Iso CCat Funct
   IsoCompl = Funct2 ,, 
@@ -521,3 +651,4 @@ module Completeness {a b}(X : SplitRestCat {a}{b}) where
               RFun≅ (Fun≅ refl HIso1) ,, 
               RFun≅ (Fun≅ refl HIso2)
 -}
+

@@ -1,9 +1,11 @@
 
 module Utilities where
 
+open import Relation.Binary
 open import Relation.Binary.HeterogeneousEquality
 open import Data.Unit
 open import Level
+open import Data.Product
 
 record Σ' {a b}(A : Set a)(B : A → Set b) : Set (a ⊔ b) where
     constructor _,,_
@@ -63,3 +65,18 @@ fixtypes'' : ∀{i}{A : Set i}{a a' a'' a''' : A}{p : a ≅ a'}{q : a'' ≅ a'''
 fixtypes'' {p = p}{q = q} r = fixtypes (trans p (trans r (sym q))) r 
 
 postulate irrelevant : ∀{i}{A : Set i} → .A → A
+
+EqR : ∀{a}(A : Set a) → Set (suc a)
+EqR {a} A = Σ (Rel A a) (λ R → IsEquivalence R)
+
+record Quotient {a : Level} (A : Set a) (R : EqR A) : Set (suc a) where
+  open Σ R renaming (proj₁ to _~_)
+  field Q : Set a
+        abs : A → Q
+        rep : Q → A
+        ax1 : (a b : A) → a ~ b → abs a ≅ abs b
+        ax2 : (q : Q) → abs (rep q) ≅ q
+        ax3 : (a : A) → rep (abs a) ~ a
+
+postulate quot : ∀{a}(A : Set a) (R : EqR A) → Quotient A R
+

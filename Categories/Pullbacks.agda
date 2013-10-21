@@ -16,6 +16,7 @@ module Categories.Pullbacks {a b}(X : Cat {a}{b}) where
 
   record PMap  {X Y Z : Obj}{f : Hom X Z}{g : Hom Y Z}(sq' sq : Square f g) 
          : Set (a ⊔ b) where
+    constructor pmap
     open Square
     field mor   : Hom (W sq') (W sq)
           .prop1 : comp (h sq) mor ≅ h sq'
@@ -30,7 +31,7 @@ module Categories.Pullbacks {a b}(X : Cat {a}{b}) where
 
   open import Categories.Isos X
 
-  .pullbackiso : ∀{X Y Z}{f : Hom X Z}{g : Hom Y Z}(p p' : Pullback f g) → 
+  pullbackiso : ∀{X Y Z}{f : Hom X Z}{g : Hom Y Z}(p p' : Pullback f g) → 
                 Iso (mor (fst (prop p (sq p'))))
   pullbackiso {X}{Y}{Z}{f}{g} p p' = 
     let u   = prop p (sq p)
@@ -44,6 +45,7 @@ module Categories.Pullbacks {a b}(X : Cat {a}{b}) where
         compmor : Hom (Square.W (sq p)) (Square.W (sq p))
         compmor = comp (mor u₂) (mor u₁)
 
+        .compprop1 : _
         compprop1 = 
             proof 
             comp (h (sq p)) (comp (mor u₂) (mor u₁)) 
@@ -55,6 +57,7 @@ module Categories.Pullbacks {a b}(X : Cat {a}{b}) where
             h (sq p) 
             ∎
 
+        .compprop2 : _
         compprop2 = 
             proof 
             comp (k (sq p)) (comp (mor u₂) (mor u₁)) 
@@ -79,6 +82,7 @@ module Categories.Pullbacks {a b}(X : Cat {a}{b}) where
         compmor' : Hom (Square.W (sq p')) (Square.W (sq p'))
         compmor' = comp (mor u₁) (mor u₂) 
 
+        .compprop1' : _
         compprop1' = 
             proof 
             comp (h (sq p')) (comp (mor u₁) (mor u₂)) 
@@ -90,6 +94,7 @@ module Categories.Pullbacks {a b}(X : Cat {a}{b}) where
             h (sq p') 
             ∎
 
+        .compprop2' : _
         compprop2' =
             proof 
             comp (k (sq p')) (comp (mor u₁) (mor u₂)) 
@@ -107,6 +112,7 @@ module Categories.Pullbacks {a b}(X : Cat {a}{b}) where
           prop1 = compprop1';
           prop2 = compprop2'}
         
+        .isoproof1 : _
         isoproof1 =
           proof 
           comp (mor u₂) (mor u₁)
@@ -116,6 +122,7 @@ module Categories.Pullbacks {a b}(X : Cat {a}{b}) where
           iden
           ∎
 
+        .isoproof2 : _
         isoproof2 =
           proof 
           comp (mor u₁) (mor u₂)
