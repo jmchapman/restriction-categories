@@ -68,6 +68,8 @@ trans⊑ (⊑leftlater p) q = ⊑leftlater (♯ (trans⊑ (♭ p) q))
 _map⊑_ : {X Y : Set} → (X → Delay Y) → (X → Delay Y) → Set
 f map⊑ g = ∀ x → f x ⊑ g x
 
+
+{-
 -- Order equivalence
 
 open import RestrictionCat
@@ -129,3 +131,4 @@ map⊑→≤ p = ext (map⊑→≤' p)
           dcomp (f x) (g x)
           ∎)
          refl≈)
+-}

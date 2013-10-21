@@ -8,6 +8,7 @@ open import Data.Empty renaming (⊥ to ∅)
 open import Monads.Delay.Independence
 open import Data.Sum
 
+{-
 -- Iteration
 
 d† : ∀{X Y} → (X → Delay X) → (X → Delay Y) → Delay X → Delay Y → Delay Y
@@ -113,3 +114,4 @@ G₁F≈ p x = G₁'F'≈ (p x)
 G₂F≈ : ∀{X Y}{f : X → Delay X}{g : X → Delay Y} → f ⊥ g → (x : X) →
        g x ≈ G₂ (F f g) x
 G₂F≈ p x = G₂'F'≈ (p x)
+-}

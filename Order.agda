@@ -1,6 +1,6 @@
 open import RestrictionCat
 
-module Order {a b}(X : RestCat {a}{b}) where
+module Order (X : RestCat) where
 
 open import Categories
 open import Relation.Binary.HeterogeneousEquality
@@ -13,7 +13,7 @@ open import Function
 
 infix 4 _≤_
 
-_⌣_ : ∀{A B} → Hom A B → Hom A B → Set b
+_⌣_ : ∀{A B} → Hom A B → Hom A B → Set
 f ⌣ g = comp g (rest f) ≅ comp f (rest g)
 
 .comp⌣ : ∀{A B C}{f g : Hom A B}(p : f ⌣ g){h : Hom C _} → comp f h ⌣ comp g h
@@ -36,7 +36,7 @@ comp⌣ {f = f}{g = g} p {h = h} =
   comp (comp f h) (rest (comp g h))  
   ∎
 
-_≤_ : ∀{A B} → Hom A B → Hom A B → Set b
+_≤_ : ∀{A B} → Hom A B → Hom A B → Set
 f ≤ g = comp g (rest f) ≅ f
 
 .refl≤ : ∀{A B}{f : Hom A B} → f ≤ f
@@ -80,15 +80,15 @@ antisym≤ {f = f}{g = g} p q =
 
 module Meets where
 
-  record Meet : Set (a ⊔ b) where
+  record Meet : Set where
     field _∩_  : ∀{A B} → Hom A B → Hom A B → Hom A B
-          Mt1  : ∀{A B}{f : Hom A B} → f ∩ f ≅ f
-          Mt2a : ∀{A B}{f g : Hom A B} → f ∩ g ≤ g
-          Mt2b : ∀{A B}{f g : Hom A B} → f ∩ g ≤ f
-          Mt3  : ∀{A B C}{f g : Hom A B}{h : Hom C A} → 
-                 comp (f ∩ g) h ≅ comp f h ∩ comp g h
+          .Mt1  : ∀{A B}{f : Hom A B} → f ∩ f ≅ f
+          .Mt2a : ∀{A B}{f g : Hom A B} → f ∩ g ≤ g
+          .Mt2b : ∀{A B}{f g : Hom A B} → f ∩ g ≤ f
+          .Mt3  : ∀{A B C}{f g : Hom A B}{h : Hom C A} → 
+                  comp (f ∩ g) h ≅ comp f h ∩ comp g h
 
-  MeetIsMeet : ∀{A B}{f g h : Hom A B}(m : Meet) → 
+  .MeetIsMeet : ∀{A B}{f g h : Hom A B}(m : Meet) → 
                let open Meet m
                in h ≤ f → h ≤ g → h ≤ f ∩ g
   MeetIsMeet {f = f}{g = g}{h = h} m p q = 
@@ -107,12 +107,11 @@ module Meets where
 
 module Joins where
 
-  record Join : Set (a ⊔ b) where
-    field _∨_∣_ : ∀{A B}(f g : Hom A B) → f ⌣ g → Hom A B
-          Jn1a  : ∀{A B}{f g : Hom A B}{p : f ⌣ g} → f ≤ f ∨ g ∣ p
-          Jn1b  : ∀{A B}{f g : Hom A B}{p : f ⌣ g} → g ≤ f ∨ g ∣ p
-          Jn2   : ∀{A B}{f g h : Hom A B}{p : f ⌣ g} → f ≤ h  → g ≤ h → 
-                  f ∨ g ∣ p ≤ h
-          Jn3   : ∀{A B C}{f g : Hom A B}{p : f ⌣ g}{h : Hom C _} →
-                  comp (f ∨ g ∣ p) h ≅ (comp f h) ∨ (comp g h) ∣ 
-                  irrelevant (comp⌣ p)
+  record Join : Set where
+    field _∨_∣_ : ∀{A B}(f g : Hom A B) → .(f ⌣ g) → Hom A B
+          .Jn1a  : ∀{A B}{f g : Hom A B}{p : f ⌣ g} → f ≤ f ∨ g ∣ p
+          .Jn1b  : ∀{A B}{f g : Hom A B}{p : f ⌣ g} → g ≤ f ∨ g ∣ p
+          .Jn2   : ∀{A B}{f g h : Hom A B}{p : f ⌣ g} → f ≤ h  → g ≤ h → 
+                   f ∨ g ∣ p ≤ h
+          .Jn3   : ∀{A B C}{f g : Hom A B}{p : f ⌣ g}{h : Hom C _} →
+                   comp (f ∨ g ∣ p) h ≅ (comp f h) ∨ (comp g h) ∣ comp⌣ p

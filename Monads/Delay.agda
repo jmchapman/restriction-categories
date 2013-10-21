@@ -220,6 +220,97 @@ map f = dbind (now ∘ f) --rep (Fun.HMap (TFun DelayM) f (abs x))
 str : ∀{X Y} → X × Delay Y → Delay (X × Y)
 str (x , dy) = map (λ y → (x , y)) dy
 
+
+
+-- Another composition called dcomp, weakly bisimilar to dbind but
+-- easier to use.
+
+dbindlater≈ : ∀{X Y}{f : X → ∞ (Delay Y)}(dx : Delay X) → 
+              dbind (♭ ∘ f) dx ≈ dbind (later ∘ f) dx
+dbindlater≈ dx = trans≈ laterlem 
+                        (trans≈ (later≈ (♯ refl≈)) 
+                                (∼→≈ (sym∼ (dbindlater dx))))
+
+dcomp : ∀{X Y} → Delay X → Delay Y → Delay Y
+dcomp (now x) dy = dy
+dcomp (later dx) (now y) = later (♯ (dcomp (♭ dx) (now y)))
+dcomp (later dx) (later dy) = later (♯ (dcomp (♭ dx) (♭ dy)))
+
+dcomp↓dbind' : ∀{X Y}{z : Y}(dx : Delay X)(dy dz : Delay Y) → 
+               dbind (λ _ → dy) dx ∼ dz → dz ↓ z → dcomp dx dy ↓ z
+dcomp↓dbind' (now x) dy dz p q = ∼↓ (sym∼ p) q
+dcomp↓dbind' (later dx) (now y) (later .dz) (later∼ p) (later↓ {dz} q) = 
+  later↓ (dcomp↓dbind' (♭ dx) (now y) (♭ dz) (♭ p) q)
+dcomp↓dbind' (later dx) (later dy) (later .dz) (later∼ p) (later↓ {dz} q) with
+  ♭ dz | trans∼ (sym∼ (dbindlater (♭ dx))) (♭ p) 
+dcomp↓dbind' (later dx) (later dy) (later .dz) (later∼ p) (later↓ {dz} (later↓ q)) | later dw | later∼ r = later↓ (dcomp↓dbind' (♭ dx) (♭ dy) (♭ dw) (♭ r) q)
+
+dcomp↓dbind : ∀{X Y}{z : Y}(dx : Delay X)(dy : Delay Y) → 
+              dbind (λ _ → dy) dx ↓ z → dcomp dx dy ↓ z
+dcomp↓dbind dx dy p = dcomp↓dbind' dx dy _ refl∼ p
+
+dcomp≈dbind' : ∀{X Y}(dx : Delay X)(dy dz : Delay Y) → 
+               dbind (λ _ → dy) dx ≈ dz → dcomp dx dy ≈ dz
+dcomp≈dbind' (now x) dy dz p = p
+dcomp≈dbind' (later dx) (now y) (now z) (↓≈ (later↓ p) now↓) 
+  = ↓≈ (later↓ (dcomp↓dbind (♭ dx) (now y) p)) now↓
+dcomp≈dbind' (later dx) (now y) (later dz) (↓≈ (later↓ p) (later↓ q)) = 
+  later≈ (♯ (dcomp≈dbind' (♭ dx) (now y) (♭ dz) (↓≈ p q)))
+dcomp≈dbind' (later dx) (now y) (later dz) (later≈ p) = 
+  later≈ (♯ (dcomp≈dbind' (♭ dx) (now y) (♭ dz) (♭ p)))
+dcomp≈dbind' (later dx) (later dy) (now z) (↓≈ (later↓ p) now↓) = 
+  ↓≈ (later↓ (dcomp↓dbind (♭ dx) 
+                          (♭ dy) 
+                          (≈↓ (sym≈ (dbindlater≈ (♭ dx))) p))) 
+      now↓
+dcomp≈dbind' (later dx) (later dy) (later dz) (↓≈ (later↓ p) (later↓ q)) = 
+  later≈ (♯ (dcomp≈dbind' (♭ dx) 
+                          (♭ dy) 
+                          (♭ dz) 
+                          (trans≈ (dbindlater≈ (♭ dx)) (↓≈ p q))))
+dcomp≈dbind' (later dx) (later dy) (later dz) (later≈ p) = 
+  later≈ (♯ (dcomp≈dbind' (♭ dx) 
+                          (♭ dy) 
+                          (♭ dz) 
+                          (trans≈ (dbindlater≈ (♭ dx)) (♭ p))))
+
+dcomp≈dbind : ∀{X Y}{dx : Delay X}{dy : Delay Y} → 
+              dcomp dx dy ≈ dbind (λ _ → dy) dx
+dcomp≈dbind {dx = dx} {dy = dy} = dcomp≈dbind' dx dy _ refl≈ 
+
+-- Some lemmata involving dcomp
+
+dcomp≈fst : ∀{X}{dx dy : Delay X} → dx ≈ dy → dcomp dx dy ≈ dx
+dcomp≈fst (↓≈ now↓ now↓) = ↓≈ now↓ now↓
+dcomp≈fst {X} {now x} {later dy} (↓≈ now↓ (later↓ p)) = ↓≈ (later↓ p) now↓
+dcomp≈fst (↓≈ (later↓ p) now↓) = later≈ (♯ dcomp≈fst (↓≈ p now↓))
+dcomp≈fst (↓≈ (later↓ p) (later↓ q)) = later≈ (♯ (dcomp≈fst (↓≈ p q)))
+dcomp≈fst (later≈ p) = later≈ (♯ (dcomp≈fst (♭ p)))
+
+dcompcomm : ∀{X Y Z}{dx : Delay X}{dy : Delay Y}{dz : Delay Z} → 
+            dcomp dx (dcomp dy dz) ∼ dcomp dy (dcomp dx dz)
+dcompcomm {X}{Y}{Z}{now x} {dy} {dz} = refl∼
+dcompcomm {X}{Y}{Z}{later dx} {now y} {dz} = refl∼
+dcompcomm {X}{Y}{Z}{later dx} {later dy} {now z} = 
+  later∼ (♯ dcompcomm {dx = ♭ dx}{dy = ♭ dy})
+dcompcomm {X}{Y}{Z}{later dx} {later dy} {later dz} = 
+  later∼ (♯ dcompcomm {dx = ♭ dx}{dy = ♭ dy})
+
+dcomp≈→∼ : ∀{X}{dx : Delay X}{x : X} → dcomp dx (now x) ≈ dx → 
+           dcomp dx (now x) ∼ dx
+dcomp≈→∼ {X}{now x} (↓≈ now↓ now↓) = now∼
+dcomp≈→∼ {X}{later dx}(↓≈ (later↓ p) (later↓ q)) = 
+  later∼ (♯ (dcomp≈→∼ (↓≈ p q)))
+dcomp≈→∼ {X}{later dx}(later≈ p) = later∼ (♯ (dcomp≈→∼ (♭ p)))
+
+dcomp↓snd : ∀{X Y}{dx : Delay X}{dy : Delay Y}{y : Y} → dcomp dx dy ↓ y → dy ↓ y
+dcomp↓snd {X}{Y}{now x}{now y} p = p
+dcomp↓snd {X}{Y}{later dx}{now y} (later↓ p) = dcomp↓snd {_}{_}{♭ dx} p
+dcomp↓snd {X}{Y}{now x}{later dy} p = p
+dcomp↓snd {X}{Y}{later dx}{later dy} (later↓ p) = 
+  later↓ (dcomp↓snd {_}{_}{♭ dx} p)
+
+
 {-
 
 -- Products

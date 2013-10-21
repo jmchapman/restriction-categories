@@ -6,6 +6,7 @@ open import Coinduction
 open import Data.Product hiding (map)
 open import Data.Empty renaming (⊥ to ∅)
 
+{-
 -- Independence (also called disjointness)
 
 data _d⊥_  {X Y : Set} : Delay X → Delay Y → Set where
@@ -74,3 +75,4 @@ d⊥-cong (later≈ p) (↓≈ (later↓ q) (later↓ q')) (later⊥later r) =
   later⊥later (♯ (d⊥-cong (♭ p) (↓≈ q q') (♭ r)))
 d⊥-cong (later≈ p) (later≈ q) (later⊥later r) = 
   later⊥later (♯ (d⊥-cong (♭ p) (♭ q) (♭ r)))
+-}

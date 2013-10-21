@@ -1,3 +1,4 @@
+{-# OPTIONS --type-in-type #-}
 
 module Monads.Delay.Products where
 
@@ -17,6 +18,7 @@ open import Totals DelayR
 open Tot
 open import Utilities
 
+{-
 -- Restriction product
 
 -- Projections
@@ -149,3 +151,4 @@ DelayProd X Y = record {
   tr2 = λ {Z}{f}{g} → ext (dtr2 {f = f} {g = g});
   uniq = λ {Z}{f}{g} u p q → ext (uniq {f = f} {g = g} u p q) }
 
+-}

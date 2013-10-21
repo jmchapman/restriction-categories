@@ -202,6 +202,7 @@ dR2 {X}{Y}{Z}{f}{g} x =
       dbind (drest g) (drest f x)
       ∎
 
+{-
 dR4 : ∀{X Y Z}{f : X → Delay Y}{g : Y → Delay Z}(x : X) →
       (dbind (drest g) ∘ f) x ≈ (dbind f ∘ (drest (dbind g ∘ f))) x
 dR4 {X}{Y}{Z}{f = f}{g = g} x = 
@@ -214,6 +215,9 @@ dR4 {X}{Y}{Z}{f = f}{g = g} x =
       ≈⟨ {!!} ⟩
       (dbind f ∘ (drest (dbind g ∘ f))) x
       ∎
+-}
+
+
       
 {-
 dR3 : ∀{X Y Z}{f : X → Delay Y}{g : X → Delay Z}(x : X) → 

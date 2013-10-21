@@ -10,6 +10,7 @@ open Cat (Kl DelayM)
 open import RestrictionDelay
 open RestCat DelayR
 
+{-
 -- Restriction zeros
 
 zero : {A B : Set} → A → Delay B
@@ -23,3 +24,4 @@ f0g=0 g f a | later b = later≈ (♯ (f0g=0 g f a))
 
 rest0=0 : ∀{A B}(a : A) → rest (zero {B = B}) a ≈ zero a
 rest0=0 a = later≈ (♯ (rest0=0 a))
+-}
