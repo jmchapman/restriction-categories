@@ -67,6 +67,7 @@ dmeet : {X Y : Set}{_≟_ : SemiDecidable {A = Y}{B = Y} _≡_}
 dmeet {X}{Y}{_≟_} f g x = dmeet-aux {Y}{_≟_} (f x) (g x)
 -}
 
+{-
 dMt1-aux  : ∀{X}{_≟_ : Decidable {A = X} _≡_}(dx : Delay X) → 
             dmeet-aux {X}{_≟_} dx dx ≈ dx
 dMt1-aux {X}{_≟_} (now x) with x ≟ x
@@ -113,3 +114,7 @@ dMt2a {X}{Y}{_≟_}{f}{g} = ext (λ x →
   ∎)
 
 -- dMt2b is similar
+
+
+-}
+

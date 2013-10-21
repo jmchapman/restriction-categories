@@ -252,36 +252,6 @@ map f = dbind (now ∘ f) --rep (Fun.HMap (TFun DelayM) f (abs x))
 str : ∀{X Y} → X × Delay Y → Delay (X × Y)
 str (x , dy) = map (λ y → (x , y)) dy
 
-{-
--- Strength laws
-
-μ : ∀{X} → Delay (Delay X) → Delay X
-μ ddx = dbind (λ dx → dx) ddx
-
-open import Data.Unit
-
-strlaw1 : ∀{X}{dx : Delay X} → map proj₂ (str (tt , dx)) ∼ dx
-strlaw1 {X} {now x} = now∼
-strlaw1 {X} {later dx} = later∼ (♯ strlaw1)
-
-strlaw2 : ∀{X Y}{x : X}{y : Y} → str (x , now y) ∼ now (x , y)
-strlaw2 = now∼
-
-α : {X Y Z : Set} → (X × Y) × Z → X × (Y × Z)
-α ((x , y) , z) = x , (y , z)
-
-strlaw3 : ∀{X Y Z}{x : X}{y : Y}{dz : Delay Z} → 
-          map α (str ((x , y) , dz)) ∼ 
-          str (pmap (λ a → a) str (α ((x , y) , dz)))
-strlaw3 {X} {Y} {Z} {x} {y} {now z} = now∼
-strlaw3 {X} {Y} {Z} {x} {y} {later dz} = later∼ (♯ strlaw3 {dz = ♭ dz})
-
-strlaw4 : ∀{X Y}{x : X}{ddy : Delay (Delay Y)} → 
-          μ (map str (str (x , ddy))) ∼ str (x , (μ ddy))
-strlaw4 {ddy = now dy} = refl∼
-strlaw4 {ddy = later ddy} = later∼ (♯ (strlaw4 {ddy = ♭ ddy}))
--}
-
 -- Another composition called dcomp, weakly bisimilar to dbind but
 -- easier to use.
 
@@ -369,4 +339,35 @@ dcomp↓snd {X}{Y}{later dx}{now y} (later↓ p) = dcomp↓snd {_}{_}{♭ dx} p
 dcomp↓snd {X}{Y}{now x}{later dy} p = p
 dcomp↓snd {X}{Y}{later dx}{later dy} (later↓ p) = 
   later↓ (dcomp↓snd {_}{_}{♭ dx} p)
+
+
+{-
+-- Strength laws
+
+μ : ∀{X} → Delay (Delay X) → Delay X
+μ ddx = dbind (λ dx → dx) ddx
+
+open import Data.Unit
+
+strlaw1 : ∀{X}{dx : Delay X} → map proj₂ (str (tt , dx)) ∼ dx
+strlaw1 {X} {now x} = now∼
+strlaw1 {X} {later dx} = later∼ (♯ strlaw1)
+
+strlaw2 : ∀{X Y}{x : X}{y : Y} → str (x , now y) ∼ now (x , y)
+strlaw2 = now∼
+
+α : {X Y Z : Set} → (X × Y) × Z → X × (Y × Z)
+α ((x , y) , z) = x , (y , z)
+
+strlaw3 : ∀{X Y Z}{x : X}{y : Y}{dz : Delay Z} → 
+          map α (str ((x , y) , dz)) ∼ 
+          str (pmap (λ a → a) str (α ((x , y) , dz)))
+strlaw3 {X} {Y} {Z} {x} {y} {now z} = now∼
+strlaw3 {X} {Y} {Z} {x} {y} {later dz} = later∼ (♯ strlaw3 {dz = ♭ dz})
+
+strlaw4 : ∀{X Y}{x : X}{ddy : Delay (Delay Y)} → 
+          μ (map str (str (x , ddy))) ∼ str (x , (μ ddy))
+strlaw4 {ddy = now dy} = refl∼
+strlaw4 {ddy = later ddy} = later∼ (♯ (strlaw4 {ddy = ♭ ddy}))
+-}
 

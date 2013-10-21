@@ -14,6 +14,7 @@ open import Data.Product hiding (map)
 open import Utilities
 open import Relation.Binary.HeterogeneousEquality
 
+{-
 ι₀ : {A B : Set} → A → Delay (A ⊎ B)
 ι₀ a = now (inj₁ a)  
 
@@ -29,7 +30,11 @@ const⊎ (later bc) a = later (♯ (const⊎ (♭ bc) a))
 ⟨ f ⟩ a = const⊎ (f a) a
 
 _m⊎_ : {A A' B B' : Set} → (A → Delay B) → (A' → Delay B') → A ⊎ A' → 
+<<<<<<< HEAD
          Delay (B ⊎ B') 
+=======
+       Delay (B ⊎ B') 
+>>>>>>> 58a89b3a4dd07e6042ca569c574aec2bb4fefc44
 (f m⊎ g) (inj₁ a) = comp ι₀ f a
 (f m⊎ g) (inj₂ a') = comp ι₁ g a'
 
@@ -79,4 +84,6 @@ Dec2' f (later .dy) a (later≈ {dy} {dy'} p) | .(later dy') | [ eq ] =
 Dec2 : ∀{A B C}(f : A → Delay (B ⊎ C))(a : A) → 
        comp (f m⊎ f) ⟨ f ⟩ a ≈ comp (ι₀ m⊎ ι₁) f a
 Dec2 f a = Dec2' f _ a refl≈
+
+-}
 

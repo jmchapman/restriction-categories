@@ -23,6 +23,7 @@ open Joins
 _d⌣_ : ∀{X Y}(f g : X → Delay Y) → Set
 _d⌣_ {X} f g = ∀ x → dcomp (f x) (g x) ≈ dcomp (g x) (f x)
 
+{-
 d⌣→⌣' : ∀{X Y}{f g : X → Delay Y} → f d⌣ g → ∀ x → 
         dbind g (drest f x) ≅ dbind f (drest g x)
 d⌣→⌣' {f = f}{g = g} p x = 
@@ -215,3 +216,6 @@ DelayJoin = record {
   Jn1b = λ {_}{_}{f} → dJn1b {f = f};
   Jn2 = dJn2; 
   Jn3 = {!!} }
+
+-}
+
