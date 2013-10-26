@@ -103,15 +103,16 @@ lift₂ {A}{A'}{B}{R}{R'} q q' f p =
       fa≅fb : ∀{a b : A} → a ~ b → f a ≅ f b
       fa≅fb r = ext (λ a' → p r (IsEquivalence.refl e'))
 
+      conglift : (x y : A' → B)
+                 (p : ∀{b b'} → b ≈ b' → x b ≅ x b') → 
+                 (p' : ∀{b b'} → b ≈ b' → y b ≅ y b') → 
+                 (a b : A) → x ≅ y → 
+                 lift' x p ≅ lift' y p'
+      conglift x y p p' a b q = cong₂ lift' q (iext (λ a' → iext (λ b' → ext (λ r → fixtypes (cong (λ h → h a') q) (cong (λ h → h b') q)))))
+
       h : Q → Q' → B
---(λ x → lift' x (p (IsEquivalence.refl e)))
-      h = lift g (λ {a b} r → {!cong₂ {_}{_}{_}{A' → B}{}!})
+      h = lift g (λ {a b} r → conglift (f a) (f b) (p (IsEquivalence.refl e)) (p (IsEquivalence.refl e)) a b (fa≅fb r))
 
   in h
-
-
---lift' (lift f (λ {a₁ a₂} r → ext (λ a₃ → p r (IsEquivalence.refl e'))) a) (λ {a₁ a₂} r → {!p (IsEquivalence.refl e) r!}) a'
-
-
 
 --postulate .irrelevant : {A : Set} → .A → A
