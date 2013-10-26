@@ -70,31 +70,48 @@ EqR A = Σ (Rel A _) (λ R → IsEquivalence R)
 record Quotient (A : Set) (R : EqR A) : Set where
   open Σ R renaming (proj₁ to _~_)
   field Q : Set
-        abs : A → Q
-        rep : Q → A
+
+  compat : {B : Set} → (A → B) → Set
+  compat f = ∀{a b} → a ~ b → f a ≅ f b
+
+  field abs : A → Q      
+        lift : ∀{B}(f : A → B) → compat f → Q → B
         ax1 : (a b : A) → a ~ b → abs a ≅ abs b
-        ax2 : (q : Q) → abs (rep q) ≅ q
-        ax3 : (a : A) → rep (abs a) ~ a
+        ax2 : (a b : A) → abs a ≅ abs b → a ~ b
+        ax3 : ∀{B}(f : A → B)(p : compat f) → (a : A) → 
+              (lift f p) (abs a) ≅ f a
 
 postulate quot : (A : Set) (R : EqR A) → Quotient A R
 
-{-
-record EqR (A : Set) : Set where
-  field _~_    : A → A → Set
-        ~refl  : ∀{a} → a ~ a
-        ~sym   : ∀{a a'} → a ~ a' → a' ~ a
-        ~trans : ∀{a a' a''} → a ~ a' → a' ~ a'' → a ~ a''
+compat₂ : ∀{A A' B}(R : EqR A)(R' : EqR A') → (A → A' → B) → Set
+compat₂ R R' f = 
+  let open Σ R renaming (proj₁ to _~_) 
+      open Σ R' renaming (proj₁ to _≈_) 
+  in ∀{a b a' b'} → a ~ a' → b ≈ b' → f a b ≅ f a' b'
 
-record Quotient (A : Set) (EQ : EqR A) : Set where
-  open EqR EQ
-  field Q : Set
-        abs : A → Q
-        rep : Q → A
-        ax1 : (a b : A) → a ~ b → abs a ≅ abs b
-        ax2 : (q : Q) → abs (rep q) ≅ q
-        ax3 : (a : A) → rep (abs a) ~ a
+lift₂ : ∀{A A' B R R'}(q : Quotient A R)(q' : Quotient A' R')(f : A → A' → B) → 
+        compat₂ R R' f → Quotient.Q q → Quotient.Q q' → B
+lift₂ {A}{A'}{B}{R}{R'} q q' f p = 
+  let open Σ R renaming (proj₁ to _~_; proj₂ to e) 
+      open Σ R' renaming (proj₁ to _≈_; proj₂ to e')
+      open Quotient q 
+      open Quotient q' renaming (Q to Q'; abs to abs'; lift to lift')
+  
+      g : A → Q' → B
+      g a = lift' (f a) (p (IsEquivalence.refl e))
 
-postulate quot : (A : Set) (EQ : EqR A) → Quotient A EQ
--}
+      fa≅fb : ∀{a b : A} → a ~ b → f a ≅ f b
+      fa≅fb r = ext (λ a' → p r (IsEquivalence.refl e'))
+
+      h : Q → Q' → B
+--(λ x → lift' x (p (IsEquivalence.refl e)))
+      h = lift g (λ {a b} r → {!cong₂ {_}{_}{_}{A' → B}{}!})
+
+  in h
+
+
+--lift' (lift f (λ {a₁ a₂} r → ext (λ a₃ → p r (IsEquivalence.refl e'))) a) (λ {a₁ a₂} r → {!p (IsEquivalence.refl e) r!}) a'
+
+
 
 --postulate .irrelevant : {A : Set} → .A → A
