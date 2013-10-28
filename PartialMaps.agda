@@ -540,17 +540,14 @@ module PartialMaps (X : Cat)(M : StableSys X) where
       proof
       qcomp qiden mf 
       ≅⟨ lift₂→lift (quot (Span B B) Span~EqR) (quot (Span A B) Span~EqR) (λ x x₁ → abs (compspan x x₁)) (λ p q → ax1 _ _ (~cong p q)) idspan mf ⟩
-      ?
---lift (λ y → abs (compspan idspan y)) ((λ p q → ax1 _ _ (~cong p q)) (~refl {_} {_} {idspan})) mf
-      ≅⟨ cong₂ (λ f (p : compat f) → lift f p mf)
+      lift (λ y → abs (compspan idspan y)) (λ x → ax1 _ _ (~cong ~refl x)) mf
+      ≅⟨ cong₂ {_}{_}{_}{_}{λ x₁ → {b₁ b' : Span A B} → b₁ ~Span~ b' → x₁ b₁ ≅ x₁ b'}{_}{_}{_}{λ x → ax1 _ _ (~cong ~refl x)}{ax1 _ _}(λ f (p : compat f) → lift f p mf)
            (ext (λ a → ax1 _ _ idlspan))
            (iext
             (λ a →
                iext
                (λ a₁ →
                   ext (λ a₂ → fixtypes (ax1 _ _ idlspan) (ax1 _ _ idlspan))))) ⟩
---      ≅⟨ cong₂ {_}{_}{_}{_}{λ x → {!!}}{_}{_}{_}{{!!}}
---        {{!!}}(λ f (p : compat f) → lift f p mf) (ext (λ a → ax1 _ _ idlspan)) (iext (λ a → iext (λ a₁ → ext (λ a₂ → fixtypes (ax1 _ _ idlspan) (ax1 _ _ idlspan))))) ⟩
       lift abs (ax1 _ _) mf
       ≅⟨ liftabs≅iden (quot (Span A B) Span~EqR) mf ⟩
       mf
