@@ -127,15 +127,6 @@ module PartialMaps (X : Cat)(M : StableSys X) where
                  sym   = ~sym; 
                  trans = ~trans }
 
-{-
-    Span~EqR : ∀{A B} → EqR (Span A B)
-    Span~EqR = record { 
-      _~_    = _~Span~_; 
-      ~refl  = ~refl; 
-      ~sym   = ~sym; 
-      ~trans = ~trans }
--}
-
     idspan : {X : Obj} → Span X X
     idspan = record { 
       A' = _; 
@@ -514,29 +505,40 @@ module PartialMaps (X : Cat)(M : StableSys X) where
     QSpan : Obj → Obj → Set
     QSpan A B = Quotient.Q (quot (Span A B) Span~EqR) 
     
+    compat : ∀{A B : Obj}{C} → (Span A B → C) → Set
+    compat {A}{B} = Quotient.compat (quot (Span A B) Span~EqR) 
+
     abs : {A B : Obj} → Span A B → QSpan A B
     abs {A}{B} = Quotient.abs (quot (Span A B) Span~EqR)
 
-    rep : {A B : Obj} → QSpan A B → Span A B
-    rep {A}{B} = Quotient.rep (quot (Span A B) Span~EqR)
+    lift : ∀{A B : Obj}{C}(f : Span A B → C) → compat f → QSpan A B → C
+    lift {A}{B} = Quotient.lift (quot (Span A B) Span~EqR)
 
     ax1 : {A B : Obj} → (mf m'f' : Span A B) → 
           mf ~Span~ m'f' → abs mf ≅ abs m'f'
     ax1 {A}{B} = Quotient.ax1 (quot (Span A B) Span~EqR)
 
-    ax2 : {A B : Obj} → (mf : QSpan A B) → abs (rep mf) ≅ mf
+    ax2 : {A B : Obj} → (mf m'f' : Span A B) → 
+          abs mf ≅ abs m'f' → mf ~Span~ m'f'
     ax2 {A}{B} = Quotient.ax2 (quot (Span A B) Span~EqR)
 
-    ax3 : {A B : Obj} → (mf : Span A B) → rep (abs mf) ~Span~ mf
+    ax3 : ∀{A B : Obj}{C}(f : Span A B → C)(p : compat f)(mf : Span A B) → 
+          (lift f p) (abs mf) ≅ f mf
     ax3 {A}{B} = Quotient.ax3 (quot (Span A B) Span~EqR)
-
+    
     Par : Cat
     Par = record {
       Obj = Obj;
       Hom = QSpan;
       iden = abs idspan; 
-      comp = λ f g → abs (compspan (rep f) (rep g));
-      idl = λ {A}{B}{mf} → 
+      comp = λ {A} {B} {C} → lift₂ (quot (Span B C) Span~EqR) (quot (Span A B) Span~EqR)
+                               (λ x y → abs (compspan x y)) (λ p q → ax1 _ _ (~cong p q)) ;
+      idl = λ {A}{B}{mf} → {!!};
+      idr = {!!};
+      ass = {!!}}
+
+{-
+{-
         proof 
         abs (compspan (rep (abs idspan)) (rep mf)) 
         ≅⟨ ax1 _ _ (~trans (~cong (ax3 idspan) ~refl) idlspan) ⟩ 
@@ -544,12 +546,21 @@ module PartialMaps (X : Cat)(M : StableSys X) where
         ≅⟨ ax2 mf ⟩ 
         mf 
         ∎; 
-      idr = λ {A} {B} {mf} → trans 
+-}
+      idr = λ {A} {B} {mf} → ? ;
+{-
+trans 
         (ax1 _ _  (~trans (~cong ~refl (ax3 idspan)) (idrspan {mf = rep mf}))) 
         (ax2 mf);
-      ass = λ {W}{X}{Y}{Z} {m''f''} {m'f'} {mf} →  ax1 
+-}
+      ass = λ {W}{X}{Y}{Z} {m''f''} {m'f'} {mf} → ?
+{-
+ax1 
         _ 
         _ 
         (~trans (~trans (~cong (ax3 (compspan (rep m''f'') (rep  m'f'))) ~refl)
                         assspan) 
-                (~cong ~refl (~sym (ax3 (compspan (rep m'f') (rep mf))))))} 
+                (~cong ~refl (~sym (ax3 (compspan (rep m'f') (rep mf))))))
+-}
+} 
+-}
