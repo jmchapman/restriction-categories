@@ -536,7 +536,17 @@ module PartialMaps (X : Cat)(M : StableSys X) where
                             (λ p q → ax1 _ _ (~cong p q))
 
     qidlspan : ∀{A B}{mf : QSpan A B} → qcomp qiden mf ≅ mf
-    qidlspan {A}{B}{mf} = {!!}
+    qidlspan {A}{B}{mf} = 
+      proof
+      qcomp qiden mf 
+      ≅⟨ {!qcomp qiden mf !} ⟩
+      lift (λ y → abs (compspan idspan y)) {!!} mf
+      ≅⟨ cong₂ (λ f (p : compat f) → lift f p mf) (ext (λ a → {!ax1 _ _ idlspan!})) (iext (λ a → iext (λ a₁ → ext (λ a₂ → fixtypes {!ax1 _ _ idlspan!} {!ax1 _ _ idlspan!})))) ⟩
+--cong₂ (λ f (p : compat f) → lift f p mf) (ax1 _ _ idlspan) ?      
+      lift abs (ax1 _ _) mf
+      ≅⟨ liftabs≅iden (quot (Span A B) Span~EqR) mf ⟩
+      mf
+      ∎
 
 {-    
     Par : Cat

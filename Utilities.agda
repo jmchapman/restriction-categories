@@ -75,10 +75,10 @@ record Quotient (A : Set) (R : EqR A) : Set where
   compat : {B : Q → Set} → ((a : A) → B (abs a)) → Set
   compat f = ∀{a b} → a ~ b → f a ≅ f b
      
-  field lift : {B : Q → Set}(f : (a : A) → B (abs a)) → compat {B} f → (q : Q) → B q
-        ax1 : (a b : A) → a ~ b → abs a ≅ abs b
+  field lift : {B : Q → Set}(f : (a : A) → B (abs a)) → .(compat {B} f) → (q : Q) → B q
+        .ax1 : (a b : A) → a ~ b → abs a ≅ abs b
         ax2 : (a b : A) → abs a ≅ abs b → a ~ b
-        ax3 : {B : Q → Set}(f : (a : A) → B (abs a))(p : compat {B} f) → (a : A) → 
+        .ax3 : {B : Q → Set}(f : (a : A) → B (abs a))(p : compat {B} f) → (a : A) → 
               (lift {B} f p) (abs a) ≅ f a
 
 postulate quot : (A : Set) (R : EqR A) → Quotient A R
@@ -108,10 +108,16 @@ lift₂ {A}{A'}{B}{R}{R'} q q' f p =
                  (p' : ∀{b b'} → b ≈ b' → y b ≅ y b') → 
                  (a b : A) → x ≅ y → 
                  lift' x p ≅ lift' y p'
-      conglift x y p p' a b q = cong₂ lift' q (iext (λ a' → iext (λ b' → ext (λ r → fixtypes (cong (λ h → h a') q) (cong (λ h → h b') q)))))
+      conglift x y p p' a b q = 
+        cong₂ {_}{_}{_}{_}{λ x₁ → {b₁ b' : A'} → b₁ ≈ b' → x₁ b₁ ≅ x₁ b'}{_}{_}{_}{p}{p'} (lift' {λ _ → B}) q (iext (λ (a' : A') → iext (λ (b' : A') → ext (λ (r : a' ≈ b') → fixtypes (cong (λ h → h a') q) (cong (λ h → h b') q)))))
 
   in lift g (λ {a b} r → conglift (f a) (f b) (p (IsEquivalence.refl e)) (p (IsEquivalence.refl e)) a b (fa≅fb r))
 
-liftabs≅ : ∀{A
+.liftabs≅iden : ∀{A R}(q : Quotient A R) → 
+               let open Quotient q
+               in (x : Q) → lift {λ _ → Q} abs (ax1 _ _) x ≅ x
+liftabs≅iden q x = 
+  let open Quotient q
+  in lift {λ y → lift {λ _ → Q} abs (ax1 _ _) y ≅ y} (ax3 abs (ax1 _ _)) (λ p → fixtypes (cong (lift abs (ax1 _ _)) (ax1 _ _ p)) (ax1 _ _ p)) x
 
 --postulate .irrelevant : {A : Set} → .A → A
