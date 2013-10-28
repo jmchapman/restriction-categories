@@ -506,7 +506,7 @@ module PartialMaps (X : Cat)(M : StableSys X) where
     QSpan A B = Quotient.Q (quot (Span A B) Span~EqR) 
     
     compat : ∀{A B : Obj}{C} → (Span A B → C) → Set
-    compat {A}{B} = Quotient.compat (quot (Span A B) Span~EqR) 
+    compat {A}{B}{C} = Quotient.compat (quot (Span A B) Span~EqR) {λ _ → C}
 
     abs : {A B : Obj} → Span A B → QSpan A B
     abs {A}{B} = Quotient.abs (quot (Span A B) Span~EqR)
@@ -525,7 +525,20 @@ module PartialMaps (X : Cat)(M : StableSys X) where
     ax3 : ∀{A B : Obj}{C}(f : Span A B → C)(p : compat f)(mf : Span A B) → 
           (lift f p) (abs mf) ≅ f mf
     ax3 {A}{B} = Quotient.ax3 (quot (Span A B) Span~EqR)
-    
+
+    qiden : ∀{A} → QSpan A A
+    qiden = abs idspan
+
+    qcomp : ∀{A B C} → QSpan B C → QSpan A B → QSpan A C
+    qcomp {A}{B}{C} = lift₂ (quot (Span B C) Span~EqR) 
+                            (quot (Span A B) Span~EqR)
+                            (λ x y → abs (compspan x y)) 
+                            (λ p q → ax1 _ _ (~cong p q))
+
+    qidlspan : ∀{A B}{mf : QSpan A B} → qcomp qiden mf ≅ mf
+    qidlspan {A}{B}{mf} = {!!}
+
+{-    
     Par : Cat
     Par = record {
       Obj = Obj;
@@ -533,9 +546,11 @@ module PartialMaps (X : Cat)(M : StableSys X) where
       iden = abs idspan; 
       comp = λ {A} {B} {C} → lift₂ (quot (Span B C) Span~EqR) (quot (Span A B) Span~EqR)
                                (λ x y → abs (compspan x y)) (λ p q → ax1 _ _ (~cong p q)) ;
-      idl = λ {A}{B}{mf} → {!!};
+      idl = λ {A}{B}{mf} → ;
       idr = {!!};
       ass = {!!}}
+-}
+
 
 {-
 {-

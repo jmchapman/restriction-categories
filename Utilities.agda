@@ -70,16 +70,16 @@ EqR A = Σ (Rel A _) (λ R → IsEquivalence R)
 record Quotient (A : Set) (R : EqR A) : Set where
   open Σ R renaming (proj₁ to _~_)
   field Q : Set
+        abs : A → Q 
 
-  compat : {B : Set} → (A → B) → Set
+  compat : {B : Q → Set} → ((a : A) → B (abs a)) → Set
   compat f = ∀{a b} → a ~ b → f a ≅ f b
-
-  field abs : A → Q      
-        lift : ∀{B}(f : A → B) → compat f → Q → B
+     
+  field lift : {B : Q → Set}(f : (a : A) → B (abs a)) → compat {B} f → (q : Q) → B q
         ax1 : (a b : A) → a ~ b → abs a ≅ abs b
         ax2 : (a b : A) → abs a ≅ abs b → a ~ b
-        ax3 : ∀{B}(f : A → B)(p : compat f) → (a : A) → 
-              (lift f p) (abs a) ≅ f a
+        ax3 : {B : Q → Set}(f : (a : A) → B (abs a))(p : compat {B} f) → (a : A) → 
+              (lift {B} f p) (abs a) ≅ f a
 
 postulate quot : (A : Set) (R : EqR A) → Quotient A R
 
@@ -110,9 +110,8 @@ lift₂ {A}{A'}{B}{R}{R'} q q' f p =
                  lift' x p ≅ lift' y p'
       conglift x y p p' a b q = cong₂ lift' q (iext (λ a' → iext (λ b' → ext (λ r → fixtypes (cong (λ h → h a') q) (cong (λ h → h b') q)))))
 
-      h : Q → Q' → B
-      h = lift g (λ {a b} r → conglift (f a) (f b) (p (IsEquivalence.refl e)) (p (IsEquivalence.refl e)) a b (fa≅fb r))
+  in lift g (λ {a b} r → conglift (f a) (f b) (p (IsEquivalence.refl e)) (p (IsEquivalence.refl e)) a b (fa≅fb r))
 
-  in h
+liftabs≅ : ∀{A
 
 --postulate .irrelevant : {A : Set} → .A → A
