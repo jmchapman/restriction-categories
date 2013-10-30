@@ -557,7 +557,11 @@ module PartialMaps (X : Cat)(M : StableSys X) where
     qidrspan {A}{B}{mf} = 
       proof
       qcomp mf qiden
-      ≅⟨ {!!} ⟩
+      ≅⟨ lift₂→lift' (quot (Span A B) Span~EqR) (quot (Span A A) Span~EqR)
+           (λ x x₁ → abs (compspan x x₁)) (λ p q → ax1 _ _ (~cong p q)) mf
+           idspan ⟩
+      lift (λ a → abs (compspan a idspan)) (λ x → ax1 _ _ (~cong x ~refl)) mf
+      ≅⟨ cong₂ {_}{_}{_}{_}{λ x₁ → {b₁ b' : Span A B} → b₁ ~Span~ b' → x₁ b₁ ≅ x₁ b'}{_}{_}{_}{λ x → ax1 _ _ (~cong x ~refl)}{ax1 _ _}(λ f (p : compat f) → lift f p mf) (ext (λ a → ax1 _ _ idrspan)) (iext (λ a → iext (λ a₁ → ext (λ a₂ → fixtypes (ax1 _ _ idrspan) (ax1 _ _ idrspan))))) ⟩
       lift abs (ax1 _ _) mf
       ≅⟨ liftabs≅iden (quot (Span A B) Span~EqR) mf ⟩
       mf
