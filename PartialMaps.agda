@@ -553,6 +553,17 @@ module PartialMaps (X : Cat)(M : StableSys X) where
       mf
       ∎
 
+    .qidrspan : ∀{A B}{mf : QSpan A B} → qcomp mf qiden ≅ mf
+    qidrspan {A}{B}{mf} = 
+      proof
+      qcomp mf qiden
+      ≅⟨ {!!} ⟩
+      lift abs (ax1 _ _) mf
+      ≅⟨ liftabs≅iden (quot (Span A B) Span~EqR) mf ⟩
+      mf
+      ∎
+
+
 {-    
     Par : Cat
     Par = record {
