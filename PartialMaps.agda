@@ -564,7 +564,6 @@ module PartialMaps (X : Cat)(M : StableSys X) where
       abs (compspan mg mf)
       ∎
 
-{-
     .qidlspan : ∀{A B}{mf : QSpan A B} → qcomp qiden mf ≅ mf
     qidlspan {A}{B}{mf} = 
       proof
@@ -594,7 +593,6 @@ module PartialMaps (X : Cat)(M : StableSys X) where
       ≅⟨ liftabs≅iden (quot (Span A B) Span~EqR) mf ⟩
       mf
       ∎
--}
 
     .qassspan : ∀{A B C D}{mh : QSpan C D}{mg : QSpan B C}{mf : QSpan A B} → 
                 qcomp (qcomp mh mg) mf ≅ qcomp mh (qcomp mg mf)
@@ -611,9 +609,9 @@ module PartialMaps (X : Cat)(M : StableSys X) where
                                   (λ c → proof
                                          qcomp (qcomp (absCD a) (absBC b)) (absAB c) 
                                          ≅⟨ cong (λ y → qcomp y (absAB c)) (qcompabs {_}{_}{_}{a}{absBC b}) ⟩
-                                         qcomp (liftBC {λ x → QSpan ? {!!}} (λ y → abs (compspan a y)) (λ x → ax1BC _ _ x) (absBC b)) (absAB c) 
+                                         qcomp (liftBC {λ _ → QSpan B D} (λ y → abs (compspan a y)) (λ x → ax1 _ _ (~cong ~refl x)) (absBC b)) (absAB c) 
                                          ≅⟨ cong (λ y → qcomp y (absAB c))
-                                                 (ax3BC (λ y → abs (compspan a y)) _ b) ⟩
+                                                 (ax3BC (λ y → abs (compspan a y)) (λ x → ax1 _ _ (~cong ~refl x)) b) ⟩
                                          qcomp (abs (compspan a b)) (absAB c) 
                                          ≅⟨ qcompabsabs ⟩
                                          abs (compspan (compspan a b) c) 
@@ -621,37 +619,15 @@ module PartialMaps (X : Cat)(M : StableSys X) where
                                          abs (compspan a (compspan b c)) 
                                          ≅⟨ sym 
                                               (ax3AC (λ y → abs (compspan a y)) (λ x → ax1 _ _ (~cong ~refl x)) (compspan b c)) ⟩
-                                         liftAC (λ y → abs (compspan a y)) _ (abs (compspan b c)) 
-                                         ≅⟨ cong (liftAC (λ y → abs (compspan a y)) _)
+                                         liftAC (λ y → abs (compspan a y)) (λ x → ax1 _ _ (~cong ~refl x)) (abs (compspan b c)) 
+                                         ≅⟨ cong (liftAC (λ y → abs (compspan a y)) (λ x → ax1 _ _ (~cong ~refl x)))
                                                  (sym (ax3AB (λ y → abs (compspan b y)) (λ x → ax1 _ _ (~cong ~refl x)) c)) ⟩
-                                         liftAC (λ y → abs (compspan a y)) _ (liftAB (λ y → abs (compspan b y)) _ (absAB c))
-                                         ≅⟨ cong (liftAC (λ y → abs (compspan a y)) _) (sym qcompabs) ⟩
-                                         liftAC (λ y → abs (compspan a y)) _ (qcomp (absBC b) (absAB c)) 
+                                         liftAC (λ y → abs (compspan a y)) (λ x → ax1 _ _ (~cong ~refl x)) (liftAB {λ _ → QSpan A C} (λ y → abs (compspan b y)) (λ x → ax1 _ _ (~cong ~refl x)) (absAB c))
+                                         ≅⟨ cong (liftAC (λ y → abs (compspan a y)) (λ x → ax1 _ _ (~cong ~refl x))) (sym qcompabs) ⟩
+                                         liftAC (λ y → abs (compspan a y)) (λ x → ax1 _ _ (~cong ~refl x)) (qcomp (absBC b) (absAB c)) 
                                          ≅⟨ sym qcompabs ⟩ 
                                          qcomp (absCD a) (qcomp (absBC b) (absAB c)) 
                                          ∎)
- 
-{-
-                                    proof 
-                                    qcomp (qcomp (absCD a) (absBC b)) (absAB c) 
-                                    ≅⟨ cong (λ y → qcomp y (absAB c)) qcompabs ⟩ 
-                                    qcomp (liftBC (λ y → abs (compspan a y)) _ (absBC b)) (absAB c)
-                                    ≅⟨ cong (λ y → qcomp y (absAB c)) (ax3BC (λ y → abs (compspan a y)) (λ x → ax1 _ _ (~cong ~refl x)) b) ⟩ 
-                                    qcomp (abs (compspan a b)) (absAB c)
-                                    ≅⟨ qcompabsabs ⟩ 
-                                    abs (compspan (compspan a b) c)
-                                    ≅⟨ ax1 _ _ assspan ⟩ 
-                                    abs (compspan a (compspan b c))
-                                    ≅⟨ sym (ax3AC (λ y → abs (compspan a y)) (λ x → ax1 _ _ (~cong ~refl x)) (compspan b c))⟩ 
-                                    liftAC (λ y → abs (compspan a y)) _ (abs (compspan b c))
-                                    ≅⟨ cong (liftAC (λ y → abs (compspan a y)) _) (sym (ax3AB (λ y → abs (compspan b y)) (λ x → ax1 _ _ (~cong ~refl x)) c)) ⟩ 
-                                    liftAC (λ y → abs (compspan a y)) _ (liftAB (λ y → abs (compspan b y)) _ (absAB c))
-                                    ≅⟨ cong (liftAC (λ y → abs (compspan a y)) _) (sym qcompabs) ⟩ 
-                                    liftAC (λ y → abs (compspan a y)) _ (qcomp (absBC b) (absAB c))
-                                    ≅⟨ sym qcompabs ⟩ 
-                                    qcomp (absCD a) (qcomp (absBC b) (absAB c)) 
-                                    ∎
--}
                          (λ x → fixtypes (cong (qcomp (qcomp (absCD a) (absBC b))) (ax1AB _ _ x)) 
                                          (cong (qcomp (absCD a) ∘ qcomp (absBC b)) (ax1AB _ _ x))) 
                          mf) 
@@ -662,143 +638,12 @@ module PartialMaps (X : Cat)(M : StableSys X) where
                                (cong (λ y → qcomp y (qcomp mg mf)) (ax1CD _ _ x)))
                mh
 
-
-
-
-{-
-    .qassspan : ∀{A B C D}{mh : QSpan C D}{mg : QSpan B C}{mf : QSpan A B} → 
-                qcomp (qcomp mh mg) mf ≅ qcomp mh (qcomp mg mf)
-    qassspan {A}{B}{C}{D}{mh}{mg}{mf} = 
-      let open Quotient (quot (Span A B) Span~EqR) renaming (lift to liftAB; abs to absAB; ax1 to ax1AB)
-          open Quotient (quot (Span A C) Span~EqR) renaming (lift to liftAC; abs to absAC; ax1 to ax1AC)
-          open Quotient (quot (Span B C) Span~EqR) renaming (lift to liftBC; abs to absBC; ax1 to ax1BC)
-          open Quotient (quot (Span C D) Span~EqR) renaming (lift to liftCD; abs to absCD; ax1 to ax1CD)
-      in liftCD {λ y → qcomp (qcomp y mg) mf ≅ qcomp y (qcomp mg mf)} 
-                (λ a →
-{-
-                 proof
-                  qcomp (qcomp (absCD a) mg) mf
-                  ≅⟨ cong (λ y → qcomp y mf) (lift₂→lift (quot (Span C D) Span~EqR) (quot (Span B C) Span~EqR) (λ x x₁ → abs (compspan x x₁)) (λ p q → ax1 _ _ (~cong p q)) a mg) ⟩
-                  qcomp
-                    (Quotient.lift (quot (Span B C) Span~EqR)
-                     (λ y → abs (compspan a y)) (λ x → ax1 _ _ (~cong ~refl x)) mg)
-                    mf
--}
-                  liftBC {λ y → qcomp (qcomp (absCD a) y) mf ≅ qcomp (absCD a) (qcomp y mf)}
-                         (λ b → 
-                           liftAB {λ y → qcomp (qcomp (absCD a) (absBC b)) y ≅ qcomp (absCD a) (qcomp (absBC b) y)}
-                                  (λ c → 
-                                    proof 
-                                    qcomp (qcomp (absCD a) (absBC b)) (absAB c) 
-                                    ≅⟨ {!!} ⟩ 
-                                    qcomp (liftBC (λ y → abs (compspan a y)) _ (absBC b)) (absAB c)
-                                    ≅⟨ {!!} ⟩ 
-                                    qcomp (abs (compspan a b)) (absAB c)
-                                    ≅⟨ {!!} ⟩ 
-                                    liftAC (λ y → abs (compspan a y)) _ (liftAB (λ y → abs (compspan b y)
-                                    ≅⟨ {!!} ⟩ 
-                                    liftAC (λ y → abs (compspan a y)) _ (qcomp (absBC b) (absAB c))
-                                    ≅⟨ {!!} ⟩ 
-                                    qcomp (absCD a) (qcomp (absBC b) (absAB c)) 
-                                    ∎) 
-                         {!!} 
-                         mf) 
-                  {!!} 
-                  mg)
-{-
-                  Quotient.lift (quot (Span A C) Span~EqR)
-                    (λ x₁ → abs (compspan a x₁)) _ (qcomp mg mf)
-                  ≅⟨ sym (lift₂→lift (quot (Span C D) Span~EqR) (quot (Span A C) Span~EqR) (λ x x₁ → abs (compspan x x₁)) (λ p q → ax1 _ _ (~cong p q)) a (qcomp mg mf)) ⟩
-                  qcomp (absCD a) (qcomp mg mf)
-                  ∎))
--}
-               {!!}
-               mh
--}
-
-
-
-
-
-
-
-
-
-
-{-
-      proof
-      lift₂ (quot (Span B D) Span~EqR) 
-            (quot (Span A B) Span~EqR)
-            (λ x y → abs (compspan x y)) 
-            (λ p q → ax1 _ _ (~cong p q))
-            (lift₂ (quot (Span C D) Span~EqR) 
-                   (quot (Span B C) Span~EqR)
-                   (λ x y → abs (compspan x y)) 
-                   (λ p q → ax1 _ _ (~cong p q)) 
-                   mh mg) 
-            mf
-      ≅⟨ {!lift₂ (quot (Span C D) Span~EqR) 
-                   (quot (Span B C) Span~EqR)
-                   (λ x y → abs (compspan x y)) 
-                   (λ p q → ax1 _ _ (~cong p q)) 
-                   mh mg!} ⟩
-      lift₂ (quot (Span C D) Span~EqR) 
-            (quot (Span A C) Span~EqR)
-            (λ x y → abs (compspan x y)) 
-            (λ p q → ax1 _ _ (~cong p q))
-            mh
-            (lift₂ (quot (Span B C) Span~EqR) 
-                   (quot (Span A B) Span~EqR)
-                   (λ x y → abs (compspan x y)) 
-                   (λ p q → ax1 _ _ (~cong p q)) 
-                   mg mf) 
-      ∎
--}
-
-
-
---lift (λ a → lift (λ y → abs (compspan a y)) (lift (λ a → lift (λ y → abs (compspan a y))) mh mg) mf
-
-
--- qcomp (qcomp mh mg) mf ≅ qcomp mh (qcomp mg mf)
-{-    
     Par : Cat
     Par = record {
       Obj = Obj;
       Hom = QSpan;
-      iden = abs idspan; 
-      comp = λ {A} {B} {C} → lift₂ (quot (Span B C) Span~EqR) (quot (Span A B) Span~EqR)
-                               (λ x y → abs (compspan x y)) (λ p q → ax1 _ _ (~cong p q)) ;
-      idl = λ {A}{B}{mf} → ;
-      idr = {!!};
-      ass = {!!}}
--}
-
-
-{-
-{-
-        proof 
-        abs (compspan (rep (abs idspan)) (rep mf)) 
-        ≅⟨ ax1 _ _ (~trans (~cong (ax3 idspan) ~refl) idlspan) ⟩ 
-        abs (rep mf)
-        ≅⟨ ax2 mf ⟩ 
-        mf 
-        ∎; 
--}
-      idr = λ {A} {B} {mf} → ? ;
-{-
-trans 
-        (ax1 _ _  (~trans (~cong ~refl (ax3 idspan)) (idrspan {mf = rep mf}))) 
-        (ax2 mf);
--}
-      ass = λ {W}{X}{Y}{Z} {m''f''} {m'f'} {mf} → ?
-{-
-ax1 
-        _ 
-        _ 
-        (~trans (~trans (~cong (ax3 (compspan (rep m''f'') (rep  m'f'))) ~refl)
-                        assspan) 
-                (~cong ~refl (~sym (ax3 (compspan (rep m'f') (rep mf))))))
--}
-} 
--}
+      iden = qiden;
+      comp = qcomp;
+      idl = qidlspan;
+      idr = qidrspan;
+      ass = qassspan}
