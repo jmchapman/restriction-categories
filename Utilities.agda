@@ -213,4 +213,13 @@ lift₂→lift' {A}{A'}{B}{R}{R'} q q' f p x x' =
              ∎))
           x
 
+{-
+lift₂lift₂ : ∀{A A' A'' B R R' R''}(q : Quotient A R)(q' : Quotient A' R')
+             (q'' : Quotient A'' R'')
+             (f : A → A' → B)(p : compat₂ R R' f)(x : Quotient.Q q)
+             (x' : Quotient.Q q')(x'' : Quotient.Q q'') → 
+             lift₂ {!!} {!!} {!!} {!!} (lift₂ {!!} {!!} {!!} {!!} {!!} {!!}) {!x!} ≅ lift₂ {!!} {!!} {!!} {!!} x'' (lift₂ {!!} {!!} {!!} {!!} {!!} {!!}) 
+--lift₂ q' q'' {!!} {!!} (lift₂ q q' (λ y z → Quotient.abs {!!} {!!}) {!!} x x') x'' ≅ lift₂ q q' f p {!!} {!!}              
+lift₂lift₂ = {!!}
+-}
 --postulate .irrelevant : {A : Set} → .A → A
