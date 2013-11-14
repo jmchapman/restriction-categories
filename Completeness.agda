@@ -243,12 +243,15 @@ module Completeness (X : SplitRestCat) where
     OMap = λ A → A; 
     HMap = abs ∘ HMap1;
     fid = ax1 _ _ fid;
-    fcomp = λ {_}{_}{_}{g}{f} → ax1 
-      _ 
-      _ 
-      (~trans (fcomp {g = g}{f = f}) (~sym (~cong (ax3 _) (ax3 _))))}
+    fcomp = λ {_}{_}{_}{g}{f} →
+      proof
+      abs (HMap1 (comp g f))
+      ≅⟨ ax1 _ _ (fcomp {g = g}{f = f}) ⟩  
+      abs (compspan (HMap1 g) (HMap1 f))
+      ≅⟨ sym qcompabsabs ⟩  
+      qcomp (abs (HMap1 g)) (abs (HMap1 f))
+      ∎}
 
-{-
   .frest : ∀{A B}{f : Hom A B} → restp (HMap1 f) ~Span~ HMap1 (rest f)
   frest {A}{B}{f = f} = 
     let open Split (rsplit f) renaming (B to A'; s to m)
@@ -311,10 +314,15 @@ module Completeness (X : SplitRestCat) where
   RFunct : RestFun rcat RestPartials
   RFunct = record {
     fun = Funct;
-    frest = λ {_}{_}{f} → ax1
-      _
-      _
-      (~trans (Span~restp (ax3 _)) (frest {f = f})) }
+    frest = λ {_}{_}{f} → 
+      proof
+      qrest (abs (HMap1 f))
+      ≅⟨ qrestabs≅ ⟩
+      abs (restp (HMap1 f))
+      ≅⟨ ax1 _ _ (frest {f = f}) ⟩
+      abs (HMap1 (rest f))
+      ∎}
+
 
   HMap2 : ∀{A C} → Span A C → Hom A C
   HMap2 {A}{C} sp = 
@@ -323,10 +331,10 @@ module Completeness (X : SplitRestCat) where
         open SRestIde m∈
     in comp g rs
 
---  postulate HMap2~Span : ∀{A B}{sp sp' : Span A B} → sp ~Span~ sp' → HMap2 sp ≅ HMap2 sp'
+--  postulate compatHMap2 : ∀{A B}{sp sp' : Span A B} → sp ~Span~ sp' → HMap2 sp ≅ HMap2 sp'
 
-  .HMap2~Span : ∀{A B}{sp sp' : Span A B} → sp ~Span~ sp' → HMap2 sp ≅ HMap2 sp'
-  HMap2~Span {A}{B}{sp}{sp'} y = --(spaneq iso (inv ,, rinv ,, linv) p q) = 
+  .compatHMap2 : ∀{A B}{sp sp' : Span A B} → sp ~Span~ sp' → HMap2 sp ≅ HMap2 sp'
+  compatHMap2 {A}{B}{sp}{sp'} y = --(spaneq iso (inv ,, rinv ,, linv) p q) = 
     let open _~Span~_ y renaming (s to iso)
         open Iso Total siso 
         open Span sp 
@@ -443,9 +451,12 @@ module Completeness (X : SplitRestCat) where
        comp g rg
        ∎
 
+  qHMap2 : ∀{A C} → QSpan A C → Hom A C
+  qHMap2 = lift HMap2 compatHMap2
 
+{-
   .fid2 : ∀{A} → HMap2 (rep (abs (idspan {A}))) ≅ iden {A}
-  fid2 = trans (HMap2~Span (ax3 _)) idl
+  fid2 = trans (compatHMap2 (ax3 _)) idl
 
   .fcomp2' : ∀{A B C}{sp' : Span B C}{sp : Span A B} → HMap2 (compspan sp' sp) ≅ comp (HMap2 sp') (HMap2 sp)
   fcomp2' {A}{B}{C}{sp'}{sp} =
@@ -511,7 +522,7 @@ module Completeness (X : SplitRestCat) where
       ∎
 
   .fcomp2 : ∀{A B C}{q' : QSpan B C}{q : QSpan A B} → HMap2 (rep (abs (compspan (rep q') (rep q)))) ≅ comp (HMap2 (rep q')) (HMap2 (rep q))
-  fcomp2 {A}{B}{C}{q'}{q} = trans (HMap2~Span (ax3 _)) (fcomp2' {sp' = rep q'}{sp = rep q})
+  fcomp2 {A}{B}{C}{q'}{q} = trans (compatHMap2 (ax3 _)) (fcomp2' {sp' = rep q'}{sp = rep q})
 
   Funct2 : Fun Par cat
   Funct2 = record {
@@ -542,7 +553,7 @@ module Completeness (X : SplitRestCat) where
       ∎
 
   .frest2 : ∀{A B}{q : QSpan A B} → rest (HMap2 (rep q)) ≅ HMap2 (rep (abs (restp (rep q))))
-  frest2 {q = q} = trans (frest2' {sp = rep q}) (HMap2~Span (~sym (ax3 _)))
+  frest2 {q = q} = trans (frest2' {sp = rep q}) (compatHMap2 (~sym (ax3 _)))
 
   RFunct2 : RestFun RestPartials rcat
   RFunct2 = record {
@@ -639,7 +650,7 @@ module Completeness (X : SplitRestCat) where
       ∎
 
   .HIso2 : ∀{A C}(f : Hom A C) → HMap2 (rep (abs (HMap1 f))) ≅ f
-  HIso2 f = trans (HMap2~Span (ax3 _)) (HIso2' f)
+  HIso2 f = trans (compatHMap2 (ax3 _)) (HIso2' f)
 
   IsoCompl : Iso CCat Funct
   IsoCompl = Funct2 ,, 
