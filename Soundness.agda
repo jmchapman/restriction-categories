@@ -298,11 +298,117 @@ RestPartials = record {
   R3 = qR3;
   R4 = qR4}
 
-{-
 -- every restriction in Par splits
 
 open import Categories.Idems Par
 open Categories.Isos X
+
+restpIdem : ∀{A B}(f : QSpan A B) → Idem
+restpIdem {A}{B} f = record {
+  E = A; 
+  e = qrest f;
+  law = Quotient.lift (quot (Span A B) Span~EqR)
+                      {λ y → qcomp (qrest y) (qrest y) ≅ qrest y} 
+                      (λ a → 
+                        proof
+                        qcomp (qrest (abs a)) (qrest (abs a))
+                        ≅⟨ cong (λ y → qcomp y y) qrestabs≅ ⟩
+                        qcomp (abs (restp a)) (abs (restp a))
+                        ≅⟨ qcompabsabs ⟩
+                        abs (compspan (restp a) (restp a))
+                        ≅⟨ ax1 _ _ R1p ⟩
+                        abs (restp a)
+                        ≅⟨ sym qrestabs≅ ⟩
+                        qrest (abs a)
+                        ∎) 
+                      (λ x → fixtypes (cong (λ y → qcomp (qrest y) (qrest y)) (ax1 _ _ x)) 
+                                      (cong qrest (ax1 _ _ x))) 
+                      f}
+
+qs : ∀{A B}(f : Span A B) → Span (Span.A' f) A
+qs f = 
+  let open Span f
+  in record { A' = A'; mhom = iden; fhom = mhom; m∈ = iso idiso }
+
+qr : ∀{A B}(f : Span A B) → Span A (Span.A' f)
+qr f = 
+  let open Span f
+  in record { A' = A'; mhom = mhom; fhom = iden; m∈ = m∈ }
+
+restpSplit : ∀{A B}(f : Span A B) → Split (restpIdem (abs f))
+restpSplit {A}{B} f = 
+  let open Span f
+  in record { 
+    B    = A'; 
+    s    = abs (qs f);
+    r    = abs (qr f);
+    law1 = 
+      let open Pullback (proj₁ (pul (iden {A'}) (iso idiso)))
+          open Square sq
+  
+          myp : Pullback (iden {A'}) (iden {A'})
+          myp = trivialpul (iden {A'})
+
+          lem : h ≅ k
+          lem = proof 
+                h 
+                ≅⟨ sym idl ⟩ 
+                comp iden h
+                ≅⟨ scom ⟩
+                comp iden k
+                ≅⟨ idl ⟩
+                k 
+                ∎
+
+          lem' : compspan (qs f) (qr f) ~Span~ restp f
+          lem' = spaneq (PMap.mor (fst (Pullback.prop myp sq))) 
+                         (pullbackiso myp (proj₁ (pul (iden {A'}) (iso idiso))))
+                         refl
+                         (proof 
+                          comp mhom h 
+                          ≅⟨ cong (comp mhom) lem ⟩ 
+                          comp mhom k 
+                          ∎)
+
+      in proof
+         qcomp (abs (qs f)) (abs (qr f))
+         ≅⟨ qcompabsabs ⟩
+         abs (compspan (qs f) (qr f))
+         ≅⟨ ax1 _ _ lem' ⟩
+         abs (restp f)
+         ≅⟨ sym qrestabs≅ ⟩
+         qrest (abs f)
+         ∎;
+    law2 = 
+      let open Pullback (proj₁ (pul mhom m∈)) 
+          open Square sq
+          
+          myp : Pullback mhom mhom 
+          myp = monic→pullback (mon m∈)
+  
+          lem : compspan (qr f) (qs f) ~Span~ idspan
+          lem = spaneq (PMap.mor (fst (Pullback.prop myp sq))) 
+                       (pullbackiso myp (proj₁ (pul mhom m∈))) 
+                       refl 
+                       (proof 
+                        comp iden h 
+                        ≅⟨ idl ⟩
+                        h
+                        ≅⟨ mon m∈ scom ⟩ 
+                        k
+                        ≅⟨ sym idl ⟩
+                        comp iden k 
+                        ∎)
+      in proof
+         qcomp (abs (qr f)) (abs (qs f))
+         ≅⟨ qcompabsabs ⟩
+         abs (compspan (qr f) (qs f))
+         ≅⟨ ax1 _ _ lem ⟩
+         abs idspan
+         ∎}
+
+
+{-
 
 restpIdem : ∀{A B}(f : Span A B) → Idem
 restpIdem {A}{B} f = record {
