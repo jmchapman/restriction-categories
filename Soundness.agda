@@ -55,7 +55,6 @@ R1p {A}{B}{mf} =
              ≅⟨ cong (comp fhom) (mon m∈ scom) ⟩ 
              comp fhom k 
              ∎)
--}
 
 .R2p : ∀{A B C}{mf : Span A B}{m'f' : Span A C} → 
        compspan (restp mf) (restp m'f') ~Span~ compspan (restp m'f') (restp mf)
@@ -98,8 +97,8 @@ R2p {mf = mf} {m'f' = m'f'} =
              ≅⟨ sym scom ⟩ 
              comp m h 
              ∎)
+-}
 
-{-
  
 .R3p : ∀{A B C}{mf : Span A B}{m'f' : Span A C} →
        compspan (restp m'f') (restp mf) ~Span~ restp (compspan m'f' (restp mf))
@@ -129,7 +128,8 @@ R3p {mf = mf} {m'f' = m'f'} =
      ≅⟨ scom ⟩ 
      comp m' k 
      ∎)
-     
+
+{-     
 .R4p : ∀{A B C}{mf : Span A B}{m'f' : Span B C} →
        compspan (restp m'f') mf ~Span~ compspan mf (restp (compspan m'f' mf))
 R4p {mf = mf} {m'f' = m'f'} = 
@@ -206,7 +206,6 @@ qR1 {A}{B}{f} = Quotient.lift (quot (Span A B) Span~EqR)
                               (λ x → fixtypes (cong (λ y → qcomp y (qrest y)) (ax1 _ _ x)) 
                                               (ax1 _ _ x)) 
                               f
--}
 
 .qR2 : ∀{A B C}{f : QSpan A B}{g : QSpan A C} → qcomp (qrest g) (qrest f) ≅ qcomp (qrest f) (qrest g)
 qR2 {A}{B}{C}{f}{g} = Quotient.lift (quot (Span A C) Span~EqR)
@@ -237,6 +236,38 @@ qR2 {A}{B}{C}{f}{g} = Quotient.lift (quot (Span A C) Span~EqR)
                                     (λ x → fixtypes (cong (λ y → qcomp (qrest y) (qrest f)) (ax1 _ _ x)) 
                                                     (cong (qcomp (qrest f) ∘ qrest) (ax1 _ _ x))) 
                                     g
+-}
+
+.qR3 : ∀{A B C}{f : QSpan A B}{g : QSpan A C} → qcomp (qrest g) (qrest f) ≅ qrest (qcomp g (qrest f))
+qR3 {A}{B}{C}{f}{g} = Quotient.lift (quot (Span A C) Span~EqR)
+                                    {λ y → qcomp (qrest y) (qrest f) ≅ qrest (qcomp y (qrest f))} 
+                                    (λ a → Quotient.lift (quot (Span A B) Span~EqR)
+                                                         {λ y → qcomp (qrest (abs a)) (qrest y) ≅ qrest (qcomp (abs a) (qrest y))}
+                                                         (λ b → 
+                                                           proof
+                                                           qcomp (qrest (abs a)) (qrest (abs b))
+                                                           ≅⟨ cong (λ y → qcomp y (qrest (abs b))) qrestabs≅ ⟩
+                                                           qcomp (abs (restp a)) (qrest (abs b))
+                                                           ≅⟨ cong (qcomp (abs (restp a))) qrestabs≅ ⟩
+                                                           qcomp (abs (restp a)) (abs (restp b))
+                                                           ≅⟨ qcompabsabs ⟩
+                                                           abs (compspan (restp a) (restp b))
+                                                           ≅⟨ ax1 _ _ (R3p {mf = b}{m'f' = a}) ⟩
+                                                           abs (restp (compspan a (restp b)))
+                                                           ≅⟨ sym qrestabs≅ ⟩
+                                                           qrest (abs (compspan a (restp b)))
+                                                           ≅⟨ cong qrest (sym qcompabsabs) ⟩
+                                                           qrest (qcomp (abs a) (abs (restp b)))
+                                                           ≅⟨ cong (qrest ∘ qcomp (abs a)) (sym qrestabs≅) ⟩
+                                                           qrest (qcomp (abs a) (qrest (abs b)))
+                                                           ∎) 
+                                                         (λ x → fixtypes (cong (qcomp (qrest (abs a)) ∘ qrest) (ax1 _ _ x)) 
+                                                                         (cong (qrest ∘ qcomp (abs a) ∘ qrest) (ax1 _ _ x))) 
+                                                         f) 
+                                    (λ x → fixtypes (cong (λ y → qcomp (qrest y) (qrest f)) (ax1 _ _ x)) 
+                                                    (cong (λ y → qrest (qcomp y (qrest f))) (ax1 _ _ x))) 
+                                    g
+
 
 {-
 RestPartials : RestCat
