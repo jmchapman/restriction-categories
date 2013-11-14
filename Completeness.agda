@@ -248,6 +248,7 @@ module Completeness (X : SplitRestCat) where
       _ 
       (~trans (fcomp {g = g}{f = f}) (~sym (~cong (ax3 _) (ax3 _))))}
 
+{-
   .frest : ∀{A B}{f : Hom A B} → restp (HMap1 f) ~Span~ HMap1 (rest f)
   frest {A}{B}{f = f} = 
     let open Split (rsplit f) renaming (B to A'; s to m)
@@ -650,3 +651,4 @@ module Completeness (X : SplitRestCat) where
               RFun≅ (Fun≅ refl HIso1) ,, 
               RFun≅ (Fun≅ refl HIso2)
 
+-}

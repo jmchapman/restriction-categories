@@ -13,6 +13,7 @@ open StableSys X M
 open import Data.Product
 open import Categories.Pullbacks.PullbacksLemmas X
 open import Categories.Pullbacks.PastingLemmas X
+open import Function
 open import Utilities
 import Categories.Isos
 
@@ -28,6 +29,7 @@ Span~restp : ∀{A B}{mf m'f' : Span A B} → mf ~Span~ m'f' →
              restp mf ~Span~ restp m'f'
 Span~restp (spaneq s i q r) = spaneq s i q q
 
+{-
 .R1p : ∀{A B} → {mf : Span A B} → compspan mf (restp mf) ~Span~ mf
 R1p {A}{B}{mf} =
   let open Span mf
@@ -53,6 +55,7 @@ R1p {A}{B}{mf} =
              ≅⟨ cong (comp fhom) (mon m∈ scom) ⟩ 
              comp fhom k 
              ∎)
+-}
 
 .R2p : ∀{A B C}{mf : Span A B}{m'f' : Span A C} → 
        compspan (restp mf) (restp m'f') ~Span~ compspan (restp m'f') (restp mf)
@@ -95,6 +98,8 @@ R2p {mf = mf} {m'f' = m'f'} =
              ≅⟨ sym scom ⟩ 
              comp m h 
              ∎)
+
+{-
  
 .R3p : ∀{A B C}{mf : Span A B}{m'f' : Span A C} →
        compspan (restp m'f') (restp mf) ~Span~ restp (compspan m'f' (restp mf))
@@ -176,7 +181,75 @@ R4p {mf = mf} {m'f' = m'f'} =
      ≅⟨ scom ⟩
      comp m' k
      ∎)
+-}
 
+qrest : ∀{A B} → QSpan A B → QSpan A A
+qrest = lift (abs ∘ restp) (ax1 _ _ ∘ Span~restp)
+
+.qrestabs≅ : ∀{A B}{mf : Span A B} → qrest (abs mf) ≅ abs (restp mf)
+qrestabs≅ {A}{B}{mf} = ax3 (abs ∘ restp) (ax1 _ _ ∘ Span~restp) mf
+
+{-
+.qR1 : ∀{A B}{f : QSpan A B} → qcomp f (qrest f) ≅ f
+qR1 {A}{B}{f} = Quotient.lift (quot (Span A B) Span~EqR) 
+                              {λ y → qcomp y (qrest y) ≅ y}
+                              (λ a → 
+                                proof 
+                                qcomp (abs a) (qrest (abs a))
+                                ≅⟨ cong (qcomp (abs a)) qrestabs≅ ⟩
+                                qcomp (abs a) (abs (restp a))
+                                ≅⟨ qcompabsabs ⟩ 
+                                abs (compspan a (restp a))
+                                ≅⟨ ax1 _ _  R1p ⟩ 
+                                abs a 
+                                ∎) 
+                              (λ x → fixtypes (cong (λ y → qcomp y (qrest y)) (ax1 _ _ x)) 
+                                              (ax1 _ _ x)) 
+                              f
+-}
+
+.qR2 : ∀{A B C}{f : QSpan A B}{g : QSpan A C} → qcomp (qrest g) (qrest f) ≅ qcomp (qrest f) (qrest g)
+qR2 {A}{B}{C}{f}{g} = Quotient.lift (quot (Span A C) Span~EqR)
+                                    {λ y → qcomp (qrest y) (qrest f) ≅ qcomp (qrest f) (qrest y)} 
+                                    (λ a → Quotient.lift (quot (Span A B) Span~EqR)
+                                                         {λ y → qcomp (qrest (abs a)) (qrest y) ≅ qcomp (qrest y) (qrest (abs a))}
+                                                         (λ b → 
+                                                           proof
+                                                           qcomp (qrest (abs a)) (qrest (abs b))
+                                                           ≅⟨ cong (λ y → qcomp y (qrest (abs b))) qrestabs≅ ⟩
+                                                           qcomp (abs (restp a)) (qrest (abs b))
+                                                           ≅⟨ cong (qcomp (abs (restp a))) qrestabs≅ ⟩
+                                                           qcomp (abs (restp a)) (abs (restp b))
+                                                           ≅⟨ qcompabsabs ⟩
+                                                           abs (compspan (restp a) (restp b))
+                                                           ≅⟨ ax1 _ _ (R2p {mf = a}{m'f' = b}) ⟩
+                                                           abs (compspan (restp b) (restp a))
+                                                           ≅⟨ sym qcompabsabs ⟩
+                                                           qcomp (abs (restp b)) (abs (restp a))
+                                                           ≅⟨ cong (qcomp (abs (restp b))) (sym qrestabs≅) ⟩
+                                                           qcomp (abs (restp b)) (qrest (abs a))
+                                                           ≅⟨ cong (λ y → qcomp y (qrest (abs a))) (sym qrestabs≅) ⟩
+                                                           qcomp (qrest (abs b)) (qrest (abs a))
+                                                           ∎) 
+                                                         (λ x → fixtypes (cong (qcomp (qrest (abs a)) ∘ qrest) (ax1 _ _ x)) 
+                                                                         (cong (λ y → qcomp (qrest y) (qrest (abs a))) (ax1 _ _ x))) 
+                                                         f) 
+                                    (λ x → fixtypes (cong (λ y → qcomp (qrest y) (qrest f)) (ax1 _ _ x)) 
+                                                    (cong (qcomp (qrest f) ∘ qrest) (ax1 _ _ x))) 
+                                    g
+
+{-
+RestPartials : RestCat
+RestPartials = record { 
+  cat = Par; 
+  rest = qrest;
+  R1 = λ {A}{B}{f} → Quotient.lift (quot (Span A B) Span~EqR) {λ y → qcomp y (lift (abs ∘ restp) (ax1 _ _ ∘ Span~restp) y) ≅ f} {!!} {!!} f; 
+  R2 = {!!}; 
+  R3 = {!!}; 
+  R4 = {!!} }
+-}
+
+{-
 RestPartials : RestCat
 RestPartials = record {
   cat = Par; 
@@ -273,3 +346,4 @@ restpSplit {A}{B} f = let open Span f
                          comp iden k 
                          ∎)))}
 
+-}

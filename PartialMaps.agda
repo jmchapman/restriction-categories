@@ -511,11 +511,11 @@ module PartialMaps (X : Cat)(M : StableSys X) where
     abs : {A B : Obj} → Span A B → QSpan A B
     abs {A}{B} = Quotient.abs (quot (Span A B) Span~EqR)
 
-    lift : ∀{A B : Obj}{C}(f : Span A B → C) → compat f → QSpan A B → C
+    lift : ∀{A B : Obj}{C}(f : Span A B → C) → .(compat f) → QSpan A B → C
     lift {A}{B} = Quotient.lift (quot (Span A B) Span~EqR)
 
     .ax1 : {A B : Obj} → (mf m'f' : Span A B) → 
-          mf ~Span~ m'f' → abs mf ≅ abs m'f'
+           mf ~Span~ m'f' → abs mf ≅ abs m'f'
     ax1 {A}{B} = Quotient.ax1 (quot (Span A B) Span~EqR)
 
     ax2 : {A B : Obj} → (mf m'f' : Span A B) → 
