@@ -93,7 +93,7 @@ module Completeness (X : SplitRestCat) where
 
       in spaneq
         (record { hom = s; tot = lemiii rcat (smon s (r , law2)) })
-        (Iso.inv (IsoTot stot isos) ,,
+        (Iso.inv Total (IsoTot stot isos) ,,
         TotEq _ _ (
           proof
           comp s r
@@ -752,7 +752,6 @@ module Completeness (X : SplitRestCat) where
                 (TotEq _ nt (lemmalaw2 (record { E = A; e = rest r; law = lemii rcat}) spl spl'))
                 (TotEq _ gt equat))
 
-{-
   .HIso1 : ∀{A B}(q : QSpan A B) → abs (HMap1 (qHMap2 q)) ≅ q
   HIso1 {A}{B} q = Quotient.lift (quot (Span A B) Span~EqR)
                                  {λ y → abs (HMap1 (qHMap2 y)) ≅ y}
@@ -767,12 +766,6 @@ module Completeness (X : SplitRestCat) where
                                  (λ x → fixtypes (cong (λ y → abs (HMap1 (qHMap2 y))) (ax1 _ _ x))
                                                  (ax1 _ _ x))
                                  q
--}
-
-{-
-  .HIso1 : ∀{A C}(q : QSpan A C) → abs (HMap1 (HMap2 (rep q))) ≅ q
-  HIso1 {A}{C} q = trans (ax1 _ _ (HIso1' (rep q))) (ax2 q)
--}
 
   .HIso2' : ∀{A C}(f : Hom A C) → HMap2 (HMap1 f) ≅ f
   HIso2' {A}{C} f = 
@@ -797,6 +790,7 @@ module Completeness (X : SplitRestCat) where
     ≅⟨ HIso2' f ⟩
     f
     ∎
+
 
 {-
   IsoCompl : Iso CCat Funct
