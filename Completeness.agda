@@ -93,7 +93,7 @@ module Completeness (X : SplitRestCat) where
 
       in spaneq
         (record { hom = s; tot = lemiii rcat (smon s (r , law2)) })
-        (Iso.inv Total (IsoTot stot isos) ,,
+        (Iso.inv (IsoTot stot isos) ,,
         TotEq _ _ (
           proof
           comp s r
@@ -523,67 +523,6 @@ module Completeness (X : SplitRestCat) where
       comp (comp g rg) (comp f rf) 
       ∎
 
-{-
-  .fcomp2 : ∀{A B C}{q' : QSpan B C}{q : QSpan A B} → qHMap2 (qcomp q' q) ≅ comp (qHMap2 q') (qHMap2 q)
-  fcomp2 {A}{B}{C}{q'}{q} = Quotient.lift (quot (Span B C) Span~EqR)
-                                          {λ y → qHMap2 (qcomp y q) ≅ comp (qHMap2 y) (qHMap2 q)} 
-                                          {!!} 
-                                          (λ {y} {z} x → fixtypes {_} {_} {_} {_} {qHMap2 (qcomp (abs y) q)} {comp (qHMap2 (Quotient.abs (quot (Span B C) Span~EqR) y))
-                                                                                                                (qHMap2 q)} {qHMap2 (qcomp (abs z) q)} {comp (qHMap2 (Quotient.abs (quot (Span B C) Span~EqR) z))
-                                                                                                                                                          (qHMap2 q)} {_} {_} {!cong !} {!!})
-                                          q' 
--}
-{- Quotient.lift (quot (Span B C) Span~EqR)
-                                          {λ y → qHMap2 (qcomp y q) ≅ comp (qHMap2 y) (qHMap2 q)} 
-                                          (λ a → Quotient.lift (quot (Span A B) Span~EqR)
-                                                               {λ y → qHMap2 (qcomp (abs a) y) ≅ comp (qHMap2 (abs a)) (qHMap2 y)}
-                                                               (λ a₁ → 
-                                                                 proof
-                                                                   qHMap2 (qcomp (abs a) (abs a₁)) ≅⟨ cong qHMap2 qcompabsabs ⟩
-                                                                   qHMap2 (abs (compspan a a₁)) ≅⟨
-                                                                   ax3 HMap2 compatHMap2 (compspan a a₁) ⟩
-                                                                   HMap2 (compspan a a₁) ≅⟨ fcomp2' {A} {B} {C} {sp' = a} {sp = a₁} ⟩
-                                                                   comp (HMap2 a) (HMap2 a₁) ≅⟨
-                                                                   cong (comp (HMap2 a)) (sym (ax3 HMap2 compatHMap2 a₁)) ⟩
-                                                                   comp (HMap2 a) (qHMap2 (abs a₁)) ≅⟨
-                                                                   cong (λ y → comp y (qHMap2 (abs a₁)))
-                                                                   (sym (ax3 HMap2 compatHMap2 a))
-                                                                   ⟩ (comp (qHMap2 (abs a)) (qHMap2 (abs a₁)) ∎)) 
-                                                               (λ {y}{z} x → fixtypes {_}{_}{_}{_}{qHMap2 (qcomp (abs a) (abs y))}{comp (qHMap2 (abs a)) (qHMap2 (abs y))}{qHMap2 (qcomp (abs a) (abs z))}{comp (qHMap2 (abs a)) (qHMap2 (abs z))} (cong (λ y → qHMap2 (qcomp (abs a) y)) (ax1 _ _ x))) 
-                                                               q) 
-                                          {!!} 
-                                          q'
--}
-
-
-{-
- Quotient.lift (quot (Span B C) Span~EqR)
-                                          {λ y → qHMap2 (qcomp y q) ≅ comp (qHMap2 y) (qHMap2 q)} 
-                                          (λ a → Quotient.lift (quot (Span A B) Span~EqR)
-                                                               {λ y → qHMap2 (qcomp (abs a) y) ≅ comp (qHMap2 (abs a)) (qHMap2 y)}
-                                                               (λ b → 
-                                                                 proof
-                                                                 qHMap2 (qcomp (abs a) (abs b))
-                                                                 ≅⟨ cong qHMap2 qcompabsabs ⟩
-                                                                 qHMap2 (abs (compspan a b))
-                                                                 ≅⟨ ax3 HMap2 compatHMap2 (compspan a b) ⟩
-                                                                 HMap2 (compspan a b)
-                                                                 ≅⟨ fcomp2' {A}{B}{C}{sp' = a}{sp = b} ⟩
-                                                                 comp (HMap2 a) (HMap2 b)
-                                                                 ≅⟨ cong (comp (HMap2 a)) (sym (ax3 HMap2 compatHMap2 b)) ⟩
-                                                                 comp (HMap2 a) (qHMap2 (abs b))
-                                                                 ≅⟨ cong (λ y → comp y (qHMap2 (abs b))) (sym (ax3 HMap2 compatHMap2 a)) ⟩ 
-                                                                 comp (qHMap2 (abs a)) (qHMap2 (abs b))
-                                                                 ∎)
-                                                               (λ {y}{z} x → fixtypes {_}{_}{_}{_}{qHMap2 (qcomp (abs a) (abs y))}{comp (qHMap2 (abs a)) (qHMap2 (abs y))}{qHMap2 (qcomp (abs a) (abs z))}{comp (qHMap2 (abs a)) (qHMap2 (abs z))} (cong (λ y → qHMap2 (qcomp (abs a) y)) (ax1 _ _ x)) 
-                                                                               (cong (λ y → comp (qHMap2 (abs a)) (qHMap2 y)) (ax1 _ _ x)))
-                                                               q)
-                                          (λ {y}{z} x → fixtypes {_}{_}{_}{_}{qHMap2 (qcomp (abs y) q)}{comp (qHMap2 (abs y)) (qHMap2 q)}{qHMap2 (qcomp (abs z) q)}{comp (qHMap2 (abs z)) (qHMap2 q)} (cong (λ y → qHMap2 (qcomp y q)) (ax1 _ _ x)) 
-                                                          (cong (λ y → comp (qHMap2 y) (qHMap2 q)) (ax1 _ _ x)))
-                                          q'
--}
-
-{-
   .fcomp2 : ∀{A B C}{q' : QSpan B C}{q : QSpan A B} → qHMap2 (qcomp q' q) ≅ comp (qHMap2 q') (qHMap2 q)
   fcomp2 {A}{B}{C}{q'}{q} = Quotient.lift (quot (Span B C) Span~EqR)
                                           {λ y → qHMap2 (qcomp y q) ≅ comp (qHMap2 y) (qHMap2 q)} 
@@ -609,27 +548,7 @@ module Completeness (X : SplitRestCat) where
                                           (λ x → fixtypes (cong (λ y → qHMap2 (qcomp y q)) (ax1 _ _ x)) 
                                                           (cong (λ y → comp (qHMap2 y) (qHMap2 q)) (ax1 _ _ x))) 
                                           q'
--}
 
-{-
-  Funct2 : Fun Par cat
-  Funct2 = record {
-    OMap = λ A → A; 
-    HMap = qHMap2;
-    fid = fid2;
-    fcomp = λ {A} {B} {C} {q'} {q} → Quotient.lift (quot (Span B C) Span~EqR)
-                                                   {λ y → qHMap2 (qcomp y q) ≅ comp (qHMap2 y) (qHMap2 q)} 
-                                                   {!!} 
-                                                   (λ x → fixtypes {!!} {!!}) 
-                                                   q' }
--}
-
-  postulate .fcomp2 : ∀{A B C}{q' : QSpan B C}{q : QSpan A B} → qHMap2 (qcomp q' q) ≅ comp (qHMap2 q') (qHMap2 q)
-
-{-
-  .fcomp2 : ∀{A B C}{q' : QSpan B C}{q : QSpan A B} → HMap2 (rep (abs (compspan (rep q') (rep q)))) ≅ comp (HMap2 (rep q')) (HMap2 (rep q))
-  fcomp2 {A}{B}{C}{q'}{q} = trans (compatHMap2 (ax3 _)) (fcomp2' {sp' = rep q'}{sp = rep q})
--}
 
   Funct2 : Fun Par cat
   Funct2 = record {
@@ -791,8 +710,6 @@ module Completeness (X : SplitRestCat) where
     f
     ∎
 
-
-{-
   IsoCompl : Iso CCat Funct
   IsoCompl = Funct2 ,, 
              Fun≅ refl HIso1 ,, 
@@ -803,4 +720,4 @@ module Completeness (X : SplitRestCat) where
               RFun≅ (Fun≅ refl HIso1) ,, 
               RFun≅ (Fun≅ refl HIso2)
 
--}
+
