@@ -1,7 +1,7 @@
 {-# OPTIONS --type-in-type #-}
 open import Categories
 
-module Splits (X : Cat) where
+module Categories.Splits (X : Cat) where
 
 open import Relation.Binary.HeterogeneousEquality
 open import Utilities
@@ -9,7 +9,7 @@ open ≅-Reasoning renaming (begin_ to proof_)
 open import Data.Product
 open Cat X
 open import Categories.Idems
-open import Functors
+open import Categories.Functors
 
 
 -- Definition of Split(X), which is the category where

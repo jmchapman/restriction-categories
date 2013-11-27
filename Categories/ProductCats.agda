@@ -1,13 +1,13 @@
 {-# OPTIONS --type-in-type #-}
 
-module ProductCats where
+module Categories.ProductCats where
 
 open import Categories
 open import Function
 open import Relation.Binary.HeterogeneousEquality
 open import Utilities
 open ≅-Reasoning renaming (begin_ to proof_)
-open import Products
+open import Categories.Products
 
 record ProdCat : Set where
   field cat  : Cat

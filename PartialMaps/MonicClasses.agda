@@ -1,9 +1,9 @@
-open import SplitRestCats
+open import Restriction.SplitRestCats
 
-module MonicClasses (X : SplitRestCat) where
+module PartialMaps.MonicClasses (X : SplitRestCat) where
 
   open import Categories
-  open import RestrictionCat
+  open import Restriction.Cat
   open import Relation.Binary.HeterogeneousEquality
   open import Utilities
   open ≅-Reasoning renaming (begin_ to proof_)
@@ -15,7 +15,7 @@ module MonicClasses (X : SplitRestCat) where
   open Cat cat
   open Lemmata rcat
   open import Categories.Idems cat
-  open import Totals rcat
+  open import Restriction.Totals rcat
   open Tot
 
   record SRestIde {B E} (s : Tot B E) : Set where
@@ -372,7 +372,7 @@ module MonicClasses (X : SplitRestCat) where
     in record { sq = sq; prop = prop} ,
        record { As = B; fs = comp e f; rs = r'; law1s = law1e'; law2s = law2e'}
 
-  open import Stable
+  open import PartialMaps.Stable
 
   M : StableSys Total
   M = record { 

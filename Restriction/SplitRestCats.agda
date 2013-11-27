@@ -1,7 +1,7 @@
-module SplitRestCats where
+module Restriction.SplitRestCats where
 
 open import Categories
-open import RestrictionCat
+open import Restriction.Cat
 open import Relation.Binary.HeterogeneousEquality
 open import Utilities
 open ≅-Reasoning renaming (begin_ to proof_)
@@ -22,7 +22,7 @@ record SplitRestCat : Set where
   field rsplit : ∀{E A}(f : Hom E A) → 
                  Split (record { E = E; e = rest f; law = lemii})
 
-open import Splits
+open import Categories.Splits
 
 
 -- SplitCat is a restriction category (if X is)
@@ -334,7 +334,7 @@ RIdeSplitCat {X} =
         law2 = split≅ cat (splitcomp cat r s) (splitiden cat {record { E = E; e = comp (rest imap) e; law = RestIdemIsIdem {X} f }}) law1}}
 
 
-open import RestrictionFunctors
+open import Restriction.Functors
 
 RIncl : ∀{X} → RestFun X  (RSplitCat {X} (RestIdemsClass {X}))
 RIncl {X} = record { 

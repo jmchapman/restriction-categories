@@ -1,6 +1,6 @@
 {-# OPTIONS --type-in-type #-}
 open import Categories
-module Stable (X : Cat) where
+module PartialMaps.Stable (X : Cat) where
   open import Relation.Binary.HeterogeneousEquality
   open ≅-Reasoning renaming (begin_ to proof_)
   open import Data.Product

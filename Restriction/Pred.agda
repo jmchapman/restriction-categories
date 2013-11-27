@@ -1,16 +1,16 @@
 {-# OPTIONS --type-in-type #-}
 
-module RestrictionPred where
+module Restriction.Pred where
 
 open import Relation.Binary.HeterogeneousEquality
 open import Utilities
 open import Function
 open import Categories
-open import RestrictionCat
+open import Restriction.Cat
 open import Data.Product
 open import Monads
 open import Monads.Kleisli
-open import Sets
+open import Categories.Sets
 open import Monads.PredicatePart
 open import Categories.Isos
 

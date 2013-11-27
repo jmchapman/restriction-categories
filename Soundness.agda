@@ -1,12 +1,12 @@
 {-# OPTIONS --type-in-type #-}
 open import Categories
-open import Stable
+open import PartialMaps.Stable
 module Soundness (X : Cat) (M : StableSys X) where
 
 open import Relation.Binary.HeterogeneousEquality
 open ≅-Reasoning renaming (begin_ to proof_)
-open import RestrictionCat
-open import PartialMaps X M
+open import Restriction.Cat
+open import PartialMaps.Cat X M
 open Cat X
 open import Categories.Pullbacks X
 open StableSys X M

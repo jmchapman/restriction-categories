@@ -1,5 +1,5 @@
 {-# OPTIONS --type-in-type #-}
-module Functors where
+module Categories.Functors where
 
 open import Relation.Binary.HeterogeneousEquality
 open import Function

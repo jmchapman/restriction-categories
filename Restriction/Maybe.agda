@@ -1,16 +1,16 @@
 {-# OPTIONS --type-in-type #-}
 
-module RestrictionMaybe where
+module Restriction.Maybe where
 open import Relation.Binary.HeterogeneousEquality
 open import Utilities
 open import Function
 open import Categories
 open import Data.Maybe
-open import RestrictionCat
+open import Restriction.Cat
 
 open import Monads
 open import Monads.Kleisli
-open import Sets
+open import Categories.Sets
 open import Monads.Maybe
 
 rest : ∀{X Y} → (X → Maybe Y) → X → Maybe X

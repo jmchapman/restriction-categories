@@ -1,5 +1,5 @@
 {-# OPTIONS --type-in-type #-}
-module SurjectiveQuotients where
+module Misc.SurjectiveQuotients where
 
 open import Relation.Binary
 open import Relation.Nullary

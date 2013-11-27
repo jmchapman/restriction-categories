@@ -1,7 +1,7 @@
 
 open import Categories
 
-module Products (X : Cat) where
+module Categories.Products (X : Cat) where
 
 open import Function
 open import Relation.Binary.HeterogeneousEquality

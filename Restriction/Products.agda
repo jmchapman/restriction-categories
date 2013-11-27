@@ -1,7 +1,7 @@
 
-open import RestrictionCat
+open import Restriction.Cat
 
-module RestrictionProducts (X : RestCat) where
+module Restriction.Products (X : RestCat) where
 
 open import Function
 open import Relation.Binary.HeterogeneousEquality
@@ -10,7 +10,7 @@ open import Data.Product hiding (map)
 open ≅-Reasoning renaming (begin_ to proof_)
 open import Level
 open import Categories
-open import Totals X
+open import Restriction.Totals X
 open RestCat X
 open Cat cat
 open Tot

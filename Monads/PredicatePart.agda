@@ -10,7 +10,7 @@ open import Data.Unit
 open import Categories
 import Categories.Isos
 open import Monads
-open import Sets
+open import Categories.Sets
 
 open Cat Sets
 open Categories.Isos Sets

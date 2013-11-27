@@ -2,7 +2,7 @@
 module Monads.Maybe where
 
 open import Monads
-open import Sets
+open import Categories.Sets
 open import Data.Maybe
 open import Relation.Binary.HeterogeneousEquality
 open import Utilities

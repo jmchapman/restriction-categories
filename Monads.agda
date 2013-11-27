@@ -17,7 +17,7 @@ record Monad (C : Cat) : Set where
   μ : ∀{X} → Hom (T (T X)) (T X)
   μ = bind iden
 
-open import Functors
+open import Categories.Functors
 
 TFun : ∀{C} → Monad C → Fun C C
 TFun {C} M = 

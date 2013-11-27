@@ -1,4 +1,4 @@
-module RestrictionFunctors where
+module Restriction.Functors where
 
 open import Categories
 open import Relation.Binary.HeterogeneousEquality
@@ -6,9 +6,9 @@ open import Utilities
 open ≅-Reasoning renaming (begin_ to proof_)
 open import Function
 open import Data.Product
-open import RestrictionCat
-open import Functors
-import Totals
+open import Restriction.Cat
+open import Categories.Functors
+import Restriction.Totals
 
 record RestFun (X Y : RestCat) : Set where
   open Cat
@@ -18,25 +18,25 @@ record RestFun (X Y : RestCat) : Set where
         .frest : ∀{A B}{f : Hom (cat X) A B} → 
                 rest Y (HMap fun f) ≅ HMap fun (rest X f)
 
-F : ∀{X} → Fun (Totals.Total X) (RestCat.cat X)
+F : ∀{X} → Fun (Restriction.Totals.Total X) (RestCat.cat X)
 F {X} = record { 
   OMap  = id; 
   HMap  = hom; 
   fid   = refl;
   fcomp = refl}
-  where open Totals X
+  where open Restriction.Totals X
         open Tot
 
-RF : ∀{X} → RestFun (Trivial (Totals.Total X)) X
+RF : ∀{X} → RestFun (Trivial (Restriction.Totals.Total X)) X
 RF {X} = record { 
   fun   = F; 
   frest = λ {_ _ f} → tot f }
-  where open Totals X
+  where open Restriction.Totals X
         open Tot
 
 .RFFaithful : ∀{X} → Faithful (F {X})
 RFFaithful {X} = λ {_} {_} {f} {g} → TotEq f g
-  where open Totals X
+  where open Restriction.Totals X
         open Tot
 
 -- Cat of Restriction Cats

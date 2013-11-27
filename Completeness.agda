@@ -1,29 +1,29 @@
-open import SplitRestCats
+open import Restriction.SplitRestCats
 
 module Completeness (X : SplitRestCat) where
 
   open import Categories
-  open import RestrictionCat
+  open import Restriction.Cat
   open import Relation.Binary.HeterogeneousEquality
   open import Utilities
   open ≅-Reasoning renaming (begin_ to proof_)
   open import Function
   open import Data.Product
-  open import Functors
-  open import RestrictionFunctors
+  open import Categories.Functors
+  open import Restriction.Functors
   open SplitRestCat X
   open RestCat rcat
 
   open Cat cat
-  open import Totals rcat
+  open import Restriction.Totals rcat
   open Tot
-  open import Stable 
+  open import PartialMaps.Stable 
   open import Categories.Pullbacks
   open Lemmata
 
-  open import MonicClasses X
+  open import PartialMaps.MonicClasses X
 
-  open import PartialMaps Total M
+  open import PartialMaps.Cat Total M
   open import Soundness Total M
   open import Categories.Idems cat
   open import Categories.Sections cat

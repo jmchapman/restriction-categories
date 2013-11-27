@@ -4,7 +4,7 @@ open import Monads
 module Monads.EMAlgebras (C : Cat)(Tm : Monad C) where
 
   open import Relation.Binary.HeterogeneousEquality
-  open import Functors
+  open import Categories.Functors
   open import Utilities
   open Cat C
   open Monad Tm

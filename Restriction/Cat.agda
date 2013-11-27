@@ -1,5 +1,5 @@
 {-# OPTIONS --type-in-type #-}
-module RestrictionCat where
+module Restriction.Cat where
 
 open import Categories
 open import Relation.Binary.HeterogeneousEquality

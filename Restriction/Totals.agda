@@ -1,6 +1,6 @@
-open import RestrictionCat
+open import Restriction.Cat
 
-module Totals (X : RestCat) where
+module Restriction.Totals (X : RestCat) where
 
   open import Categories
   open import Relation.Binary.HeterogeneousEquality
