@@ -19,19 +19,12 @@ Subsection 2.1: Restriction Categories:
 Definition 1: Restriction/Cat.agda/RestCat
 
 Lemma 2: Restriction/Cat.agda/Lemmata
-
 Lemma 2.1: Restriction/Cat.agda/Lemmata.lemi
-
 Lemma 2.2: Restriction/Cat.agda/Lemmata.lemii
-
 Lemma 2.3: Restriction/Cat.agda/Lemmata.lemiii
-
 Lemma 2.4: Restriction/Cat.agda/Lemmata.lemiv
-
 Example 3: Restriciton/Cat.agda/Trivial
-
 Example 4: Restriction/Maybe.agda
-
 Example 5:
 
 Subsection 2.2: Partial Map Categories
