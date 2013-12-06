@@ -50,19 +50,19 @@ inspect : ∀ {A : Set} {B : A → Set}
           (f : (x : A) → B x) (x : A) → Reveal (hide f x) is (f x)
 inspect f x = [ refl ]
 
-fixtypes : {A A' A'' A''' : Set}{a : A}{a' : A'}{a'' : A''}{a''' : A'''}
-           {p : a ≅ a'}{q : a'' ≅ a'''} → 
-           a ≅ a'' → a' ≅ a''' → p ≅ q
-fixtypes refl refl = ≡-to-≅ (proof-irrelevance _ _)
-
 fixtypes' : {A A' A'' A''' : Set}{a : A}{a' : A'}{a'' : A''}{a''' : A'''}
             {p : a ≅ a'}{q : a'' ≅ a'''} →
             a ≅ a'' → p ≅ q
-fixtypes' {p = p}{q = q} r = fixtypes r (trans (sym p) (trans r q))
+fixtypes' {p = refl} {refl} refl = refl
 
 fixtypes'' : ∀{A}{a a' a'' a''' : A}{p : a ≅ a'}{q : a'' ≅ a'''} →
             a' ≅ a''' → p ≅ q
-fixtypes'' {p = p}{q = q} r = fixtypes (trans p (trans r (sym q))) r 
+fixtypes'' {p = refl}{q = refl} refl = refl
+
+fixtypes : {A A' A'' A''' : Set}{a : A}{a' : A'}{a'' : A''}{a''' : A'''}
+           {p : a ≅ a'}{q : a'' ≅ a'''} → 
+           a ≅ a'' → a' ≅ a''' → p ≅ q
+fixtypes p _ = fixtypes' p
 
 EqR : (A : Set) → Set
 EqR A = Σ (Rel A _) (λ R → IsEquivalence R)
