@@ -2,10 +2,8 @@ open import Categories
 open import Monads
 
 module Monads.EMAlgebras (C : Cat)(Tm : Monad C) where
-
-  open import Relation.Binary.HeterogeneousEquality
-  open import Categories.Functors
   open import Utilities
+  open import Categories.Functors
   open Cat C
   open Monad Tm
   open Fun (TFun Tm)

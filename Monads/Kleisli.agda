@@ -1,9 +1,7 @@
 module Monads.Kleisli where
-
+open import Utilities
 open import Categories
 open import Monads
-open import Relation.Binary.HeterogeneousEquality
-open ≅-Reasoning renaming (begin_ to proof_)
 
 Kl : ∀{C} → Monad C → Cat
 Kl {C} M = record{

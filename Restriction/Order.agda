@@ -3,13 +3,9 @@ open import Restriction.Cat
 module Restriction.Order (X : RestCat) where
 
 open import Categories
-open import Relation.Binary.HeterogeneousEquality
 open import Utilities
-open ≅-Reasoning renaming (begin_ to proof_)
 open RestCat X
 open Cat cat
-open import Level
-open import Function
 
 infix 4 _≤_
 

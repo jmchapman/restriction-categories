@@ -10,9 +10,7 @@ open Cat (Kl DelayM)
 open import RestrictionDelay
 open RestCat DelayR
 open import Data.Sum hiding (map)
-open import Data.Product hiding (map)
 open import Utilities
-open import Relation.Binary.HeterogeneousEquality
 
 {-
 ι₀ : {A B : Set} → A → Delay (A ⊎ B)
