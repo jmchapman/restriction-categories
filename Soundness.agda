@@ -2,14 +2,12 @@
 open import Categories
 open import PartialMaps.Stable
 module Soundness (X : Cat) (M : StableSys X) where
-open import Function
 open import Utilities
 open import Restriction.Cat
 open import PartialMaps.Cat X M
 open Cat X
 open import Categories.Pullbacks X
 open StableSys X M
-open import Data.Product
 open import Categories.Pullbacks.PullbacksLemmas X
 open import Categories.Pullbacks.PastingLemmas X
 

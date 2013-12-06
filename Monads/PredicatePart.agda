@@ -2,11 +2,6 @@
 module Monads.PredicatePart where
 
 open import Utilities
-open import Function
-open import Relation.Binary.HeterogeneousEquality
-open ≅-Reasoning renaming (begin_ to proof_)
-open import Data.Product
-open import Data.Unit
 open import Categories
 import Categories.Isos
 open import Monads

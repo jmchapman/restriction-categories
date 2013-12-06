@@ -4,7 +4,7 @@ module Utilities where
 open import Relation.Binary
 open import Relation.Binary.HeterogeneousEquality public
 open ≅-Reasoning renaming (begin_ to proof_) public
-open import Data.Unit
+open import Data.Unit hiding (decSetoid; preorder; setoid) public 
 open import Data.Product public
 open import Function public
 
@@ -24,7 +24,6 @@ postulate iext : {A : Set}{B B' : A → Set}{f : ∀ {a} → B a}{g : ∀{a} →
 
 data Reveal_is_ {A : Set} (x : Hidden A) (y : A) : Set where
   [_] : (eq : reveal x ≅ y) → Reveal x is y
-
 
 cong₃ : {A : Set}
         {B : A → Set}
