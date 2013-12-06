@@ -4,7 +4,7 @@ module Utilities where
 open import Relation.Binary
 open import Relation.Binary.HeterogeneousEquality public
 open ≅-Reasoning renaming (begin_ to proof_) public
-open import Data.Unit hiding (decSetoid; preorder; setoid) public 
+open import Data.Unit hiding (decSetoid; preorder; setoid; _≤_) public 
 open import Data.Product public
 open import Function public
 
