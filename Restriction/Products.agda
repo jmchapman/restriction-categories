@@ -3,12 +3,7 @@ open import Restriction.Cat
 
 module Restriction.Products (X : RestCat) where
 
-open import Function
-open import Relation.Binary.HeterogeneousEquality
 open import Utilities
-open import Data.Product hiding (map)
-open ≅-Reasoning renaming (begin_ to proof_)
-open import Level
 open import Categories
 open import Restriction.Totals X
 open RestCat X

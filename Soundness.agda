@@ -2,9 +2,8 @@
 open import Categories
 open import PartialMaps.Stable
 module Soundness (X : Cat) (M : StableSys X) where
-
-open import Relation.Binary.HeterogeneousEquality
-open ≅-Reasoning renaming (begin_ to proof_)
+open import Function
+open import Utilities
 open import Restriction.Cat
 open import PartialMaps.Cat X M
 open Cat X
@@ -13,8 +12,7 @@ open StableSys X M
 open import Data.Product
 open import Categories.Pullbacks.PullbacksLemmas X
 open import Categories.Pullbacks.PastingLemmas X
-open import Function
-open import Utilities
+
 import Categories.Isos
 
 restp : ∀{A B} → Span A B → Span A A

@@ -1,12 +1,7 @@
 {-# OPTIONS --type-in-type #-}
 module Categories.Functors where
-
-open import Relation.Binary.HeterogeneousEquality
-open import Function
-open import Categories
-open ≅-Reasoning renaming (begin_ to proof_)
-open import Data.Product
 open import Utilities
+open import Categories
 
 record Fun (C D : Cat) : Set where
   open Cat

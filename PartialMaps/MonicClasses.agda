@@ -1,15 +1,9 @@
 open import Restriction.SplitRestCats
 
 module PartialMaps.MonicClasses (X : SplitRestCat) where
-
+  open import Utilities
   open import Categories
   open import Restriction.Cat
-  open import Relation.Binary.HeterogeneousEquality
-  open import Utilities
-  open ≅-Reasoning renaming (begin_ to proof_)
-  open import Function
-  open import Data.Product
-
   open SplitRestCat X
   open RestCat rcat
   open Cat cat

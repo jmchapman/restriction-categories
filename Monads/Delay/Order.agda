@@ -3,7 +3,6 @@ module Monads.Delay.Order where
 
 open import Monads.Delay
 open import Coinduction
-open import Relation.Binary.HeterogeneousEquality
 
 -- Convergence order
 

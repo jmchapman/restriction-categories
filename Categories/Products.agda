@@ -2,12 +2,7 @@
 open import Categories
 
 module Categories.Products (X : Cat) where
-
-open import Function
-open import Relation.Binary.HeterogeneousEquality
 open import Utilities
-open import Data.Product hiding (map)
-open ≅-Reasoning renaming (begin_ to proof_)
 
 open Cat X
 

@@ -2,13 +2,10 @@
 
 module Monads.Delay.Products where
 
-open import RestrictionDelay
+open import Restriction.Delay
 open import Coinduction
-open import Data.Product
 open import Categories
 open import Monads.Kleisli
-open import Relation.Binary.HeterogeneousEquality
-open ≅-Reasoning renaming (begin_ to proof_)
 open import RestrictionCat
 open import Monads.Delay
 open Cat (Kl DelayM)

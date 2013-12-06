@@ -1,17 +1,14 @@
 {-# OPTIONS --type-in-type #-}
-module Restriction.RestrictionDelay where
+module Restriction.Delay where
 
 open import Coinduction
 open import Categories
 open import Monads
-open import Functors
+open import Categories.Functors
 open import Monads.Kleisli
-open import Sets
-open import Function
-open import Relation.Binary.HeterogeneousEquality
+open import Categories.Sets
 open import Utilities
-open import Data.Product hiding (map)
-open import Restriction.RestrictionCat
+open import Restriction.Cat
 open import Monads.Delay
 
 drest : ∀{X Y} → (X → Delay Y) → X → Delay X

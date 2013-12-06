@@ -1,9 +1,7 @@
 {-# OPTIONS --type-in-type #-}
 
 module Restriction.Maybe where
-open import Relation.Binary.HeterogeneousEquality
 open import Utilities
-open import Function
 open import Categories
 open import Data.Maybe
 open import Restriction.Cat

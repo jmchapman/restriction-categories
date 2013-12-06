@@ -1,10 +1,7 @@
 {-# OPTIONS --type-in-type #-}
 open import Categories
 module PartialMaps.Stable (X : Cat) where
-  open import Relation.Binary.HeterogeneousEquality
-  open ≅-Reasoning renaming (begin_ to proof_)
-  open import Data.Product
-  open import Function
+  open import Utilities
   open Cat X
   open import Categories.Pullbacks X
   open import Categories.Monos X

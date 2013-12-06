@@ -1,12 +1,8 @@
 {-# OPTIONS --type-in-type #-}
 
 module Categories.ProductCats where
-
-open import Categories
-open import Function
-open import Relation.Binary.HeterogeneousEquality
 open import Utilities
-open ≅-Reasoning renaming (begin_ to proof_)
+open import Categories
 open import Categories.Products
 
 record ProdCat : Set where
@@ -16,6 +12,6 @@ record ProdCat : Set where
         termobj : TermObj cat
 
   open Prod cat
-  _×_ : ∀(A B : Obj) → Obj
-  _×_ A B = W (prod A B)
+  _×'_ : ∀(A B : Obj) → Obj
+  _×'_ A B = W (prod A B)
 

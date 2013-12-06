@@ -1,14 +1,9 @@
 open import Restriction.SplitRestCats
 
 module Completeness (X : SplitRestCat) where
-
+  open import Utilities
   open import Categories
   open import Restriction.Cat
-  open import Relation.Binary.HeterogeneousEquality
-  open import Utilities
-  open ≅-Reasoning renaming (begin_ to proof_)
-  open import Function
-  open import Data.Product
   open import Categories.Functors
   open import Restriction.Functors
   open SplitRestCat X

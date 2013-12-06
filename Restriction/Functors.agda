@@ -1,11 +1,7 @@
 module Restriction.Functors where
 
 open import Categories
-open import Relation.Binary.HeterogeneousEquality
 open import Utilities
-open ≅-Reasoning renaming (begin_ to proof_)
-open import Function
-open import Data.Product
 open import Restriction.Cat
 open import Categories.Functors
 import Restriction.Totals

@@ -1,7 +1,7 @@
 {-# OPTIONS --type-in-type #-}
 module Categories where
 
-open import Relation.Binary.HeterogeneousEquality
+open import Utilities
 
 record Cat : Set where
   field Obj  : Set

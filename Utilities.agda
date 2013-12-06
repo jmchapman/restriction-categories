@@ -2,9 +2,11 @@
 module Utilities where
 
 open import Relation.Binary
-open import Relation.Binary.HeterogeneousEquality
+open import Relation.Binary.HeterogeneousEquality public
+open ≅-Reasoning renaming (begin_ to proof_) public
 open import Data.Unit
-open import Data.Product
+open import Data.Product public
+open import Function public
 
 record Σ' (A : Set)(B : A → Set) : Set where
     constructor _,,_
@@ -123,7 +125,6 @@ liftabs≅iden q x =
   let open Quotient q
   in lift {λ y → lift {λ _ → Q} abs (ax1 _ _) y ≅ y} (ax3 abs (ax1 _ _)) (λ p → fixtypes'' (ax1 _ _ p)) x
 
-open ≅-Reasoning renaming (begin_ to proof_)
 
 .lift₂→lift : ∀{A A' B R R'}(q : Quotient A R)(q' : Quotient A' R')
              (f : A → A' → B)(p : compat₂ R R' f)(x : A)

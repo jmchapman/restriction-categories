@@ -1,9 +1,6 @@
 open import Categories
 module Categories.Pullbacks.PastingLemmas (X : Cat) where
-  open import Relation.Binary.HeterogeneousEquality
-  open ≅-Reasoning renaming (begin_ to proof_)
   open import Utilities
-  open import Data.Product
   open Cat X
   open import Categories.Pullbacks X
   

@@ -2,11 +2,7 @@
 open import Categories
 
 module Categories.Splits (X : Cat) where
-
-open import Relation.Binary.HeterogeneousEquality
 open import Utilities
-open ≅-Reasoning renaming (begin_ to proof_)
-open import Data.Product
 open Cat X
 open import Categories.Idems
 open import Categories.Functors

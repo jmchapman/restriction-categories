@@ -2,9 +2,7 @@
 module Monads.Delay.Meets where
 
 open import Coinduction
-open import Relation.Binary.HeterogeneousEquality
 open import Utilities
-open ≅-Reasoning renaming (begin_ to proof_)
 open import Monads.Delay
 open import RestrictionDelay
 open import RestrictionCat

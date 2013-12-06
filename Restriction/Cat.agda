@@ -1,12 +1,7 @@
 {-# OPTIONS --type-in-type #-}
 module Restriction.Cat where
-
-open import Categories
-open import Relation.Binary.HeterogeneousEquality
 open import Utilities
-open ≅-Reasoning renaming (begin_ to proof_)
-open import Function
-open import Data.Product
+open import Categories
 
 record RestCat : Set where
   field cat  : Cat

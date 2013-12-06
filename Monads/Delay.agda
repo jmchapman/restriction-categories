@@ -4,13 +4,9 @@ module Monads.Delay where
 open import Coinduction
 open import Categories
 open import Monads
-open import Sets
-open import Function
-open import Relation.Binary.HeterogeneousEquality
-open ≅-Reasoning renaming (begin_ to proof_)
+open import Categories.Sets
 open import Utilities
-open import Functors
-open import Data.Product hiding (map)
+open import Categories.Functors
 
 data Delay (X : Set) : Set where
   now : X → Delay X

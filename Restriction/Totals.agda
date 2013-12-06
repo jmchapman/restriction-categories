@@ -1,11 +1,8 @@
 open import Restriction.Cat
 
 module Restriction.Totals (X : RestCat) where
-
-  open import Categories
-  open import Relation.Binary.HeterogeneousEquality
   open import Utilities
-  open ≅-Reasoning renaming (begin_ to proof_)
+  open import Categories
   open RestCat X
   open Lemmata X
   open Cat cat

@@ -1,8 +1,5 @@
 open import Categories
 module Categories.Pullbacks (X : Cat) where
-  open import Relation.Binary.HeterogeneousEquality
-  open ≅-Reasoning renaming (begin_ to proof_)
-  open import Data.Product
   open import Utilities
   open Cat X
 
