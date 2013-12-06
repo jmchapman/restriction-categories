@@ -498,49 +498,57 @@ module PartialMaps.Cat (X : Cat)(M : StableSys X) where
          comp (comp f'' k'') k'''
          ∎)    
 
-    QSpan : Obj → Obj → Set
-    QSpan A B = Quotient.Q (quot (Span A B) Span~EqR) 
-    
-    compat : ∀{A B : Obj}{C} → (Span A B → C) → Set
-    compat {A}{B}{C} = Quotient.compat (quot (Span A B) Span~EqR) {λ _ → C}
+    module _ (A B : Obj) where
+      qspan = quot (Span A B) (Span~EqR)
 
-    abs : {A B : Obj} → Span A B → QSpan A B
-    abs {A}{B} = Quotient.abs (quot (Span A B) Span~EqR)
+      QSpan : Set
+      QSpan = Quotient.Q qspan
 
-    lift : ∀{A B : Obj}{C}(f : Span A B → C) → .(compat f) → QSpan A B → C
-    lift {A}{B} = Quotient.lift (quot (Span A B) Span~EqR)
+    module _ {A B : Obj} where
+      module Q = Quotient (qspan A B)
 
-    .ax1 : {A B : Obj} → (mf m'f' : Span A B) → 
-           mf ~Span~ m'f' → abs mf ≅ abs m'f'
-    ax1 {A}{B} = Quotient.ax1 (quot (Span A B) Span~EqR)
+      compat : ∀{C} → (Span A B → C) → Set
+      compat {C} = Q.compat {λ _ → C}
 
-    ax2 : {A B : Obj} → (mf m'f' : Span A B) → 
-          abs mf ≅ abs m'f' → mf ~Span~ m'f'
-    ax2 {A}{B} = Quotient.ax2 (quot (Span A B) Span~EqR)
+      abs : Span A B → QSpan A B
+      abs = Q.abs
 
-    .ax3 : ∀{A B : Obj}{C}(f : Span A B → C)(p : compat f)(mf : Span A B) → 
-          (lift f p) (abs mf) ≅ f mf
-    ax3 {A}{B} = Quotient.ax3 (quot (Span A B) Span~EqR)
+      lift : ∀{C}(f : Span A B → C) → .(compat f) → QSpan A B → C
+      lift = Q.lift
+
+      .ax1 : (mf m'f' : Span A B) → 
+             mf ~Span~ m'f' → abs mf ≅ abs m'f'
+      ax1 = Q.ax1
+
+      ax2 : (mf m'f' : Span A B) → 
+            abs mf ≅ abs m'f' → mf ~Span~ m'f'
+      ax2 = Q.ax2
+
+      .ax3 : ∀{C}(f : Span A B → C)(p : compat f)(mf : Span A B) → 
+            (lift f p) (abs mf) ≅ f mf
+      ax3  = Q.ax3
 
     qcomp : ∀{A B C} → QSpan B C → QSpan A B → QSpan A C
-    qcomp {A}{B}{C} = lift₂ (quot (Span B C) Span~EqR) 
-                            (quot (Span A B) Span~EqR)
+    qcomp {A}{B}{C} = lift₂ (qspan B C)
+                            (qspan A B)
                             (λ x y → abs (compspan x y)) 
                             (λ p q → ax1 _ _ (~cong p q))
 
-    .qcompabs : ∀{A B C}{mg : Span B C}{mf : QSpan A B}{p : compat (λ y → abs (compspan mg y))} → 
+    .qcompabs : ∀{A B C}{mg : Span B C}{mf : QSpan A B}
+                {p : compat (λ y → abs (compspan mg y))} → 
                 qcomp (abs mg) mf ≅ lift (λ y → abs (compspan mg y)) p mf
-    qcompabs {A}{B}{C}{mg}{mf} = lift₂→lift (quot (Span B C) Span~EqR) 
-                                            (quot (Span A B) Span~EqR) 
+    qcompabs {A}{B}{C}{mg}{mf} = lift₂→lift (qspan B C)
+                                            (qspan A B)
                                             (λ x y → abs (compspan x y)) 
                                             (λ p q → ax1 _ _ (~cong p q)) 
                                             mg 
                                             mf
 
-    .qcompabs' : ∀{A B C}{mg : QSpan B C}{mf : Span A B}{p : compat (λ y → abs (compspan y mf))} → 
+    .qcompabs' : ∀{A B C}{mg : QSpan B C}{mf : Span A B}
+                 {p : compat (λ y → abs (compspan y mf))} → 
                  qcomp mg (abs mf) ≅ lift (λ y → abs (compspan y mf)) p mg
-    qcompabs' {A}{B}{C}{mg}{mf} = lift₂→lift' (quot (Span B C) Span~EqR) 
-                                              (quot (Span A B) Span~EqR) 
+    qcompabs' {A}{B}{C}{mg}{mf} = lift₂→lift' (qspan B C)
+                                              (qspan A B)
                                               (λ x y → abs (compspan x y)) 
                                               (λ p q → ax1 _ _ (~cong p q)) 
                                               mg 
@@ -571,7 +579,7 @@ module PartialMaps.Cat (X : Cat)(M : StableSys X) where
                (λ a₁ →
                   ext (λ a₂ → fixtypes' (ax1 _ _ idlspan))))) ⟩
       lift abs (ax1 _ _) mf
-      ≅⟨ liftabs≅iden (quot (Span A B) Span~EqR) mf ⟩
+      ≅⟨ liftabs≅iden (qspan A B) mf ⟩
       mf
       ∎
 
@@ -583,17 +591,17 @@ module PartialMaps.Cat (X : Cat)(M : StableSys X) where
       lift (λ a → abs (compspan a idspan)) (λ x → ax1 _ _ (~cong x ~refl)) mf
       ≅⟨ cong₂ {_}{_}{_}{_}{λ x₁ → {b₁ b' : Span A B} → b₁ ~Span~ b' → x₁ b₁ ≅ x₁ b'}{_}{_}{_}{λ x → ax1 _ _ (~cong x ~refl)}{ax1 _ _}(λ f (p : compat f) → lift f p mf) (ext (λ a → ax1 _ _ idrspan)) (iext (λ a → iext (λ a₁ → ext (λ a₂ → fixtypes' (ax1 _ _ idrspan))))) ⟩
       lift abs (ax1 _ _) mf
-      ≅⟨ liftabs≅iden (quot (Span A B) Span~EqR) mf ⟩
+      ≅⟨ liftabs≅iden (qspan A B) mf ⟩
       mf
       ∎
 
     .qassspan : ∀{A B C D}{mh : QSpan C D}{mg : QSpan B C}{mf : QSpan A B} → 
                 qcomp (qcomp mh mg) mf ≅ qcomp mh (qcomp mg mf)
     qassspan {A}{B}{C}{D}{mh}{mg}{mf} = 
-      let open Quotient (quot (Span A B) Span~EqR) renaming (lift to liftAB; abs to absAB; ax1 to ax1AB; ax3 to ax3AB)
-          open Quotient (quot (Span A C) Span~EqR) renaming (lift to liftAC; abs to absAC; ax1 to ax1AC; ax3 to ax3AC)
-          open Quotient (quot (Span B C) Span~EqR) renaming (lift to liftBC; abs to absBC; ax1 to ax1BC; ax3 to ax3BC)
-          open Quotient (quot (Span C D) Span~EqR) renaming (lift to liftCD; abs to absCD; ax1 to ax1CD)
+      let open Quotient (qspan A B) renaming (lift to liftAB; abs to absAB; ax1 to ax1AB; ax3 to ax3AB)
+          open Quotient (qspan A C) renaming (lift to liftAC; abs to absAC; ax1 to ax1AC; ax3 to ax3AC)
+          open Quotient (qspan B C) renaming (lift to liftBC; abs to absBC; ax1 to ax1BC; ax3 to ax3BC)
+          open Quotient (qspan C D) renaming (lift to liftCD; abs to absCD; ax1 to ax1CD)
       in liftCD {λ y → qcomp (qcomp y mg) mf ≅ qcomp y (qcomp mg mf)} 
                 (λ a →
                   liftBC {λ y → qcomp (qcomp (absCD a) y) mf ≅ qcomp (absCD a) (qcomp y mf)}
