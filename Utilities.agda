@@ -55,8 +55,9 @@ fixtypes' : {A A' A'' A''' : Set}{a : A}{a' : A'}{a'' : A''}{a''' : A'''}
             a ≅ a'' → p ≅ q
 fixtypes' {p = refl} {refl} refl = refl
 
-fixtypes'' : ∀{A}{a a' a'' a''' : A}{p : a ≅ a'}{q : a'' ≅ a'''} →
-            a' ≅ a''' → p ≅ q
+fixtypes'' : {A A' A'' A''' : Set}{a : A}{a' : A'}{a'' : A''}{a''' : A'''}
+             {p : a ≅ a'}{q : a'' ≅ a'''} →
+              a' ≅ a''' → p ≅ q
 fixtypes'' {p = refl}{q = refl} refl = refl
 
 fixtypes : {A A' A'' A''' : Set}{a : A}{a' : A'}{a'' : A''}{a''' : A'''}
@@ -109,7 +110,7 @@ lift₂ {A}{A'}{B}{R}{R'} q q' f p =
                  (a b : A) → x ≅ y → 
                  lift' x p ≅ lift' y p'
       conglift x y p p' a b q = 
-        cong₂ {_}{_}{_}{_}{λ x₁ → {b₁ b' : A'} → b₁ ≈ b' → x₁ b₁ ≅ x₁ b'}{_}{_}{_}{p}{p'} (lift' {λ _ → B}) q (iext (λ (a' : A') → iext (λ (b' : A') → ext (λ (r : a' ≈ b') → fixtypes (cong (λ h → h a') q) (cong (λ h → h b') q)))))
+        cong₂ {_}{_}{_}{_}{λ x₁ → {b₁ b' : A'} → b₁ ≈ b' → x₁ b₁ ≅ x₁ b'}{_}{_}{_}{p}{p'} (lift' {λ _ → B}) q (iext (λ (a' : A') → iext (λ (b' : A') → ext (λ (r : a' ≈ b') → fixtypes' (cong (λ h → h a') q)))))
 
   in lift g (λ {a b} r → conglift (f a) (f b) (p (IsEquivalence.refl e)) (p (IsEquivalence.refl e)) a b (fa≅fb r))
 
@@ -118,7 +119,7 @@ lift₂ {A}{A'}{B}{R}{R'} q q' f p =
                in (x : Q) → lift {λ _ → Q} abs (ax1 _ _) x ≅ x
 liftabs≅iden q x = 
   let open Quotient q
-  in lift {λ y → lift {λ _ → Q} abs (ax1 _ _) y ≅ y} (ax3 abs (ax1 _ _)) (λ p → fixtypes (cong (lift abs (ax1 _ _)) (ax1 _ _ p)) (ax1 _ _ p)) x
+  in lift {λ y → lift {λ _ → Q} abs (ax1 _ _) y ≅ y} (ax3 abs (ax1 _ _)) (λ p → fixtypes'' (ax1 _ _ p)) x
 
 open ≅-Reasoning renaming (begin_ to proof_)
 
@@ -139,7 +140,7 @@ lift₂→lift {A}{A'}{B}{R}{R'} q q' f p x x' =
                  (a b : A) → x ≅ y → 
                  lift' x p ≅ lift' y p'
       conglift x y p p' a b q = 
-        cong₂ {_}{_}{_}{_}{λ x₁ → {b₁ b' : A'} → b₁ ≈ b' → x₁ b₁ ≅ x₁ b'}{_}{_}{_}{p}{p'} (lift' {λ _ → B}) q (iext (λ (a' : A') → iext (λ (b' : A') → ext (λ (r : a' ≈ b') → fixtypes (cong (λ h → h a') q) (cong (λ h → h b') q)))))
+        cong₂ {_}{_}{_}{_}{λ x₁ → {b₁ b' : A'} → b₁ ≈ b' → x₁ b₁ ≅ x₁ b'}{_}{_}{_}{p}{p'} (lift' {λ _ → B}) q (iext (λ (a' : A') → iext (λ (b' : A') → ext (λ (r : a' ≈ b') → fixtypes' (cong (λ h → h a') q)))))
 
       s : ∀{a b} → a ~ b → lift' (f a) (λ r → p (IsEquivalence.refl e) r) ≅ lift' (f b) (λ r → p (IsEquivalence.refl e) r)
       s {a}{b} r = conglift (f a) (f b) (p (IsEquivalence.refl e))
@@ -170,7 +171,7 @@ lift₂→lift' {A}{A'}{B}{R}{R'} q q' f p x x' =
                  (a b : A) → x ≅ y → 
                  lift' x p ≅ lift' y p'
       conglift x y p p' a b q = 
-        cong₂ {_}{_}{_}{_}{λ x₁ → {b₁ b' : A'} → b₁ ≈ b' → x₁ b₁ ≅ x₁ b'}{_}{_}{_}{p}{p'} (lift' {λ _ → B}) q (iext (λ (a' : A') → iext (λ (b' : A') → ext (λ (r : a' ≈ b') → fixtypes (cong (λ h → h a') q) (cong (λ h → h b') q)))))
+        cong₂ {_}{_}{_}{_}{λ x₁ → {b₁ b' : A'} → b₁ ≈ b' → x₁ b₁ ≅ x₁ b'}{_}{_}{_}{p}{p'} (lift' {λ _ → B}) q (iext (λ (a' : A') → iext (λ (b' : A') → ext (λ (r : a' ≈ b') → fixtypes' (cong (λ h → h a') q)))))
 
       s : ∀{a b} → a ~ b → lift' (f a) (λ r → p (IsEquivalence.refl e) r) ≅ lift' (f b) (λ r → p (IsEquivalence.refl e) r)
       s {a}{b} r = conglift (f a) (f b) (p (IsEquivalence.refl e))
@@ -188,7 +189,7 @@ lift₂→lift' {A}{A'}{B}{R}{R'} q q' f p x x' =
             ≅⟨ sym (ax3 (λ b → f b x') (λ r → p r (IsEquivalence.refl e')) a) ⟩
             lift (λ b → f b x') (λ r → p r (IsEquivalence.refl e')) (abs a)
             ∎) 
-          (λ {a b} r → fixtypes 
+          (λ {a b} r → fixtypes' 
             (proof
              lift (λ a₁ → lift' (f a₁) (p (IsEquivalence.refl e))) s (abs a) (abs' x')
              ≅⟨ cong (λ g → g (abs' x')) (ax3 (λ a₁ → lift' (f a₁) (p (IsEquivalence.refl e))) s a) ⟩
@@ -201,15 +202,6 @@ lift₂→lift' {A}{A'}{B}{R}{R'} q q' f p x x' =
              lift' (f b) (p (IsEquivalence.refl e)) (abs' x')
              ≅⟨ sym (cong (λ g → g (abs' x')) (ax3 (λ a₁ → lift' (f a₁) (p (IsEquivalence.refl e))) s b)) ⟩
              lift (λ a₁ → lift' (f a₁) (p (IsEquivalence.refl e))) s (abs b) (abs' x')
-             ∎)
-            (proof
-             lift (λ a₁ → f a₁ x') (λ r → p r (IsEquivalence.refl e')) (abs a) 
-             ≅⟨ ax3 (λ a₁ → f a₁ x') (λ r₁ → p r₁ (IsEquivalence.refl e')) a ⟩
-             f a x'
-             ≅⟨ p r (IsEquivalence.refl e') ⟩
-             f b x'
-             ≅⟨ sym (ax3 (λ a₁ → f a₁ x') (λ r₁ → p r₁ (IsEquivalence.refl e')) b) ⟩
-             lift (λ a₁ → f a₁ x') (λ r → p r (IsEquivalence.refl e')) (abs b)
              ∎))
           x
 
