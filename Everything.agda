@@ -1,6 +1,6 @@
 module Everything where
 
--- Extensions to the standard library, extensionality, quotients
+-- Wraps and extends the standard library with extensionality, quotients
 open import Utilities
 
 

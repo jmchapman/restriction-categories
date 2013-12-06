@@ -61,15 +61,10 @@ fixtypes'' : {A A' A'' A''' : Set}{a : A}{a' : A'}{a'' : A''}{a''' : A'''}
               a' ≅ a''' → p ≅ q
 fixtypes'' {p = refl}{q = refl} refl = refl
 
-{-
-fixtypes : {A A' A'' A''' : Set}{a : A}{a' : A'}{a'' : A''}{a''' : A'''}
-           {p : a ≅ a'}{q : a'' ≅ a'''} → 
-           a ≅ a'' → a' ≅ a''' → p ≅ q
-fixtypes p _ = fixtypes' p
--}
-
 EqR : (A : Set) → Set
 EqR A = Σ (Rel A _) (λ R → IsEquivalence R)
+
+open IsEquivalence renaming (refl to irefl; sym to isym)
 
 record Quotient (A : Set) (R : EqR A) : Set where
   open Σ R renaming (proj₁ to _~_)
@@ -79,11 +74,12 @@ record Quotient (A : Set) (R : EqR A) : Set where
   compat : {B : Q → Set} → ((a : A) → B (abs a)) → Set
   compat f = ∀{a b} → a ~ b → f a ≅ f b
      
-  field lift : {B : Q → Set}(f : (a : A) → B (abs a)) → .(compat {B} f) → (q : Q) → B q
+  field lift : {B : Q → Set}(f : (a : A) → B (abs a)) → .(compat {B} f) →
+               (q : Q) → B q
         .ax1 : (a b : A) → a ~ b → abs a ≅ abs b
         ax2 : (a b : A) → abs a ≅ abs b → a ~ b
-        .ax3 : {B : Q → Set}(f : (a : A) → B (abs a))(p : compat {B} f) → (a : A) → 
-              (lift {B} f p) (abs a) ≅ f a
+        .ax3 : {B : Q → Set}(f : (a : A) → B (abs a))(p : compat {B} f)
+               (a : A) →  (lift {B} f p) (abs a) ≅ f a
 
 postulate quot : (A : Set) (R : EqR A) → Quotient A R
 
@@ -93,8 +89,8 @@ compat₂ R R' f =
       open Σ R' renaming (proj₁ to _≈_) 
   in ∀{a b a' b'} → a ~ a' → b ≈ b' → f a b ≅ f a' b'
 
-lift₂ : ∀{A A' B R R'}(q : Quotient A R)(q' : Quotient A' R')(f : A → A' → B) → 
-        .(compat₂ R R' f) → Quotient.Q q → Quotient.Q q' → B
+lift₂ : ∀{A A' B R R'}(q : Quotient A R)(q' : Quotient A' R')
+        (f : A → A' → B) → .(compat₂ R R' f) → Quotient.Q q → Quotient.Q q' → B
 lift₂ {A}{A'}{B}{R}{R'} q q' f p = 
   let open Σ R renaming (proj₁ to _~_; proj₂ to e) 
       open Σ R' renaming (proj₁ to _≈_; proj₂ to e')
@@ -102,27 +98,51 @@ lift₂ {A}{A'}{B}{R}{R'} q q' f p =
       open Quotient q' renaming (Q to Q'; abs to abs'; lift to lift')
   
       g : A → Q' → B
-      g a = lift' (f a) (p (IsEquivalence.refl e))
+      g a = lift' (f a) (p (irefl e))
 
       .fa≅fb : ∀{a b : A} → a ~ b → f a ≅ f b
-      fa≅fb r = ext (λ a' → p r (IsEquivalence.refl e'))
+      fa≅fb r = ext (λ a' → p r (irefl e'))
 
       conglift : (x y : A' → B)
                  (p : ∀{b b'} → b ≈ b' → x b ≅ x b') → 
                  (p' : ∀{b b'} → b ≈ b' → y b ≅ y b') → 
                  (a b : A) → x ≅ y → 
                  lift' x p ≅ lift' y p'
-      conglift x y p p' a b q = 
-        cong₂ {_}{_}{_}{_}{λ x₁ → {b₁ b' : A'} → b₁ ≈ b' → x₁ b₁ ≅ x₁ b'}{_}{_}{_}{p}{p'} (lift' {λ _ → B}) q (iext (λ (a' : A') → iext (λ (b' : A') → ext (λ (r : a' ≈ b') → fixtypes' (cong (λ h → h a') q)))))
+      conglift x y p p' a b q = cong₂ 
+        {_}
+        {_}
+        {_}
+        {_}
+        {λ x → {b b' : A'} → b ≈ b' → x b ≅ x b'}
+        {_}
+        {_}
+        {_}
+        {p}
+        {p'} 
+        (lift' {λ _ → B}) 
+        q 
+        (iext λ (a' : A') → iext λ (b' : A') → ext λ (r : a' ≈ b') → fixtypes'
+          (cong (λ h → h a') q))
 
-  in lift g (λ {a b} r → conglift (f a) (f b) (p (IsEquivalence.refl e)) (p (IsEquivalence.refl e)) a b (fa≅fb r))
+  in lift g (λ {a b} r → conglift 
+    (f a) 
+    (f b) 
+    (p (irefl e)) 
+    (p (irefl e)) 
+    a 
+    b 
+    (fa≅fb r))
 
 .liftabs≅iden : ∀{A R}(q : Quotient A R) → 
                let open Quotient q
                in (x : Q) → lift {λ _ → Q} abs (ax1 _ _) x ≅ x
 liftabs≅iden q x = 
   let open Quotient q
-  in lift {λ y → lift {λ _ → Q} abs (ax1 _ _) y ≅ y} (ax3 abs (ax1 _ _)) (λ p → fixtypes'' (ax1 _ _ p)) x
+  in lift 
+    {λ y → lift {λ _ → Q} abs (ax1 _ _) y ≅ y} 
+    (ax3 abs (ax1 _ _)) 
+    (λ p → fixtypes'' (ax1 _ _ p)) 
+    x
 
 
 .lift₂→lift : ∀{A A' B R R'}(q : Quotient A R)(q' : Quotient A' R')
@@ -134,86 +154,126 @@ lift₂→lift {A}{A'}{B}{R}{R'} q q' f p x x' =
   let open Σ R renaming (proj₁ to _~_; proj₂ to e) 
       open Σ R' renaming (proj₁ to _≈_; proj₂ to e')
       open Quotient q 
-      open Quotient q' renaming (Q to Q'; abs to abs'; lift to lift'; ax3 to ax3')
+      open Quotient q' renaming (Q to Q'; 
+                                 abs to abs'; 
+                                 lift to lift'; 
+                                 ax3 to ax3')
 
       conglift : (x y : A' → B)
                  (p : ∀{b b'} → b ≈ b' → x b ≅ x b') → 
                  (p' : ∀{b b'} → b ≈ b' → y b ≅ y b') → 
                  (a b : A) → x ≅ y → 
                  lift' x p ≅ lift' y p'
-      conglift x y p p' a b q = 
-        cong₂ {_}{_}{_}{_}{λ x₁ → {b₁ b' : A'} → b₁ ≈ b' → x₁ b₁ ≅ x₁ b'}{_}{_}{_}{p}{p'} (lift' {λ _ → B}) q (iext (λ (a' : A') → iext (λ (b' : A') → ext (λ (r : a' ≈ b') → fixtypes' (cong (λ h → h a') q)))))
+      conglift x y p p' a b q = cong₂ 
+        {_}
+        {_}
+        {_}
+        {_}
+        {λ x → {b b' : A'} → b ≈ b' → x b ≅ x b'}
+        {_}
+        {_}
+        {_}
+        {p}
+        {p'} 
+        (lift' {λ _ → B}) 
+        q 
+        (iext λ (a' : A') → iext λ (b' : A') → ext λ (r : a' ≈ b') → fixtypes'
+          (cong (λ h → h a') q))
 
-      s : ∀{a b} → a ~ b → lift' (f a) (λ r → p (IsEquivalence.refl e) r) ≅ lift' (f b) (λ r → p (IsEquivalence.refl e) r)
-      s {a}{b} r = conglift (f a) (f b) (p (IsEquivalence.refl e))
-                     (p (IsEquivalence.refl e)) a b
-                     (ext (λ a' → p r (IsEquivalence.refl e'))) 
+      s : ∀{a b} → a ~ b → 
+          lift' (f a) (λ r → p (irefl e) r) ≅ lift' (f b) (λ r → p (irefl e) r)
+      s {a}{b} r = conglift 
+        (f a) 
+        (f b) 
+        (p (irefl e))
+        (p (irefl e)) 
+        a 
+        b
+        (ext (λ _ → p r (irefl e'))) 
 
   in 
     proof
-    lift (λ a → lift' (f a) (p (IsEquivalence.refl e))) s (abs x) x'
-    ≅⟨ cong (λ g → g x') (ax3 (λ a → lift' (f a) (p (IsEquivalence.refl e))) s x) ⟩
-    lift' (f x) (λ r → p (IsEquivalence.refl e) r) x'
+    lift (λ a → lift' (f a) (p (irefl e))) s (abs x) x'
+    ≅⟨ cong (λ g → g x') (ax3 (λ a → lift' (f a) (p (irefl e))) s x) ⟩
+    lift' (f x) (λ r → p (irefl e) r) x'
     ∎
 
 .lift₂→lift' : ∀{A A' B R R'}(q : Quotient A R)(q' : Quotient A' R')
                (f : A → A' → B)(p : compat₂ R R' f)(x : Quotient.Q q)
                (x' : A') →
                lift₂ q q' f p x (Quotient.abs q' x') ≅ 
-               Quotient.lift q (λ a → f a x') (λ r → p r (IsEquivalence.refl (proj₂ R'))) x
+               Quotient.lift q 
+                             (λ a → f a x') 
+                             (λ r → p r (irefl (proj₂ R')))
+                             x
 lift₂→lift' {A}{A'}{B}{R}{R'} q q' f p x x' = 
   let open Σ R renaming (proj₁ to _~_; proj₂ to e) 
       open Σ R' renaming (proj₁ to _≈_; proj₂ to e')
       open Quotient q 
-      open Quotient q' renaming (Q to Q'; abs to abs'; lift to lift'; ax3 to ax3')
+      open Quotient q' renaming (Q to Q'; 
+                                 abs to abs'; 
+                                 lift to lift'; 
+                                 ax3 to ax3')
 
       conglift : (x y : A' → B)
                  (p : ∀{b b'} → b ≈ b' → x b ≅ x b') → 
                  (p' : ∀{b b'} → b ≈ b' → y b ≅ y b') → 
                  (a b : A) → x ≅ y → 
                  lift' x p ≅ lift' y p'
-      conglift x y p p' a b q = 
-        cong₂ {_}{_}{_}{_}{λ x₁ → {b₁ b' : A'} → b₁ ≈ b' → x₁ b₁ ≅ x₁ b'}{_}{_}{_}{p}{p'} (lift' {λ _ → B}) q (iext (λ (a' : A') → iext (λ (b' : A') → ext (λ (r : a' ≈ b') → fixtypes' (cong (λ h → h a') q)))))
+      conglift x y p p' a b q = cong₂ 
+        {_}
+        {_}
+        {_}
+        {_}
+        {λ x₁ → {b₁ b' : A'} → b₁ ≈ b' → x₁ b₁ ≅ x₁ b'}
+        {_}
+        {_}
+        {_}
+        {p}
+        {p'} 
+        (lift' {λ _ → B}) 
+        q 
+        (iext λ (a' : A') → iext λ (b' : A') → ext λ (r : a' ≈ b') → fixtypes'
+          (cong (λ h → h a') q))
 
-      s : ∀{a b} → a ~ b → lift' (f a) (λ r → p (IsEquivalence.refl e) r) ≅ lift' (f b) (λ r → p (IsEquivalence.refl e) r)
-      s {a}{b} r = conglift (f a) (f b) (p (IsEquivalence.refl e))
-                     (p (IsEquivalence.refl e)) a b
-                     (ext (λ a' → p r (IsEquivalence.refl e'))) 
+      s : ∀{a b} → a ~ b → 
+          lift' (f a) (λ r → p (irefl e) r) ≅ lift' (f b) (λ r → p (irefl e) r)
+      s {a}{b} r = conglift 
+        (f a) 
+        (f b) 
+        (p (irefl e))
+        (p (irefl e)) 
+        a
+        b
+        (ext (λ a' → p r (irefl e'))) 
 
-  in lift {λ y → lift₂ q q' f p y (abs' x') ≅ lift (λ a → f a x') (λ r → p r (IsEquivalence.refl e')) y}
+  in lift {λ y → lift₂ q q' f p y (abs' x') 
+                 ≅ 
+                 lift (λ a → f a x') (λ r → p r (irefl e')) y}
           (λ a → 
             proof
             lift₂ q q' f p (abs a) (abs' x')
             ≅⟨ lift₂→lift q q' f p a (abs' x') ⟩
-            lift' (f a) (p (IsEquivalence.refl e)) (abs' x')
-            ≅⟨ ax3' (f a) (p (IsEquivalence.refl e)) x' ⟩
+            lift' (f a) (p (irefl e)) (abs' x')
+            ≅⟨ ax3' (f a) (p (irefl e)) x' ⟩
             f a x'
-            ≅⟨ sym (ax3 (λ b → f b x') (λ r → p r (IsEquivalence.refl e')) a) ⟩
-            lift (λ b → f b x') (λ r → p r (IsEquivalence.refl e')) (abs a)
+            ≅⟨ sym (ax3 (λ b → f b x') (λ r → p r (irefl e')) a) ⟩
+            lift (λ b → f b x') (λ r → p r (irefl e')) (abs a)
             ∎) 
           (λ {a b} r → fixtypes' 
             (proof
-             lift (λ a₁ → lift' (f a₁) (p (IsEquivalence.refl e))) s (abs a) (abs' x')
-             ≅⟨ cong (λ g → g (abs' x')) (ax3 (λ a₁ → lift' (f a₁) (p (IsEquivalence.refl e))) s a) ⟩
-             lift' (f a) (p (IsEquivalence.refl e)) (abs' x')
-             ≅⟨ ax3' (f a) (p (IsEquivalence.refl e)) x' ⟩
+             lift (λ a₁ → lift' (f a₁) (p (irefl e))) s (abs a) (abs' x')
+             ≅⟨ cong (λ g → g (abs' x')) 
+                     (ax3 (λ a₁ → lift' (f a₁) (p (irefl e))) s a) ⟩
+             lift' (f a) (p (irefl e)) (abs' x')
+             ≅⟨ ax3' (f a) (p (irefl e)) x' ⟩
              f a x'
-             ≅⟨ p r (IsEquivalence.refl e') ⟩
+             ≅⟨ p r (irefl e') ⟩
              f b x'
-             ≅⟨ sym (ax3' (f b) (p (IsEquivalence.refl e)) x') ⟩
-             lift' (f b) (p (IsEquivalence.refl e)) (abs' x')
-             ≅⟨ sym (cong (λ g → g (abs' x')) (ax3 (λ a₁ → lift' (f a₁) (p (IsEquivalence.refl e))) s b)) ⟩
-             lift (λ a₁ → lift' (f a₁) (p (IsEquivalence.refl e))) s (abs b) (abs' x')
+             ≅⟨ sym (ax3' (f b) (p (irefl e)) x') ⟩
+             lift' (f b) (p (irefl e)) (abs' x')
+             ≅⟨ sym (cong (λ g → g (abs' x')) 
+                          (ax3 (λ a₁ → lift' (f a₁) (p (irefl e))) s b)) ⟩
+             lift (λ a₁ → lift' (f a₁) (p (irefl e))) s (abs b) (abs' x')
              ∎))
           x
-
-{-
-lift₂lift₂ : ∀{A A' A'' B R R' R''}(q : Quotient A R)(q' : Quotient A' R')
-             (q'' : Quotient A'' R'')
-             (f : A → A' → B)(p : compat₂ R R' f)(x : Quotient.Q q)
-             (x' : Quotient.Q q')(x'' : Quotient.Q q'') → 
-             lift₂ {!!} {!!} {!!} {!!} (lift₂ {!!} {!!} {!!} {!!} {!!} {!!}) {!x!} ≅ lift₂ {!!} {!!} {!!} {!!} x'' (lift₂ {!!} {!!} {!!} {!!} {!!} {!!}) 
---lift₂ q' q'' {!!} {!!} (lift₂ q q' (λ y z → Quotient.abs {!!} {!!}) {!!} x x') x'' ≅ lift₂ q q' f p {!!} {!!}              
-lift₂lift₂ = {!!}
--}
---postulate .irrelevant : {A : Set} → .A → A
