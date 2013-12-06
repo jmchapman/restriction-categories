@@ -33,7 +33,6 @@ module Restriction.Totals (X : RestCat) where
     (λ x y → record { hom = x; tot = y }) 
     p 
     (fixtypes'' refl)
---    (fixtypes (cong rest p) refl)
 
   identot : ∀{A} → Tot A A
   identot = record { hom = iden; tot = lemiii (idmono cat) } 

@@ -573,7 +573,7 @@ module PartialMaps.Cat (X : Cat)(M : StableSys X) where
             (λ a →
                iext
                (λ a₁ →
-                  ext (λ a₂ → fixtypes (ax1 _ _ idlspan) (ax1 _ _ idlspan))))) ⟩
+                  ext (λ a₂ → fixtypes' (ax1 _ _ idlspan))))) ⟩
       lift abs (ax1 _ _) mf
       ≅⟨ liftabs≅iden (quot (Span A B) Span~EqR) mf ⟩
       mf
@@ -585,7 +585,7 @@ module PartialMaps.Cat (X : Cat)(M : StableSys X) where
       qcomp mf (abs idspan)
       ≅⟨ qcompabs' ⟩
       lift (λ a → abs (compspan a idspan)) (λ x → ax1 _ _ (~cong x ~refl)) mf
-      ≅⟨ cong₂ {_}{_}{_}{_}{λ x₁ → {b₁ b' : Span A B} → b₁ ~Span~ b' → x₁ b₁ ≅ x₁ b'}{_}{_}{_}{λ x → ax1 _ _ (~cong x ~refl)}{ax1 _ _}(λ f (p : compat f) → lift f p mf) (ext (λ a → ax1 _ _ idrspan)) (iext (λ a → iext (λ a₁ → ext (λ a₂ → fixtypes (ax1 _ _ idrspan) (ax1 _ _ idrspan))))) ⟩
+      ≅⟨ cong₂ {_}{_}{_}{_}{λ x₁ → {b₁ b' : Span A B} → b₁ ~Span~ b' → x₁ b₁ ≅ x₁ b'}{_}{_}{_}{λ x → ax1 _ _ (~cong x ~refl)}{ax1 _ _}(λ f (p : compat f) → lift f p mf) (ext (λ a → ax1 _ _ idrspan)) (iext (λ a → iext (λ a₁ → ext (λ a₂ → fixtypes' (ax1 _ _ idrspan))))) ⟩
       lift abs (ax1 _ _) mf
       ≅⟨ liftabs≅iden (quot (Span A B) Span~EqR) mf ⟩
       mf
@@ -625,14 +625,14 @@ module PartialMaps.Cat (X : Cat)(M : StableSys X) where
                                          ≅⟨ sym qcompabs ⟩ 
                                          qcomp (absCD a) (qcomp (absBC b) (absAB c)) 
                                          ∎)
-                         (λ x → fixtypes (cong (qcomp (qcomp (absCD a) (absBC b))) (ax1AB _ _ x)) 
-                                         (cong (qcomp (absCD a) ∘ qcomp (absBC b)) (ax1AB _ _ x))) 
+                         (λ x → fixtypes' (cong (qcomp (qcomp (absCD a) (absBC b))) (ax1AB _ _ x)))
+                                         
                          mf) 
-                  (λ x → fixtypes (cong (λ y → qcomp (qcomp (absCD a) y) mf) (ax1BC _ _ x)) 
-                                  (cong (λ y → qcomp (absCD a) (qcomp y mf)) (ax1BC _ _ x))) 
+                  (λ x → fixtypes' (cong (λ y → qcomp (qcomp (absCD a) y) mf) (ax1BC _ _ x)))
+
                   mg)
-               (λ x → fixtypes (cong (λ y → qcomp (qcomp y mg) mf) (ax1CD _ _ x)) 
-                               (cong (λ y → qcomp y (qcomp mg mf)) (ax1CD _ _ x)))
+               (λ x → fixtypes' (cong (λ y → qcomp (qcomp y mg) mf) (ax1CD _ _ x)))
+
                mh
 
     Par : Cat

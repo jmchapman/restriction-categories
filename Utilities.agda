@@ -60,10 +60,12 @@ fixtypes'' : {A A' A'' A''' : Set}{a : A}{a' : A'}{a'' : A''}{a''' : A'''}
               a' ≅ a''' → p ≅ q
 fixtypes'' {p = refl}{q = refl} refl = refl
 
+{-
 fixtypes : {A A' A'' A''' : Set}{a : A}{a' : A'}{a'' : A''}{a''' : A'''}
            {p : a ≅ a'}{q : a'' ≅ a'''} → 
            a ≅ a'' → a' ≅ a''' → p ≅ q
 fixtypes p _ = fixtypes' p
+-}
 
 EqR : (A : Set) → Set
 EqR A = Σ (Rel A _) (λ R → IsEquivalence R)

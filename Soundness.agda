@@ -197,7 +197,7 @@ qR1 {A}{B}{f} = Quotient.lift (quot (Span A B) Span~EqR)
                                 ≅⟨ ax1 _ _  R1p ⟩ 
                                 abs a 
                                 ∎) 
-                              (λ x → fixtypes (cong (λ y → qcomp y (qrest y)) (ax1 _ _ x)) 
+                              (λ x → fixtypes'' 
                                               (ax1 _ _ x)) 
                               f
 
@@ -224,11 +224,11 @@ qR2 {A}{B}{C}{f}{g} = Quotient.lift (quot (Span A C) Span~EqR)
                                                            ≅⟨ cong (λ y → qcomp y (qrest (abs a))) (sym qrestabs≅) ⟩
                                                            qcomp (qrest (abs b)) (qrest (abs a))
                                                            ∎) 
-                                                         (λ x → fixtypes (cong (qcomp (qrest (abs a)) ∘ qrest) (ax1 _ _ x)) 
-                                                                         (cong (λ y → qcomp (qrest y) (qrest (abs a))) (ax1 _ _ x))) 
+                                                         (λ x → fixtypes' (cong (qcomp (qrest (abs a)) ∘ qrest) (ax1 _ _ x)))
+                                                                         
                                                          f) 
-                                    (λ x → fixtypes (cong (λ y → qcomp (qrest y) (qrest f)) (ax1 _ _ x)) 
-                                                    (cong (qcomp (qrest f) ∘ qrest) (ax1 _ _ x))) 
+                                    (λ x → fixtypes' (cong (λ y → qcomp (qrest y) (qrest f)) (ax1 _ _ x)))
+                           
                                     g
 
 .qR3 : ∀{A B C}{f : QSpan A B}{g : QSpan A C} → qcomp (qrest g) (qrest f) ≅ qrest (qcomp g (qrest f))
@@ -254,11 +254,11 @@ qR3 {A}{B}{C}{f}{g} = Quotient.lift (quot (Span A C) Span~EqR)
                                                            ≅⟨ cong (qrest ∘ qcomp (abs a)) (sym qrestabs≅) ⟩
                                                            qrest (qcomp (abs a) (qrest (abs b)))
                                                            ∎) 
-                                                         (λ x → fixtypes (cong (qcomp (qrest (abs a)) ∘ qrest) (ax1 _ _ x)) 
-                                                                         (cong (qrest ∘ qcomp (abs a) ∘ qrest) (ax1 _ _ x))) 
+                                                         (λ x → fixtypes' (cong (qcomp (qrest (abs a)) ∘ qrest) (ax1 _ _ x)))
+                                             
                                                          f) 
-                                    (λ x → fixtypes (cong (λ y → qcomp (qrest y) (qrest f)) (ax1 _ _ x)) 
-                                                    (cong (λ y → qrest (qcomp y (qrest f))) (ax1 _ _ x))) 
+                                    (λ x → fixtypes' (cong (λ y → qcomp (qrest y) (qrest f)) (ax1 _ _ x)))
+                          
                                     g
 
 .qR4 : ∀{A B C}{f : QSpan A B}{g : QSpan B C} → qcomp (qrest g) f ≅ qcomp f (qrest (qcomp g f))
@@ -282,11 +282,11 @@ qR4 {A}{B}{C}{f}{g} = Quotient.lift (quot (Span B C) Span~EqR)
                                                            ≅⟨ cong (qcomp (abs b) ∘ qrest) (sym qcompabsabs) ⟩
                                                            qcomp (abs b) (qrest (qcomp (abs a) (abs b)))
                                                            ∎) 
-                                                         (λ x → fixtypes (cong (qcomp (qrest (abs a))) (ax1 _ _ x)) 
-                                                                         (cong (λ y → qcomp y (qrest (qcomp (abs a) y))) (ax1 _ _ x))) 
+                                                         (λ x → fixtypes' (cong (qcomp (qrest (abs a))) (ax1 _ _ x)))
+                                     
                                                          f)
-                                    (λ x → fixtypes (cong (λ y → qcomp (qrest y) f) (ax1 _ _ x)) 
-                                                    (cong (λ y → qcomp f (qrest (qcomp y f))) (ax1 _ _ x)))
+                                    (λ x → fixtypes' (cong (λ y → qcomp (qrest y) f) (ax1 _ _ x)))
+                  
                                     g
 
 RestPartials : RestCat
@@ -321,8 +321,8 @@ restpIdem {A}{B} f = record {
                         ≅⟨ sym qrestabs≅ ⟩
                         qrest (abs a)
                         ∎) 
-                      (λ x → fixtypes (cong (λ y → qcomp (qrest y) (qrest y)) (ax1 _ _ x)) 
-                                      (cong qrest (ax1 _ _ x))) 
+                      (λ x → fixtypes' (cong (λ y → qcomp (qrest y) (qrest y)) (ax1 _ _ x)))
+                                      
                       f}
 
 qs : ∀{A B}(f : Span A B) → Span (Span.A' f) A

@@ -27,8 +27,7 @@ module Categories.Idems (X : Cat) where
     p 
     q 
     {c = Idem.law ide}
-    (fixtypes (trans (Idem.law ide) (trans q (sym (Idem.law ide')))) 
-              q) 
+    (fixtypes'' q)
     (λ x y z → record { E = x; e = y; law = z })
 
   record Split (ide : Idem) : Set where

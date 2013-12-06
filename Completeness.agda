@@ -542,11 +542,9 @@ module Completeness (X : SplitRestCat) where
                                                                  ≅⟨ cong (λ y → comp y (qHMap2 (abs b))) (sym (ax3 HMap2 compatHMap2 a)) ⟩ 
                                                                  comp (qHMap2 (abs a)) (qHMap2 (abs b))
                                                                  ∎)
-                                                               (λ x → fixtypes (cong (λ y → qHMap2 (qcomp (abs a) y)) (ax1 _ _ x)) 
-                                                                               (cong (λ y → comp (qHMap2 (abs a)) (qHMap2 y)) (ax1 _ _ x)))
+                                                               (λ x → fixtypes' (cong (λ y → qHMap2 (qcomp (abs a) y)) (ax1 _ _ x)) )
                                                                q)
-                                          (λ x → fixtypes (cong (λ y → qHMap2 (qcomp y q)) (ax1 _ _ x)) 
-                                                          (cong (λ y → comp (qHMap2 y) (qHMap2 q)) (ax1 _ _ x))) 
+                                          (λ x → fixtypes' (cong (λ y → qHMap2 (qcomp y q)) (ax1 _ _ x)))
                                           q'
 
 
@@ -595,8 +593,7 @@ module Completeness (X : SplitRestCat) where
                                             ≅⟨ cong qHMap2 (sym qrestabs≅) ⟩ 
                                             qHMap2 (qrest (abs a)) 
                                             ∎) 
-                                          (λ x → fixtypes (cong (rest ∘ qHMap2) (ax1 _ _ x)) 
-                                                          (cong (qHMap2 ∘ qrest) (ax1 _ _ x)))
+                                          (λ x → fixtypes' (cong (rest ∘ qHMap2) (ax1 _ _ x)))
                                           f }
 
 -- Iso proof
@@ -682,8 +679,7 @@ module Completeness (X : SplitRestCat) where
                                    ≅⟨ ax1 _ _ (HIso1' a) ⟩
                                    abs a
                                    ∎)
-                                 (λ x → fixtypes (cong (λ y → abs (HMap1 (qHMap2 y))) (ax1 _ _ x))
-                                                 (ax1 _ _ x))
+                                 (λ x → fixtypes'' (ax1 _ _ x))
                                  q
 
   .HIso2' : ∀{A C}(f : Hom A C) → HMap2 (HMap1 f) ≅ f

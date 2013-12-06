@@ -97,10 +97,5 @@ RFun≅ {C}{D}{F}{G} p  =
     {v = RestFun.frest G}
     (λ x y → record { fun = x; frest = y }) 
     p
-    (iext (λ X → iext (λ Y → iext (λ f → fixtypes 
-      (cong₃ 
-        (cong (λ F → OMap F X) p)
-        (cong (λ F → OMap F Y) p) 
-        (cong (λ F → HMap F f) p) 
-        (λ x y z → rest D {x} {y} z)) 
+    (iext (λ X → iext (λ Y → iext (λ f → fixtypes''
       (cong (λ F → HMap F (rest C f)) p)))))
