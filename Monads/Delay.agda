@@ -78,42 +78,57 @@ trans≈ (later≈ p) (later≈ q) = later≈ (♯ (trans≈ (♭ p) (♭ q)))
 ≈EqR : ∀{X} → EqR (Delay X)
 ≈EqR = _≈_ , record {refl = refl≈; sym = sym≈; trans = trans≈ }
 
--- extensional relation on functions
-
-_≈'_ : ∀{X Y}(f g : X → Delay Y) → Set
-f ≈' g = ∀ x → f x ≈ g x
-
-refl≈' : ∀{X Y}{f : X → Delay Y} → f ≈' f
-refl≈' x = refl≈
-
-sym≈' : ∀{X Y}{f g : X → Delay Y} → f ≈' g → g ≈' f
-sym≈' p x = sym≈ (p x)
-
-trans≈' : ∀{X Y}{f g h : X → Delay Y} → f ≈' g → g ≈' h → f ≈' h
-trans≈' p q x = trans≈ (p x) (q x)
-
-≈'EqR : ∀{X Y} → EqR (X → Delay Y)
-≈'EqR = _≈'_ , record { refl = refl≈' ; sym = sym≈' ; trans = trans≈' }
-
 QDelay : Set → Set
 QDelay X = Quotient.Q (quot (Delay X) ≈EqR)
 
 abs : ∀{X} → Delay X → QDelay X
 abs {X} = Quotient.abs (quot (Delay X) ≈EqR)
 
-{-
-rep : ∀{X} → QDelay X → Delay X
-rep {X} = Quotient.rep (quot (Delay X) ≈EqR)
+compat : ∀{X}{Y : QDelay X → Set} → ((x : Delay X) → Y (abs x)) → Set
+compat {X}{Y} = Quotient.compat (quot (Delay X) ≈EqR) {Y}
 
-ax1 : ∀{X}(dx dx' : Delay X) → dx ≈ dx' → abs dx ≅ abs dx'
+lift : ∀{X}{Y : QDelay X → Set}(f : (x : Delay X) → Y (abs x)) → 
+       .(compat {X}{Y} f) → (q : QDelay X) → Y q
+lift {X} = Quotient.lift (quot (Delay X) ≈EqR)
+
+.ax1 : ∀{X}(dx dx' : Delay X) → dx ≈ dx' → abs dx ≅ abs dx'
 ax1 {X} = Quotient.ax1 (quot (Delay X) ≈EqR)
 
-ax2 : ∀{X}(dx : QDelay X) → abs (rep dx) ≅ dx
+ax2 : ∀{X}(dx dx' : Delay X) → abs dx ≅ abs dx' → dx ≈ dx'
 ax2 {X} = Quotient.ax2 (quot (Delay X) ≈EqR)
 
-ax3 : ∀{X}(dx : Delay X) → rep (abs dx) ≈ dx
+.ax3 : ∀{X}{Y : QDelay X → Set}(f : (x : Delay X) → Y (abs x))
+       (p : compat {X}{Y} f)(x : Delay X) →  (lift {X}{Y} f p) (abs x) ≅ f x
 ax3 {X} = Quotient.ax3 (quot (Delay X) ≈EqR)
--}
+
+QDelay-map : (X Y : Set) → Set
+QDelay-map X Y = Quotient.Q (quot (X → Delay Y) (EqR→ ≈EqR))
+
+abs-map : ∀{X Y} → (X → Delay Y) → QDelay-map X Y
+abs-map {X}{Y} = Quotient.abs (quot (X → Delay Y) (EqR→ ≈EqR))
+
+compat-map : ∀{X Y}{Z : QDelay-map X Y → Set} → 
+             ((f : X → Delay Y) → Z (abs-map f)) → Set
+compat-map {X}{Y}{Z} = Quotient.compat (quot (X → Delay Y) (EqR→ ≈EqR)) {Z}
+
+lift-map : ∀{X Y}{Z : QDelay-map X Y → Set}
+           (F : (f : X → Delay Y) → Z (abs-map f)) → 
+           .(compat-map {X}{Y}{Z} F) → (q : QDelay-map X Y) → Z q
+lift-map {X}{Y} = Quotient.lift (quot (X → Delay Y) (EqR→ ≈EqR))
+
+.ax1-map : ∀{X Y}(f g : X → Delay Y) → map~ ≈EqR f g → abs-map f ≅ abs-map g
+ax1-map {X}{Y} = Quotient.ax1 (quot (X → Delay Y) (EqR→ ≈EqR))
+
+ax2-map : ∀{X Y}(f g : X → Delay Y) → abs-map f ≅ abs-map g → map~ ≈EqR f g
+ax2-map {X}{Y} = Quotient.ax2 (quot (X → Delay Y) (EqR→ ≈EqR))
+
+.ax3-map : ∀{X Y}{Z : QDelay-map X Y → Set}
+           (F : (f : X → Delay Y) → Z (abs-map f))(p : compat-map {X}{Y}{Z} F)
+           (f : X → Delay Y) → (lift-map {X}{Y}{Z} F p) (abs-map f) ≅ F f
+ax3-map {X}{Y} = Quotient.ax3 (quot (X → Delay Y) (EqR→ ≈EqR))
+
+~→map~ : ∀{X Y} → (X → QDelay Y) → QDelay-map X Y
+~→map~ = proj₁ quotiso
 
 laterlem' : ∀{X}{dx dz : Delay X} → later (♯ dx) ∼ dz → dx ≈ dz
 laterlem' {X}{now x}{later dz} (later∼ p) = ↓≈ now↓ (later↓ (∼↓ (♭ p) now↓))
@@ -194,6 +209,31 @@ dlaw3 {f = f}{g = g} (now x)   = refl≈
 dlaw3 {f = f}{g = g} (later x) = later≈ (♯ dlaw3 (♭ x))
 
 open Cat Sets
+
+compat-dbind : ∀{X Y} → compat-map {Z = λ _ → Delay X → Delay Y} dbind
+compat-dbind {X}{Y}{f}{g} p = ?
+
+qbind : ∀{X Y} → (X → QDelay Y) → QDelay X → QDelay Y
+qbind {X}{Y} f = 
+  let lift-dbind : QDelay-map X Y → Delay X → Delay Y
+      lift-dbind = lift-map dbind compat-dbind
+
+      g : Delay X → Delay Y
+      g = lift-dbind (~→map~ f)
+
+      compat-g : compat {Y = λ _ → Delay Y} g
+      compat-g {x}{y} p = {!!}
+  in abs ∘ lift g compat-g
+
+DelayM : Monad Sets
+DelayM = record { 
+  T    = QDelay; 
+  η    = abs ∘ now;
+  bind = λ f dx → {!!};
+  law1 = {!!};
+  law2 = {!!};
+  law3 = {!!} }
+
 
 {-
 DelayM : Monad Sets
