@@ -78,12 +78,30 @@ trans≈ (later≈ p) (later≈ q) = later≈ (♯ (trans≈ (♭ p) (♭ q)))
 ≈EqR : ∀{X} → EqR (Delay X)
 ≈EqR = _≈_ , record {refl = refl≈; sym = sym≈; trans = trans≈ }
 
+-- extensional relation on functions
+
+_≈'_ : ∀{X Y}(f g : X → Delay Y) → Set
+f ≈' g = ∀ x → f x ≈ g x
+
+refl≈' : ∀{X Y}{f : X → Delay Y} → f ≈' f
+refl≈' x = refl≈
+
+sym≈' : ∀{X Y}{f g : X → Delay Y} → f ≈' g → g ≈' f
+sym≈' p x = sym≈ (p x)
+
+trans≈' : ∀{X Y}{f g h : X → Delay Y} → f ≈' g → g ≈' h → f ≈' h
+trans≈' p q x = trans≈ (p x) (q x)
+
+≈'EqR : ∀{X Y} → EqR (X → Delay Y)
+≈'EqR = _≈'_ , record { refl = refl≈' ; sym = sym≈' ; trans = trans≈' }
+
 QDelay : Set → Set
 QDelay X = Quotient.Q (quot (Delay X) ≈EqR)
 
 abs : ∀{X} → Delay X → QDelay X
 abs {X} = Quotient.abs (quot (Delay X) ≈EqR)
 
+{-
 rep : ∀{X} → QDelay X → Delay X
 rep {X} = Quotient.rep (quot (Delay X) ≈EqR)
 
@@ -95,6 +113,7 @@ ax2 {X} = Quotient.ax2 (quot (Delay X) ≈EqR)
 
 ax3 : ∀{X}(dx : Delay X) → rep (abs dx) ≈ dx
 ax3 {X} = Quotient.ax3 (quot (Delay X) ≈EqR)
+-}
 
 laterlem' : ∀{X}{dx dz : Delay X} → later (♯ dx) ∼ dz → dx ≈ dz
 laterlem' {X}{now x}{later dz} (later∼ p) = ↓≈ now↓ (later↓ (∼↓ (♭ p) now↓))
@@ -175,6 +194,8 @@ dlaw3 {f = f}{g = g} (now x)   = refl≈
 dlaw3 {f = f}{g = g} (later x) = later≈ (♯ dlaw3 (♭ x))
 
 open Cat Sets
+
+{-
 DelayM : Monad Sets
 DelayM = record { 
   T    = QDelay; 
@@ -209,14 +230,13 @@ DelayM = record {
     abs (dbind (rep ∘ g) (rep (abs (dbind (rep ∘ f) (rep dx)))))
     ∎}
 
-
 map : ∀{X Y} → (X → Y) → Delay X → Delay Y
 map f = dbind (now ∘ f) --rep (Fun.HMap (TFun DelayM) f (abs x))
 
 str : ∀{X Y} → X × Delay Y → Delay (X × Y)
 str (x , dy) = map (λ y → (x , y)) dy
 
-
+-}
 
 -- Another composition called dcomp, weakly bisimilar to dbind but
 -- easier to use.

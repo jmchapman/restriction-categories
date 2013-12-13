@@ -64,7 +64,7 @@ fixtypes'' {p = refl}{q = refl} refl = refl
 EqR : (A : Set) → Set
 EqR A = Σ (Rel A _) (λ R → IsEquivalence R)
 
-open IsEquivalence renaming (refl to irefl; sym to isym)
+open IsEquivalence renaming (refl to irefl; sym to isym; trans to itrans)
 
 record Quotient (A : Set) (R : EqR A) : Set where
   open Σ R renaming (proj₁ to _~_)
@@ -277,3 +277,38 @@ lift₂→lift' {A}{A'}{B}{R}{R'} q q' f p x x' =
              lift (λ a₁ → lift' (f a₁) (p (irefl e))) s (abs b) (abs' x')
              ∎))
           x
+
+-- introducing the axiom (A → B)/∼' ≅ A → B/~
+
+map~ : ∀{A B}(R : EqR B)(f g : A → B) → Set
+map~ (_~_ , _) f g = ∀ x → f x ~ g x  
+
+refl-map~ : ∀{A B R}{f : A → B} → map~ R f f
+refl-map~ {R = _ , p} x = irefl p
+
+sym-map~ : ∀{A B R}{f g : A → B} → map~ R f g → map~ R g f
+sym-map~ {R = _ , p} q x = isym p (q x)
+
+trans-map~ : ∀{A B R}{f g h : A → B} → map~ R f g → map~ R g h → map~ R f h
+trans-map~ {R = _ , p} q r x = itrans p (q x) (r x)
+
+EqR→ : ∀{A B}(R : EqR B) → EqR (A → B)
+EqR→ R = map~ R , 
+             record { 
+               refl = refl-map~ {R = R} ; 
+               sym = sym-map~ {R = R} ; 
+               trans = trans-map~ {R = R} }
+
+map~→~ : ∀{A B R} → Quotient.Q (quot (A → B) (EqR→ R)) → 
+         A → Quotient.Q (quot B R)
+map~→~ {A}{B}{R} f = 
+  let open Quotient (quot B R)
+      open Quotient (quot (A → B) (EqR→ R)) hiding (abs; ax1)
+                                                renaming (lift to mlift)      
+  in mlift (λ g → abs ∘ g) (λ p → ext (λ a → ax1 _ _ (p a))) f
+
+postulate 
+  quotiso : ∀ {A B R} → 
+            Σ ((A → Quotient.Q (quot B R)) → Quotient.Q (quot (A → B) (EqR→ R)))
+              (λ H → (∀ f → H (map~→~ f) ≅ f) × 
+                     (∀ f → map~→~ {R = R} (H f) ≅ f))
