@@ -210,27 +210,48 @@ dlaw3 {f = f}{g = g} (later x) = later≈ (♯ dlaw3 (♭ x))
 
 open Cat Sets
 
-compat-dbind : ∀{X Y} → compat-map {Z = λ _ → Delay X → Delay Y} dbind
-compat-dbind {X}{Y}{f}{g} p = ?
-
 qbind : ∀{X Y} → (X → QDelay Y) → QDelay X → QDelay Y
 qbind {X}{Y} f = 
-  let lift-dbind : QDelay-map X Y → Delay X → Delay Y
-      lift-dbind = lift-map dbind compat-dbind
+  let .compat-abs-dbind : compat₂ (EqR→ ≈EqR) ≈EqR (λ g x → abs (dbind g x))
+      compat-abs-dbind {f}{_}{_}{y} p q = ax1 _ 
+                                              _ 
+                                              (trans≈ (dbindcong1 f q) 
+                                                      (dbindcong2 p y))
+  in lift₂ (quot (X → Delay Y) (EqR→ ≈EqR)) 
+           (quot (Delay X) ≈EqR)
+           (λ g x → abs (dbind g x)) 
+           compat-abs-dbind 
+           (~→map~ f)
 
-      g : Delay X → Delay Y
-      g = lift-dbind (~→map~ f)
+{-
+.qbindabs : ∀{}{mg : QSpan B C}{mf : Span A B}
+            {p : compat (λ y → abs (compspan y mf))} → 
+            qcomp mg (abs mf) ≅ lift (λ y → abs (compspan y mf)) p mg
 
-      compat-g : compat {Y = λ _ → Delay Y} g
-      compat-g {x}{y} p = {!!}
-  in abs ∘ lift g compat-g
+
+    qcompabs' {A}{B}{C}{mg}{mf} = lift₂→lift' (qspan B C)
+                                              (qspan A B)
+                                              (λ x y → abs (compspan x y)) 
+                                              (λ p q → ax1 _ _ (~cong p q)) 
+                                              mg 
+                                              mf
+-}
+
+qlaw1 : ∀{X} → qbind {X}{X} (abs ∘ now) ≅ iden {QDelay X}
+qlaw1 {X} = ext (λ q → 
+                   Quotient.lift (quot (Delay X) ≈EqR) 
+                                 {λ y → qbind (abs ∘ now) y ≅ y}
+                                 (λ x → {!!}) 
+                                 {!!} 
+                                 q)
+
 
 DelayM : Monad Sets
 DelayM = record { 
   T    = QDelay; 
   η    = abs ∘ now;
-  bind = λ f dx → {!!};
-  law1 = {!!};
+  bind = qbind;
+  law1 = qlaw1;
   law2 = {!!};
   law3 = {!!} }
 
