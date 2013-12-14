@@ -79,7 +79,7 @@ record Quotient (A : Set) (R : EqR A) : Set where
         .ax1 : (a b : A) → a ~ b → abs a ≅ abs b
         ax2 : (a b : A) → abs a ≅ abs b → a ~ b
         .ax3 : {B : Q → Set}(f : (a : A) → B (abs a))(p : compat {B} f)
-               (a : A) →  (lift {B} f p) (abs a) ≅ f a
+               (a : A) → (lift {B} f p) (abs a) ≅ f a
 
 postulate quot : (A : Set) (R : EqR A) → Quotient A R
 
@@ -304,11 +304,52 @@ map~→~ : ∀{A B R} → Quotient.Q (quot (A → B) (EqR→ R)) →
 map~→~ {A}{B}{R} f = 
   let open Quotient (quot B R)
       open Quotient (quot (A → B) (EqR→ R)) hiding (abs; ax1)
-                                                renaming (lift to mlift)      
-  in mlift (λ g → abs ∘ g) (λ p → ext (λ a → ax1 _ _ (p a))) f
+                                            renaming (lift to lift-map)      
+  in lift-map (λ g → abs ∘ g) (λ p → ext (λ a → ax1 _ _ (p a))) f
 
+.map~→~-abs : ∀{A B R} → 
+              map~→~ {A}{B}{R} ∘ Quotient.abs (quot (A → B) (EqR→ R)) ≅ 
+              (λ (f : A → B) a → Quotient.abs (quot B R) (f a))
+map~→~-abs {A}{B}{R} = 
+  let open Quotient (quot B R)
+      open Quotient (quot (A → B) (EqR→ R)) hiding (abs; ax1)
+                                            renaming (lift to lift-map; 
+                                                      ax3 to ax3-map)      
+  in ext (λ f → ax3-map {λ _ → A → Quotient.Q (quot B R)} 
+                        (λ g → abs ∘ g) 
+                        (λ p → ext (λ a → ax1 _ _ (p a))) 
+                        f)
+
+postulate
+  ~→map~ : ∀{A B R} → (A → Quotient.Q (quot B R)) → 
+           Quotient.Q (quot (A → B) (EqR→ R))
+
+  ~iso1 : ∀{A B R}{f : Quotient.Q (quot (A → B) (EqR→ R))} →
+          ~→map~ (map~→~ {A}{B}{R} f) ≅ f
+
+  ~iso2 : ∀{A B R}{f : (A → Quotient.Q (quot B R))} →
+          map~→~ {A}{B}{R} (~→map~ f) ≅ f
+{-
 postulate 
   quotiso : ∀ {A B R} → 
             Σ ((A → Quotient.Q (quot B R)) → Quotient.Q (quot (A → B) (EqR→ R)))
               (λ H → (∀ f → H (map~→~ f) ≅ f) × 
                      (∀ f → map~→~ {R = R} (H f) ≅ f))
+-}
+
+.~→map~-abs : ∀{A B R} → 
+              ~→map~ {A}{B}{R} ∘ 
+              (λ (f : A → B) a → Quotient.abs (quot B R) (f a)) ≅ 
+              Quotient.abs (quot (A → B) (EqR→ R))
+~→map~-abs {A}{B}{R} = 
+  let open Quotient (quot B R)
+      open Quotient (quot (A → B) (EqR→ R)) renaming (lift to lift-map; 
+                                                      abs to abs-map)      
+  in ext (λ f → 
+    proof 
+    ~→map~ (λ a → abs (f a)) 
+    ≅⟨ cong (λ g → ~→map~ (g f)) (sym map~→~-abs) ⟩
+    ~→map~ (map~→~ (abs-map f))
+    ≅⟨ ~iso1 ⟩ 
+    abs-map f 
+    ∎)
