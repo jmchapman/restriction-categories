@@ -320,6 +320,54 @@ map~→~-abs {A}{B}{R} =
                         (λ p → ext (λ a → ax1 _ _ (p a))) 
                         f)
 
+.lift-map-abs : ∀{A B R}{f : Quotient.Q (quot (A → B) (EqR→ R))}{x : A} →
+               Quotient.lift (quot (A → B) (EqR→ R)) 
+                             {λ _ → Quotient.Q (quot B R)} 
+                             (λ g → Quotient.abs (quot B R) (g x)) 
+                             (λ p → Quotient.ax1 (quot B R) _ _ (p x)) 
+                             f ≅
+               Quotient.lift (quot (A → B) (EqR→ R)) 
+                             {λ _ → A → Quotient.Q (quot B R)}
+                             (λ g → Quotient.abs (quot B R) ∘ g) 
+                             (λ p → 
+                               ext (λ a → Quotient.ax1 (quot B R) _ _ (p a)))
+                             f
+                             x
+lift-map-abs {A}{B}{R}{f}{x} = 
+  let open Quotient (quot B R)
+      open Quotient (quot (A → B) (EqR→ R)) renaming (Q to Q-map;
+                                                      abs to abs-map;
+                                                      lift to lift-map; 
+                                                      ax1 to ax1-map;      
+                                                      ax3 to ax3-map)      
+  in Quotient.lift 
+       (quot (A → B) (EqR→ R))
+       {λ y →
+          lift-map {λ _ → Q} (λ g → abs (g x)) (λ p → ax1 _ _ (p x)) y ≅
+          lift-map {λ _ → A → Q} 
+                   (λ g → abs ∘ g) 
+                   (λ p → ext (λ a → ax1 _ _ (p a))) y x}
+       (λ h → 
+         proof
+         lift-map {λ _ → Q} (λ g → abs (g x)) (λ p → ax1 _ _ (p x)) (abs-map h)
+         ≅⟨ ax3-map (λ g → abs (g x)) (λ p → ax1 _ _ (p x)) h ⟩
+         abs (h x)
+         ≅⟨ cong (λ g → g x) 
+                 (sym (ax3-map {λ _ → A → Q} 
+                               (λ g → abs ∘ g) 
+                               (λ p → ext (λ a → ax1 _ _ (p a))) 
+                               h)) ⟩
+         lift-map {λ _ → A → Q} 
+                  (λ g → abs ∘ g) 
+                  (λ p → ext (λ a → ax1 _ _ (p a))) 
+                  (abs-map h) 
+                  x
+         ∎)
+       (λ r → 
+         fixtypes' (cong (lift-map (λ g → abs (g x)) (λ p → ax1 _ _ (p x))) 
+                         (ax1-map _ _ r))) 
+       f
+
 postulate
   ~→map~ : ∀{A B R} → (A → Quotient.Q (quot B R)) → 
            Quotient.Q (quot (A → B) (EqR→ R))

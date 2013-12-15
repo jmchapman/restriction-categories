@@ -243,55 +243,71 @@ qbindabs {X}{Y}{f}{x} = lift₂→lift' (quot (X → Delay Y) (EqR→ ≈EqR))
 
 .qlaw1 : ∀{X} → qbind {X}{X} (abs ∘ now) ≅ iden {QDelay X}
 qlaw1 {X} = ext (λ q → 
-  Quotient.lift (quot (Delay X) ≈EqR) 
-                {λ y → qbind (abs ∘ now) y ≅ y}
-                (λ x →                  
-                  proof
-                  qbind (abs ∘ now) (abs x)
-                  ≅⟨ qbindabs ⟩
-                  lift-map (λ g → abs (dbind g x)) 
-                           (λ r → compat-abs-dbind r (irefl (proj₂ ≈EqR)))
-                           (~→map~ (abs ∘ now))
-                  ≅⟨ cong
-                       (lift-map (λ g → abs (dbind g x))
-                        (λ r → compat-abs-dbind r (irefl (proj₂ ≈EqR))))
-                       (~→map~-abs-delay now) ⟩
-                  lift-map (λ g → abs (dbind g x)) 
-                           (λ r → compat-abs-dbind r (irefl (proj₂ ≈EqR)))
-                           (abs-map now)
-                  ≅⟨ ax3-map {Z = λ _ → QDelay X} 
-                             (λ g → abs (dbind g x))
-                             (λ r → compat-abs-dbind r (irefl (proj₂ ≈EqR))) 
-                             now ⟩
-                  abs (dbind now x)                
-                  ≅⟨ ax1 _ _ (dlaw1 x) ⟩
-                  abs x
-                  ∎)
-                (λ x → fixtypes' (cong (qbind (abs ∘ now)) (ax1 _ _ x))) 
-                q)
+  lift {Y = λ y → qbind (abs ∘ now) y ≅ y}
+       (λ x →                  
+         proof
+         qbind (abs ∘ now) (abs x)
+         ≅⟨ qbindabs ⟩
+         lift-map (λ g → abs (dbind g x)) 
+                  (λ r → compat-abs-dbind r (irefl (proj₂ ≈EqR)))
+                  (~→map~ (abs ∘ now))
+         ≅⟨ cong
+            (lift-map (λ g → abs (dbind g x))
+                      (λ r → compat-abs-dbind r (irefl (proj₂ ≈EqR))))
+                      (~→map~-abs-delay now) ⟩
+         lift-map (λ g → abs (dbind g x)) 
+                  (λ r → compat-abs-dbind r (irefl (proj₂ ≈EqR)))
+                  (abs-map now)
+         ≅⟨ ax3-map {Z = λ _ → QDelay X} 
+                    (λ g → abs (dbind g x))
+                    (λ r → compat-abs-dbind r (irefl (proj₂ ≈EqR))) 
+                    now ⟩
+         abs (dbind now x)                
+         ≅⟨ ax1 _ _ (dlaw1 x) ⟩
+         abs x
+         ∎)
+       (λ x → fixtypes' (cong (qbind (abs ∘ now)) (ax1 _ _ x))) 
+       q)
 
-.qlaw2 : ∀{X Y}{f : X → QDelay Y} → comp (qbind f) (abs ∘ now) ≅ f
+.qlaw2 : ∀{X Y}{f : X → QDelay Y} → (qbind f) ∘ (abs ∘ now) ≅ f
 qlaw2 {X}{Y}{f} = ext (λ x → 
   proof
   qbind f (abs (now x))
   ≅⟨ qbindabs ⟩
-  lift-map (λ g → abs (dbind g (now x))) 
-           (λ r → compat-abs-dbind r (irefl (proj₂ ≈EqR)))
-           (~→map~ f)
-  ≅⟨ {!!} ⟩
-  lift-map (λ g → abs (g x)) 
-           (λ r → compat-abs-dbind r (irefl (proj₂ ≈EqR)))
-           (~→map~ f)
-  ≅⟨ Quotient.lift (quot (X → Delay Y) (EqR→ ≈EqR))
---lift-map (λ g → abs (g x)) (λ r → compat-abs-dbind r (irefl (proj₂ ≈EqR))) y} 
-                   (λ g → {!!}) 
-                   {!!} 
-                   (~→map~ f) ⟩
-  ?
-  ≅⟨ ? ⟩
+  lift-map (λ g → abs (g x)) (λ p → ax1 _ _ (p x)) (~→map~ f)
+  ≅⟨ lift-map-abs ⟩
+  lift-map {Z = λ _ → X → QDelay Y} 
+           (λ g → abs ∘ g) 
+           (λ p → ext (λ a → ax1 _ _ (p a))) 
+           (~→map~ f) 
+           x
+  ≡⟨⟩
+  map~→~ (~→map~ f) x
+  ≅⟨ cong (λ g → g x) ~iso2 ⟩
   f x
   ∎)
 
+.qlaw3 : ∀{X Y Z}{f : X → QDelay Y}{g : Y → QDelay Z} →
+         qbind ((qbind g) ∘ f) ≅ (qbind g) ∘ (qbind f)
+qlaw3 {X}{Y}{Z}{f}{g} = ext (λ q → 
+  lift {Y = λ y → qbind (comp (qbind g) f) y ≅ comp (qbind g) (qbind f) y } 
+       (λ x → 
+         proof
+         qbind ((qbind g) ∘ f) (abs x) 
+         ≅⟨ qbindabs ⟩ 
+         lift-map (λ h → abs (dbind h x)) 
+                  (λ p → ax1 _ _ (dbindcong2 p x)) 
+                  (~→map~ ((qbind g) ∘ f))
+         ≅⟨ {!!} ⟩
+         qbind g (lift-map {Z = λ _ → QDelay Y}
+                           (λ h → abs (dbind h x)) 
+                           (λ p → ax1 _ _ (dbindcong2 p x))
+                           (~→map~ f))
+         ≅⟨ cong (qbind g) (sym qbindabs) ⟩
+         qbind g (qbind f (abs x))
+         ∎)
+       {!!} 
+       q)
 
 DelayM : Monad Sets
 DelayM = record { 
