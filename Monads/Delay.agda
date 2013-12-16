@@ -220,11 +220,12 @@ compat-abs-dbind {X}{Y}{f}{_}{_}{y} p q = ax1 _ _ (trans≈ (dbindcong1 f q)
                                                           (dbindcong2 p y))
 
 qbind : ∀{X Y} → (X → QDelay Y) → QDelay X → QDelay Y
-qbind {X}{Y} f = lift₂ (quot (X → Delay Y) (EqR→ ≈EqR)) 
-           (quot (Delay X) ≈EqR)
-           (λ g x → abs (dbind g x)) 
-           compat-abs-dbind 
-           (~→map~ f)
+qbind {X}{Y} f = 
+  lift₂ (quot (X → Delay Y) (EqR→ ≈EqR)) 
+        (quot (Delay X) ≈EqR)
+        (λ g x → abs (dbind g x)) 
+        compat-abs-dbind 
+        (~→map~ f)
 
 .qbindabs : ∀{X Y}{f : X → QDelay Y}{x : Delay X} →
             qbind f (abs x) ≅ 
@@ -295,10 +296,204 @@ qlaw3 {X}{Y}{Z}{f}{g} = ext (λ q →
          proof
          qbind ((qbind g) ∘ f) (abs x) 
          ≅⟨ qbindabs ⟩ 
-         lift-map (λ h → abs (dbind h x)) 
+         lift-map {Z = λ _ → QDelay Z} 
+                  (λ h → abs (dbind h x)) 
                   (λ p → ax1 _ _ (dbindcong2 p x)) 
                   (~→map~ ((qbind g) ∘ f))
-         ≅⟨ {!!} ⟩
+         ≅⟨ lift-map
+              {Z =
+               λ y →
+                 lift-map {Z = λ _ → QDelay Z} (λ h → abs (dbind h x))
+                 (λ p → ax1 _ _ (dbindcong2 p x))
+                 (~→map~
+                  (lift₂ (quot (Y → Delay Z) (EqR→ ≈EqR)) (quot (Delay Y) ≈EqR)
+                   (λ h x₁ → abs (dbind h x₁)) compat-abs-dbind y
+                   ∘ f))
+                 ≅
+                 lift₂ (quot (Y → Delay Z) (EqR→ ≈EqR))
+                 (quot (X → Delay Y) (EqR→ ≈EqR))
+                 (λ h l → abs (dbind (dbind h ∘ l) x))
+                 (λ {h} {_} {_} {l} p r →
+                    ax1 _ _
+                    (dbindcong2
+                     (λ y₁ → trans≈ (dbindcong1 h (r y₁)) (dbindcong2 p (l y₁))) x))
+                 y (~→map~ f)}
+              (λ h → 
+                proof
+                lift-map {Z = λ _ → QDelay Z} 
+                         (λ h → abs (dbind h x))
+                         (λ p → ax1 _ _ (dbindcong2 p x))
+                         (~→map~ (λ y → lift₂ (quot (Y → Delay Z) (EqR→ ≈EqR)) 
+                                              (quot (Delay Y) ≈EqR)
+                                              (λ h x₁ → abs (dbind h x₁)) 
+                                              compat-abs-dbind
+                                              (abs-map h)
+                                              (f y)))
+                ≅⟨ cong (λ z → lift-map {Z = λ _ → QDelay Z} 
+                                        (λ h → abs (dbind h x))
+                                        (λ p → ax1 _ _ (dbindcong2 p x))
+                                        (~→map~ z))
+                        (ext (λ y → lift₂→lift (quot (Y → Delay Z) (EqR→ ≈EqR)) 
+                                               (quot (Delay Y) ≈EqR)
+                                               (λ h x₁ → abs (dbind h x₁)) 
+                                               compat-abs-dbind
+                                               h
+                                               (f y))) ⟩
+                lift-map {Z = λ _ → QDelay Z}
+                         (λ l → abs (dbind l x))
+                         (λ p → ax1 _ _ (dbindcong2 p x))
+                         (~→map~ (λ y → lift (abs ∘ dbind h) 
+                                             (compat-abs-dbind (irefl (proj₂ (EqR→ ≈EqR))))
+                                             (f y)))
+                ≅⟨ cong
+                     (lift-map {Z = λ _ → QDelay Z} (λ l → abs (dbind l x))
+                      (λ p → ax1 _ _ (dbindcong2 p x)))
+                     (~⇢map~-naturality f) ⟩
+                lift-map {Z = λ _ → QDelay Z}
+                         (λ l → abs (dbind l x))
+                         (λ p → ax1 _ _ (dbindcong2 p x))
+                         (lift-map {Z = λ _ → QDelay-map X Z}
+                                   (λ l → abs-map (dbind h ∘ l)) 
+                                   (λ r → ax1-map _ _ (λ y → dbindcong1 h (r y))) 
+                                   (~→map~ f))
+                ≅⟨ lift-map
+                     {Z =
+                      λ y →
+                        lift-map {Z = λ _ → QDelay Z} (λ l → abs (dbind l x))
+                        (λ p → ax1 _ _ (dbindcong2 p x))
+                        (lift-map {Z = λ _ → QDelay-map X Z} (λ l → abs-map (dbind h ∘ l))
+                         (λ r → ax1-map _ _ (λ y₁ → dbindcong1 h (r y₁))) y)
+                        ≅
+                        lift-map {Z = λ _ → QDelay Z} (λ l → abs (dbind (dbind h ∘ l) x))
+                        (λ r → ax1 _ _ (dbindcong2 (λ x₁ → dbindcong1 h (r x₁)) x)) y}
+                     (λ l → 
+                       proof
+                       lift-map {Z = λ _ → QDelay Z} 
+                                (λ l → abs (dbind l x))
+                                (λ p → ax1 _ _ (dbindcong2 p x))
+                                (lift-map {Z = λ _ → QDelay-map X Z} 
+                                          (λ l → abs-map (dbind h ∘ l))
+                                          (λ r → ax1-map _ _ (λ y₁ → dbindcong1 h (r y₁))) 
+                                          (abs-map l))
+                       ≅⟨ cong
+                            (lift-map {Z = λ _ → QDelay Z} (λ l₁ → abs (dbind l₁ x))
+                             (λ p → ax1 _ _ (dbindcong2 p x)))
+                            (ax3-map {Z = λ _ → QDelay-map X Z} (λ l₁ → abs-map (dbind h ∘ l₁))
+                               (λ r → ax1-map _ _ (λ y₁ → dbindcong1 h (r y₁))) l) ⟩
+                       lift-map {Z = λ _ → QDelay Z} 
+                                (λ l → abs (dbind l x))
+                                (λ p → ax1 _ _ (dbindcong2 p x))
+                                (abs-map (dbind h ∘ l))
+                       ≅⟨ ax3-map {Z = λ _ → QDelay Z} (λ l₁ → abs (dbind l₁ x))
+                            (λ p → ax1 _ _ (dbindcong2 p x)) (dbind h ∘ l) ⟩
+                       abs (dbind (dbind h ∘ l) x)
+                       ≅⟨ sym
+                            (ax3-map {Z = λ _ → QDelay Z} (λ l₁ → abs (dbind (dbind h ∘ l₁) x))
+                             (λ r → ax1 _ _ (dbindcong2 (λ x₁ → dbindcong1 h (r x₁)) x)) l) ⟩
+                       lift-map {Z = λ _ → QDelay Z} 
+                                (λ l → abs (dbind (dbind h ∘ l) x))
+                                (λ r → ax1 _ _ (dbindcong2 (λ x₁ → dbindcong1 h (r x₁)) x)) 
+                                (abs-map l)
+                       ∎) 
+                     (λ r → fixtypes'' (cong
+                                          (lift-map {Z = λ _ → QDelay Z} (λ l → abs (dbind (dbind h ∘ l) x))
+                                           (λ r₁ → ax1 _ _ (dbindcong2 (λ x₁ → dbindcong1 h (r₁ x₁)) x)))
+                                          (ax1-map _ _ r))) 
+                     (~→map~ f) ⟩
+                lift-map {Z = λ _ → QDelay Z}
+                         (λ l → abs (dbind (dbind h ∘ l) x))
+                         (λ r → ax1 _ _ (dbindcong2 (λ x₁ → dbindcong1 h (r x₁)) x))
+                         (~→map~ f)
+                ≅⟨ sym (lift₂→lift (quot (Y → Delay Z) (EqR→ ≈EqR))
+                                   (quot (X → Delay Y) (EqR→ ≈EqR))
+                                   (λ h l → abs (dbind (dbind h ∘ l) x))
+                                   (λ {h}{_}{_}{l} p r → ax1 _ _ (dbindcong2 (λ y → trans≈ (dbindcong1 h (r y)) (dbindcong2 p (l y))) x))
+                                   h
+                                   (~→map~ f)) ⟩
+                lift₂ (quot (Y → Delay Z) (EqR→ ≈EqR))
+                      (quot (X → Delay Y) (EqR→ ≈EqR))
+                      (λ h l → abs (dbind (dbind h ∘ l) x))
+                      (λ {h}{_}{_}{l} p r → ax1 _ _ (dbindcong2 (λ y → trans≈ (dbindcong1 h (r y)) (dbindcong2 p (l y))) x))
+                      (abs-map h)
+                      (~→map~ f)
+                ∎) 
+              (λ r → fixtypes'' (cong
+                                   (λ y →
+                                      lift₂ (quot (Y → Delay Z) (EqR→ ≈EqR))
+                                      (quot (X → Delay Y) (EqR→ ≈EqR))
+                                      (λ h l → abs (dbind (dbind h ∘ l) x))
+                                      (λ {h} {_} {_} {l} p r₁ →
+                                         ax1 _ _
+                                         (dbindcong2
+                                          (λ y₁ → trans≈ (dbindcong1 h (r₁ y₁)) (dbindcong2 p (l y₁))) x))
+                                      y (~→map~ f))
+                                   (ax1-map _ _ r))) 
+              (~→map~ g) ⟩
+         lift₂ (quot (Y → Delay Z) (EqR→ ≈EqR))
+               (quot (X → Delay Y) (EqR→ ≈EqR))
+               (λ h l → abs (dbind (dbind h ∘ l) x))
+               (λ {h}{_}{_}{l} p r → ax1 _ _ (dbindcong2 (λ y → trans≈ (dbindcong1 h (r y)) (dbindcong2 p (l y))) x))
+               (~→map~ g)
+               (~→map~ f)
+         ≅⟨ cong₂ {_}{_}{_}{_}{_}{_}{_}{_}
+                  {λ {h}{_}{_}{l} p r → ax1 _ _ (dbindcong2 (λ y → trans≈ (dbindcong1 h (r y)) (dbindcong2 p (l y))) x)}
+                  {λ {h}{_}{_}{l} p r → ax1 _ _ (trans≈ (dbindcong1 h (dbindcong2 r x)) (dbindcong2 p (dbind l x)))}
+                  (λ p (r : compat₂ (EqR→ ≈EqR) (EqR→ ≈EqR) p) →
+                    lift₂ (quot (Y → Delay Z) (EqR→ ≈EqR)) (quot (X → Delay Y) (EqR→ ≈EqR)) p r (~→map~ g) (~→map~ f)) 
+                  (ext (λ l → ext (λ h → ax1 _ _ (dlaw3 x)))) 
+                  (iext (λ _ → iext (λ _ → iext (λ _ → iext (λ _ → ext (λ _ → ext (λ _ → fixtypes' (ax1 _ _ (dlaw3 x))))))))) ⟩
+         lift₂ (quot (Y → Delay Z) (EqR→ ≈EqR))
+               (quot (X → Delay Y) (EqR→ ≈EqR))
+               (λ h l → abs (dbind h (dbind l x)))
+               (λ {h}{_}{_}{l} p r → ax1 _ _ (trans≈ (dbindcong1 h (dbindcong2 r x)) (dbindcong2 p (dbind l x))))
+               (~→map~ g)
+               (~→map~ f)
+         ≅⟨ lift-map 
+              {Z = λ y → lift₂ (quot (Y → Delay Z) (EqR→ ≈EqR))
+                               (quot (X → Delay Y) (EqR→ ≈EqR))
+                               (λ h l → abs (dbind h (dbind l x)))
+                               (λ {h}{_}{_}{l} p r → ax1 _ _ (trans≈ (dbindcong1 h (dbindcong2 r x)) (dbindcong2 p (dbind l x))))
+                               (~→map~ g)
+                               y ≅ 
+                         qbind g (lift-map {Z = λ _ → QDelay Y}
+                                 (λ h → abs (dbind h x)) 
+                                 (λ p → ax1 _ _ (dbindcong2 p x))
+                                 y)}
+              (λ h → 
+                proof
+                lift₂ (quot (Y → Delay Z) (EqR→ ≈EqR))
+                      (quot (X → Delay Y) (EqR→ ≈EqR))
+                      (λ h l → abs (dbind h (dbind l x)))
+                      (λ {h}{_}{_}{l} p r → ax1 _ _ (trans≈ (dbindcong1 h (dbindcong2 r x)) (dbindcong2 p (dbind l x))))
+                      (~→map~ g)
+                      (abs-map h)
+                ≅⟨ lift₂→lift' (quot (Y → Delay Z) (EqR→ ≈EqR)) 
+                               (quot (X → Delay Y) (EqR→ ≈EqR)) 
+                               (λ h₁ l → abs (dbind h₁ (dbind l x))) 
+                               (λ {h₁} {_} {_} {l} p r →
+                                    ax1 _ _
+                                    (trans≈ (dbindcong1 h₁ (dbindcong2 r x))
+                                     (dbindcong2 p (dbind l x)))) 
+                               (~→map~ g) 
+                               h ⟩
+                lift-map {Z = λ _ → QDelay Z}
+                         (λ l → abs (dbind l (dbind h x)))
+                         (λ r → ax1 _ _ (dbindcong2 r (dbind h x)))
+                         (~→map~ g)
+                ≅⟨ sym qbindabs ⟩
+                qbind g (abs (dbind h x))
+                ≅⟨ cong (qbind g) (sym (ax3-map {Z = λ _ → QDelay Y} (λ h₁ → abs (dbind h₁ x)) (λ p → ax1 _ _ (dbindcong2 p x)) h)) ⟩
+                qbind g (lift-map {Z = λ _ → QDelay Y}
+                                  (λ h → abs (dbind h x)) 
+                                  (λ p → ax1 _ _ (dbindcong2 p x))
+                                  (abs-map h))
+                ∎)
+              (λ r → fixtypes'' (cong
+                                   (qbind g ∘
+                                    lift-map {Z = λ _ → QDelay Y} (λ h → abs (dbind h x))
+                                    (λ p → ax1 _ _ (dbindcong2 p x)))
+                                   (ax1-map _ _ r)))
+              (~→map~ f) ⟩
          qbind g (lift-map {Z = λ _ → QDelay Y}
                            (λ h → abs (dbind h x)) 
                            (λ p → ax1 _ _ (dbindcong2 p x))
@@ -306,7 +501,7 @@ qlaw3 {X}{Y}{Z}{f}{g} = ext (λ q →
          ≅⟨ cong (qbind g) (sym qbindabs) ⟩
          qbind g (qbind f (abs x))
          ∎)
-       {!!} 
+       (λ r → fixtypes'' (cong (qbind g ∘ qbind f) (ax1 _ _ r))) 
        q)
 
 DelayM : Monad Sets

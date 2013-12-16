@@ -144,7 +144,6 @@ liftabs≅iden q x =
     (λ p → fixtypes'' (ax1 _ _ p)) 
     x
 
-
 .lift₂→lift : ∀{A A' B R R'}(q : Quotient A R)(q' : Quotient A' R')
              (f : A → A' → B)(p : compat₂ R R' f)(x : A)
              (x' : Quotient.Q q') → 
@@ -320,6 +319,50 @@ map~→~-abs {A}{B}{R} =
                         (λ p → ext (λ a → ax1 _ _ (p a))) 
                         f)
 
+.map~→~-naturality : ∀{A B C R R'}{f : B → C} →
+                     let open Quotient (quot B R) renaming (lift to liftB;
+                                                            compat to compatB)
+                         open Quotient (quot C R') renaming (Q to QC; abs to absC)
+                         open Quotient (quot (A → B) (EqR→ R)) renaming (Q to Q-mapB;
+                                                                         lift to lift-mapB;                                                     
+                                                                         compat to compat-mapB)
+                         open Quotient (quot (A → C) (EqR→ R')) renaming (Q to Q-mapC; 
+                                                                          abs to abs-mapC)      
+                     in {p : compatB {λ _ → QC} (absC ∘ f)}
+                        {q : compat-mapB {λ _ → Q-mapC} (λ l → abs-mapC (f ∘ l))} → 
+                        (g : Q-mapB) →
+                        liftB {λ _ → QC} (absC ∘ f) p ∘ map~→~ {A}{B}{R} g ≅ 
+                        map~→~ {A}{C}{R'} (lift-mapB (λ l → abs-mapC (f ∘ l)) q g)
+map~→~-naturality {A}{B}{C}{R}{R'}{f}{p}{q} g = 
+  let open Quotient (quot B R) renaming (lift to liftB; 
+                                         abs to absB; 
+                                         ax3 to ax3B)
+      open Quotient (quot C R') renaming (Q to QC; abs to absC)
+      open Quotient (quot (A → B) (EqR→ R)) renaming (lift to lift-mapB; 
+                                                      abs to abs-mapB;
+                                                      ax1 to ax1-mapB;      
+                                                      ax3 to ax3-mapB)      
+      open Quotient (quot (A → C) (EqR→ R')) renaming (Q to Q-mapC; 
+                                                       abs to abs-mapC)      
+  in lift-mapB
+       {λ y →
+          liftB (absC ∘ f) p ∘ map~→~ y ≅
+          map~→~ (lift-mapB (λ l → abs-mapC (f ∘ l)) q y)}
+       (λ h → 
+         proof
+         liftB {λ _ → QC} (absC ∘ f) p ∘ map~→~ {A}{B}{R} (abs-mapB h)
+         ≅⟨ cong (λ y → liftB {λ _ → QC} (absC ∘ f) p ∘ (y h)) (map~→~-abs {A}{B}{R}) ⟩
+         liftB {λ _ → QC} (absC ∘ f) p ∘ absB ∘ h
+         ≅⟨ ext (λ a → ax3B (absC ∘ f) p (h a)) ⟩
+         absC ∘ (f ∘ h)
+         ≅⟨ cong (λ y → y (f ∘ h)) (sym (map~→~-abs {A}{C}{R'}))  ⟩
+         map~→~ {A}{C}{R'} (abs-mapC (f ∘ h))
+         ≅⟨ cong map~→~ (sym (ax3-mapB (λ l → abs-mapC (f ∘ l)) q h)) ⟩
+         map~→~ {A}{C}{R'} (lift-mapB {λ _ → Q-mapC} (λ l → abs-mapC (f ∘ l)) q (abs-mapB h))
+         ∎)
+       (λ r → fixtypes' (cong (λ y → liftB {λ _ → QC} (absC ∘ f) p ∘ map~→~ y) (ax1-mapB _ _ r)))
+       g
+
 .lift-map-abs : ∀{A B R}{f : Quotient.Q (quot (A → B) (EqR→ R))}{x : A} →
                Quotient.lift (quot (A → B) (EqR→ R)) 
                              {λ _ → Quotient.Q (quot B R)} 
@@ -401,3 +444,41 @@ postulate
     ≅⟨ ~iso1 ⟩ 
     abs-map f 
     ∎)
+
+.~⇢map~-naturality : ∀{A B C R R'}{f : B → C} →
+                     let open Quotient (quot B R) renaming (Q to QB;
+                                                            lift to liftB;
+                                                            compat to compatB)
+                         open Quotient (quot C R') renaming (Q to QC; abs to absC)
+                         open Quotient (quot (A → B) (EqR→ R)) renaming (lift to lift-mapB;                                                     
+                                                                         compat to compat-mapB)
+                         open Quotient (quot (A → C) (EqR→ R')) renaming (Q to Q-mapC; 
+                                                                          abs to abs-mapC)      
+                     in {p : compatB {λ _ → QC} (absC ∘ f)}
+                        {q : compat-mapB {λ _ → Q-mapC} (λ l → abs-mapC (f ∘ l))} → 
+                        (g : A → QB) →
+                        ~→map~ {A}{C}{R'} (liftB {λ _ → QC} (absC ∘ f) p ∘ g) ≅ 
+                        lift-mapB {λ _ → Q-mapC} (λ l → abs-mapC (f ∘ l)) q (~→map~ {A}{B}{R} g)
+~⇢map~-naturality {A}{B}{C}{R}{R'}{f}{p}{q} g = 
+  let open Quotient (quot B R) renaming (lift to liftB; 
+                                         abs to absB; 
+                                         ax3 to ax3B)
+      open Quotient (quot C R') renaming (Q to QC; abs to absC)
+      open Quotient (quot (A → B) (EqR→ R)) renaming (lift to lift-mapB; 
+                                                      abs to abs-mapB;
+                                                      ax1 to ax1-mapB;      
+                                                      ax3 to ax3-mapB)      
+      open Quotient (quot (A → C) (EqR→ R')) renaming (Q to Q-mapC; 
+                                                       abs to abs-mapC)      
+  in 
+    proof
+    ~→map~ {A}{C}{R'} (liftB {λ _ → QC} (absC ∘ f) p ∘ g)
+    ≅⟨ cong
+         (λ y → ~→map~ {A} {C} {R'} (liftB {λ _ → QC} (absC ∘ f) p ∘ y))
+         (sym ~iso2) ⟩
+    ~→map~ {A}{C}{R'} (liftB {λ _ → QC} (absC ∘ f) p ∘ (map~→~ (~→map~ g)))
+    ≅⟨ cong ~→map~ (map~→~-naturality (~→map~ g)) ⟩
+    ~→map~ {A}{C}{R'} (map~→~ (lift-mapB {λ _ → Q-mapC} (λ l → abs-mapC (f ∘ l)) q (~→map~ g)))
+    ≅⟨ ~iso1 ⟩
+    lift-mapB {λ _ → Q-mapC} (λ l → abs-mapC (f ∘ l)) q (~→map~ {A}{B}{R} g)
+    ∎
