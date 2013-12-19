@@ -30,7 +30,7 @@ open import Monads.EMAlgebras
 open import Monads.Maybe
 
 -- The delay monad
---open import Monads.Delay
+open import Monads.Delay
 --open import Monads.Delay.Independence
 --open import Monads.Delay.Decision
 --open import Monads.Delay.Iteration

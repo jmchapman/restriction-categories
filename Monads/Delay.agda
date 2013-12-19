@@ -509,45 +509,12 @@ DelayM = record {
   T    = QDelay; 
   η    = abs ∘ now;
   bind = qbind;
-  law1 = {!!};
-  law2 = {!!};
-  law3 = {!!} }
+  law1 = qlaw1 ;
+  law2 = qlaw2;
+  law3 = qlaw3 }
 
 
-{-
-DelayM : Monad Sets
-DelayM = record { 
-  T    = QDelay; 
-  η    = abs ∘ now;
-  bind = λ f dx → abs (dbind (rep ∘ f) (rep dx)); --dbind; 
-  law1 = ext λ dx → 
-    proof 
-    abs (dbind (rep ∘ abs ∘ now) (rep dx)) 
-    ≅⟨ ax1 _ _ (dbindcong2 (ax3 ∘ now) (rep dx)) ⟩
-    abs (dbind now (rep dx)) 
-    ≅⟨ ax1 _ _ (dlaw1 (rep dx)) ⟩ 
-    abs (rep dx) 
-    ≅⟨ ax2 _ ⟩ 
-    dx 
-    ∎;
-  law2 = λ{X}{Y}{f} → ext λ x → 
-    proof
-    abs (dbind (rep ∘ f) (rep (abs (now x))))
-    ≅⟨ ax1 _ _ (dbindcong1 (rep ∘ f) (ax3 (now x))) ⟩ 
-    abs (rep (f x)) 
-    ≅⟨ ax2 _ ⟩ 
-    f x 
-    ∎; 
-  law3 = λ{X}{Y}{Z}{f}{g} → ext λ dx → 
-    proof
-    abs (dbind (rep ∘ abs ∘ dbind (rep ∘ g) ∘ rep ∘ f) (rep dx))
-    ≅⟨ ax1 _ _ (dbindcong2 (λ _ → ax3 _) (rep dx)) ⟩
-    abs (dbind (dbind (rep ∘ g) ∘ rep ∘ f) (rep dx))
-    ≅⟨ ax1 _ _ (dlaw3 (rep dx)) ⟩
-    abs (dbind (rep ∘ g) (dbind (rep ∘ f) (rep dx)))
-    ≅⟨ ax1 _ _ (dbindcong1 (rep ∘ g) (sym≈ (ax3 _))) ⟩
-    abs (dbind (rep ∘ g) (rep (abs (dbind (rep ∘ f) (rep dx)))))
-    ∎}
+{- 
 
 map : ∀{X Y} → (X → Y) → Delay X → Delay Y
 map f = dbind (now ∘ f) --rep (Fun.HMap (TFun DelayM) f (abs x))
