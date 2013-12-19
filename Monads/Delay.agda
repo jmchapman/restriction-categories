@@ -513,16 +513,17 @@ DelayM = record {
   law2 = qlaw2;
   law3 = qlaw3 }
 
+dmap : ∀{X Y} → (X → Y) → Delay X → Delay Y
+dmap f = dbind (now ∘ f) --rep (Fun.HMap (TFun DelayM) f (abs x))
 
-{- 
-
-map : ∀{X Y} → (X → Y) → Delay X → Delay Y
-map f = dbind (now ∘ f) --rep (Fun.HMap (TFun DelayM) f (abs x))
+qmap : ∀{X Y} → (X → Y) → QDelay X → QDelay Y
+qmap f = qbind (abs ∘ now ∘ f)
 
 str : ∀{X Y} → X × Delay Y → Delay (X × Y)
-str (x , dy) = map (λ y → (x , y)) dy
+str (x , dy) = dmap (λ y → (x , y)) dy
 
--}
+qstr : ∀{X Y} → X × QDelay Y → QDelay (X × Y)
+qstr (x , dy) = qmap (λ y → x , y) dy
 
 -- Another composition called dcomp, weakly bisimilar to dbind but
 -- easier to use.
