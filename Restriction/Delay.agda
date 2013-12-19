@@ -231,106 +231,34 @@ dR3 {X}{Y}{Z}{f}{g} x =
   drest (dbind g ∘ (drest f)) x
   d∎
 
-{-
 dR4 : ∀{X Y Z}{f : X → Delay Y}{g : Y → Delay Z}(x : X) →
       (dbind (drest g) ∘ f) x ≈ (dbind f ∘ (drest (dbind g ∘ f))) x
-dR4 {X}{Y}{Z}{f = f}{g = g} x = 
-  let open Monad DelayM 
-      open Relation.Binary.EqReasoning 
-        (record {Carrier = Delay Y;_≈_ = proj₁ ≈EqR;isEquivalence = proj₂ ≈EqR})
-        renaming (begin_ to proof_) in
-      proof 
-      (dbind (drest g) ∘ f) x
-      ≈⟨ {!!} ⟩
-      (dbind f ∘ (drest (dbind g ∘ f))) x
-      ∎
--}
+dR4 {X}{Y}{Z}{f}{g} x = 
+  let open Monad DelayM
+      open Relation.Binary.EqReasoning (record {Carrier      = Delay Y;
+                                                _≈_          = proj₁ ≈EqR;
+                                               isEquivalence = proj₂ ≈EqR })
+           renaming (begin_ to dproof_; _≡⟨⟩_ to _≈⟨⟩_; _∎ to _d∎) in 
+  dproof
+  dbind (drest g) (f x)
+  ≈⟨⟩
+  dbind (λ y → dbind (now ∘ proj₁) (dbind (λ z → now (y , z)) (g y))) (f x)
+  ≈⟨ dbindcong2 (λ y → sym≈ (dlaw3 (g y))) (f x) ⟩
+  dbind (λ y → dbind (λ _ → now y) (g y)) (f x)
+  ≈⟨ lemma3 {dy = f x} {g = g} ⟩
+  dbind (λ y → dbind (λ _ → f x) (g y)) (f x)
+  ≈⟨ dlaw3 (f x) ⟩ 
+  dbind (λ _ → f x) (dbind g (f x))
+  ≈⟨ dlaw3 (dbind g (f x)) ⟩ 
+  dbind f (dbind (λ _ → now x) (dbind g (f x)))
+  ≈⟨ dbindcong1 f (dlaw3 (dbind g (f x))) ⟩
+  dbind f (dbind (now ∘ proj₁) (dbind (λ y → now (x , y)) (dbind g (f x))))
+  ≈⟨⟩
+  dbind f (drest (dbind g ∘ f) x)
+  d∎
 
-
-      
-{-
-dR3 : ∀{X Y Z}{f : X → Delay Y}{g : X → Delay Z}(x : X) → 
-      (dbind (drest g) ∘ (drest f)) x ≅ drest (dbind g ∘ (drest f)) x
-dR3 {f = f}{g = g} x = 
-  let open Monad DelayM 
-  in proof
-     dbind
-     (λ y →
-        dbind (now ∘ proj₁)
-        (dbind (λ z → now (y , z)) (g y)))
-     (dbind (now ∘ proj₁) (dbind (λ y → now (x , y)) (f x)))
-     ≅⟨ cong (λ f' → dbind (drest g) (f' (f x))) (sym law3) ⟩ 
-     dbind (drest g) (dbind (λ _ → now x) (f x))
-     ≅⟨ cong (λ f' → f' (f x)) (sym law3) ⟩ 
-     dbind 
-       (λ _ → dbind (now ∘ proj₁) (dbind (λ y → now (x , y)) (g x)))
-       (f x)
-     ≅⟨ cong (λ z → dbind (λ _ → z) (f x)) (cong (λ f' → f' (g x)) (sym law3)) ⟩
-     dbind (λ _ → (dbind (λ _ → now x) (g x))) (f x)
-     ≅⟨ cong (λ h → h (f x)) law3 ⟩
-     dbind (λ _ → now x) (dbind (λ _ → g x) (f x))
-     ≅⟨ cong (λ h → dbind (λ _ → now x) (h (f x))) law3 ⟩
-     dbind (λ _ → now x) (dbind g (dbind (λ _ → now x) (f x)))
-     ≅⟨ cong (λ f' → f' (dbind g (dbind (λ _ → now x) (f x)))) law3 ⟩
-     dbind (now ∘ proj₁)
-       (dbind (λ y → now (x , y))
-         (dbind g (dbind (λ _ → now x) (f x))))
-     ≅⟨ cong 
-          (λ f' → 
-            dbind (now ∘ proj₁) 
-              (dbind (λ y → now (x , y)) (dbind g (f' (f x))))) 
-          law3 ⟩
-     dbind (now ∘ proj₁)
-      (dbind (λ y → now (x , y))
-       (dbind g
-        (dbind (now ∘ proj₁)
-         (dbind (λ y → now (x , y)) (f x)))))
-     ∎
--}
 
 {-
-dR4 : ∀{X Y Z}{f : X → Delay Y}{g : Y → Delay Z}(x : X) →
-      (dbind (drest g) ∘ f) x ≅ (dbind f ∘ (drest (dbind g ∘ f))) x
-dR4 {X}{Y}{Z}{f = f}{g = g} x = 
-  let open Monad DelayM 
-  in proof
-    dbind
-    (λ y →
-       dbind (now ∘ proj₁) (dbind (λ z → now (y , z)) (g y)))
-    (f x)
-    ≅⟨ cong (λ t → dbind t (f x)) 
-            (ext (λ y → cong (λ h → h (g y)) (sym law3))) ⟩
-    dbind (λ y → dbind (λ _ → now y) (g y)) (f x)
-    ≅⟨ quotient (lemma3 {dy = f x}{g = g}) ⟩
-    dbind (λ y → dbind (λ _ → f x) (g y)) (f x)
-    ≅⟨ cong (λ h → h (f x)) law3 ⟩
-    dbind (λ _ → f x) (dbind g (f x))
-    ≅⟨ cong (λ h → h (dbind g (f x))) law3 ⟩
-    dbind f (dbind (λ _ → now x) (dbind g (f x)))
-    ≅⟨ cong (λ h → dbind f (h (dbind g (f x)))) law3 ⟩
-    dbind f
-    (dbind (now ∘ proj₁)
-     (dbind (λ y → now (x , y)) (dbind g (f x))))
-    ∎
--}
-
-{-
-abs (dbind (rep ∘ f) (rep (abs (dbind (now ∘ proj₁₁)) (dbind (λ y → now (x , y)) (rep (f x)))))))
--}
-
-{-
-postulate R3 : {A B C : Set} {f : Hom A B} {g : Hom A C} →
-               comp (λ x → abs (drest ((λ {x} → rep) ∘ g) x))
-               (λ x → abs (drest ((λ {x} → rep) ∘ f) x))
-               ≅
-               (λ x → abs
-                 (drest (rep ∘ comp g (λ x₁ → abs (drest (rep ∘ f) x₁))) x))
-
-postulate R4 : {A B C : Set} {f : Hom A B} {g : Hom B C} →
-               comp (λ x → abs (drest ((λ {x} → rep) ∘ g) x)) f 
-               ≅
-               comp f (λ x → abs (drest ((λ {x} → rep) ∘ comp g f) x))
-
 
 DelayR : RestCat
 DelayR = let open ≅-Reasoning renaming (begin_ to proof_) in
