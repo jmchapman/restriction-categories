@@ -10,6 +10,8 @@ open import Categories.Sets
 open import Utilities
 open import Restriction.Cat
 open import Monads.Delay
+open import Relation.Binary
+open IsEquivalence renaming (refl to irefl; sym to isym; trans to itrans)
 
 drest : ∀{X Y} → (X → Delay Y) → X → Delay X
 drest f x = dmap proj₁ (str (x , f x))
@@ -151,7 +153,7 @@ lemma3 {Y}{Z}{dy}{g} = lemma3' {Y}{Z}{dy}{_}{g} refl≈
 
 import Relation.Binary.EqReasoning
 
-dR1 : ∀{X Y}{f : X → Delay Y}(x : X) → (dbind f ∘ (drest f)) x ≈ f x
+dR1 : ∀{X Y}{f : X → Delay Y}(x : X) → dbind f (drest f x) ≈ f x
 dR1 {X}{Y}{f = f} x = 
   let open Monad DelayM 
       open Relation.Binary.EqReasoning 
@@ -163,7 +165,7 @@ dR1 {X}{Y}{f = f} x =
   dbind f (dbind (now ∘ proj₁) (dbind (λ y → now (x , y)) (f x)))
   ≈⟨ dbindcong1 f (sym≈ (dlaw3 (f x))) ⟩ 
   dbind f (dbind (dbind (now ∘ proj₁) ∘ (λ y → now (x , y))) (f x))
-  ≈⟨⟩ 
+  ≈⟨⟩
   dbind f (dbind (λ _ → now x) (f x))
   ≈⟨ sym≈ (dlaw3 (f x)) ⟩ 
   dbind (λ _ → f x) (f x)
@@ -171,8 +173,38 @@ dR1 {X}{Y}{f = f} x =
   f x 
   d∎
 
+.qR1 : ∀{X Y}{f : X → QDelay Y}(x : X) → qbind f (qrest f x) ≅ f x
+qR1 {X}{Y}{f} x = 
+  proof 
+  qbind f (qrest f x)
+  ≡⟨⟩ 
+  qbind f (qbind (abs ∘ now ∘ proj₁) (qbind (λ y → abs (now (x , y))) (f x)))
+  ≅⟨ cong (λ g → qbind f (g (f x))) (sym qlaw3) ⟩
+  qbind f (qbind (qbind (abs ∘ now ∘ proj₁) ∘ (abs ∘ now ∘ (λ y → (x , y)))) (f x))
+  ≅⟨ cong (λ g → qbind f (qbind g (f x))) (ext (λ _ → qbindabsabs)) ⟩
+  qbind f (qbind (λ y → abs (dbind (now ∘ proj₁) (now (x , y)))) (f x))
+  ≡⟨⟩
+  qbind f (qbind (λ _ → abs (now x)) (f x))
+  ≅⟨ cong (λ g → g (f x)) (sym qlaw3) ⟩
+  qbind (λ _ → qbind f (abs (now x))) (f x)
+  ≅⟨ cong (λ y → qbind (λ _ → y x) (f x)) qlaw2 ⟩
+  qbind (λ _ → f x) (f x)
+  ≅⟨ lift {Y = λ y → qbind (λ _ → y) y ≅ y} 
+          (λ y → 
+            proof
+            qbind (λ _ → abs y) (abs y)
+            ≅⟨ qbindabsabs ⟩
+            abs (dbind (λ _ → y) y)
+            ≅⟨ ax1 _ _ (sym≈ lemma) ⟩
+            abs y
+            ∎) 
+          (λ p → fixtypes'' (ax1 _ _ p)) 
+          (f x) ⟩ 
+  f x
+  ∎ 
+
 dR2 : ∀{X Y Z}{f : X → Delay Y}{g : X → Delay Z}(x : X) → 
-      (dbind (drest f) ∘ (drest g)) x ≈ (dbind (drest g) ∘ (drest f)) x
+      dbind (drest f) (drest g x) ≈ dbind (drest g) (drest f x)
 dR2 {X}{Y}{Z}{f}{g} x = 
   let open Monad DelayM
       open Relation.Binary.EqReasoning (record {Carrier      = Delay X;
@@ -183,7 +215,7 @@ dR2 {X}{Y}{Z}{f}{g} x =
       dbind (drest f) (drest g x)
       ≈⟨⟩
       dbind (drest f) (dbind (now ∘ proj₁) (dbind (λ y → now (x , y)) (g x)))
-      ≈⟨ (dbindcong1 (drest f) (sym≈ (dlaw3 (g x)))) ⟩
+      ≈⟨ dbindcong1 (drest f) (sym≈ (dlaw3 (g x))) ⟩
       dbind (drest f) (dbind (λ _ → now x) (g x))
       ≈⟨ sym≈ (dlaw3 {f = λ _ → now x} {g = drest f} (g x)) ⟩
       dbind (λ _ → dbind (now ∘ proj₁) (dbind (λ y → now (x , y)) (f x))) (g x)
@@ -201,6 +233,39 @@ dR2 {X}{Y}{Z}{f}{g} x =
       dbind (drest g) (drest f x)
       d∎
 
+.qR2 : ∀{X Y Z}{f : X → QDelay Y}{g : X → QDelay Z}(x : X) → 
+      qbind (qrest f) (qrest g x) ≅ qbind (qrest g) (qrest f x)
+qR2 {X}{Y}{Z}{f}{g} x = 
+  proof
+  qbind (qrest f) (qrest g x)
+  ≡⟨⟩
+  qbind (qrest f) (qbind (abs ∘ now ∘ proj₁) (qbind (λ y → abs (now (x , y))) (g x)))
+  ≅⟨ cong (λ h → qbind (qrest f) (h (g x))) (sym qlaw3) ⟩
+  qbind (qrest f) (qbind (qbind (abs ∘ now ∘ proj₁) ∘ (abs ∘ now ∘ (λ y → (x , y)))) (g x))
+  ≅⟨ cong (λ h → qbind (qrest f) (qbind h (g x))) (ext (λ _ → qbindabsabs)) ⟩
+  qbind (qrest f) (qbind (λ y → abs (dbind (now ∘ proj₁) (now (x , y)))) (g x))
+  ≡⟨⟩
+  qbind (qrest f) (qbind (λ _ → abs (now x)) (g x))
+  ≅⟨ cong (λ h → h (g x)) (sym qlaw3) ⟩
+  qbind (λ _ → qbind (qrest f) (abs (now x))) (g x)
+  ≅⟨ cong (λ y → qbind (λ _ → y x) (g x)) qlaw2 ⟩
+  qbind (λ _ → qrest f x) (g x)
+  ≡⟨⟩
+  qbind (λ _ → qbind (abs ∘ now ∘ proj₁) (qbind (λ y → abs (now (x , y))) (f x))) (g x)
+  ≅⟨ {!!} ⟩ --cong (λ h → qbind (λ _ → h (f x)) (g x)) {!ext (λ _ → sym qlaw3)!} ⟩
+  qbind (λ _ → qbind (λ _ → abs (now x)) (f x)) (g x)
+  ≅⟨ {!!} ⟩
+  qbind (λ _ → qbind (λ _ → abs (now x)) (g x)) (f x)
+  ≅⟨ {!!} ⟩
+  qbind (λ _ → qbind (abs ∘ now ∘ proj₁) (qbind (λ y → abs (now (x , y))) (g x))) (f x)
+  ≅⟨ {!!} ⟩
+  qbind (qrest g) (qbind (λ _ → abs (now x)) (f x))
+  ≅⟨ {!!} ⟩
+  qbind (qrest g) (qbind (abs ∘ now ∘ proj₁) (qbind (λ y → abs (now (x , y))) (f x)))
+  ≡⟨⟩
+  qbind (qrest g) (qrest f x)
+  ∎
+  
 dR3 : ∀{X Y Z}{f : X → Delay Y}{g : X → Delay Z}(x : X) → 
       (dbind (drest g) ∘ (drest f)) x ≈ drest (dbind g ∘ (drest f)) x
 dR3 {X}{Y}{Z}{f}{g} x = 
@@ -257,7 +322,17 @@ dR4 {X}{Y}{Z}{f}{g} x =
   dbind f (drest (dbind g ∘ f) x)
   d∎
 
-
+{-
+DelayR : RestCat
+DelayR = 
+  record { 
+    cat  = Kl DelayM; 
+    rest = qrest;
+    R1   = {!!};
+    R2   = {!!};
+    R3   = {!!}; 
+    R4   = {!!}} 
+-}
 {-
 
 DelayR : RestCat

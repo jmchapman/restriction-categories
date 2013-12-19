@@ -239,6 +239,32 @@ qbindabs {X}{Y}{f}{x} = lift₂→lift' (quot (X → Delay Y) (EqR→ ≈EqR))
                                      (~→map~ f)
                                      x
 
+.qbindabsabs : ∀{X Y}{f : X → Delay Y}{x : Delay X} →
+               qbind (abs ∘ f) (abs x) ≅ abs (dbind f x)
+qbindabsabs {X}{Y}{f}{x} = 
+  proof
+  qbind (abs ∘ f) (abs x) 
+  ≅⟨ qbindabs ⟩ 
+  lift-map {Z = λ _ → QDelay Y}
+           (λ g → abs (dbind g x)) 
+           (λ r → compat-abs-dbind r (irefl (proj₂ ≈EqR))) 
+           (~→map~ (abs ∘ f))
+  ≅⟨ cong
+       (λ g →
+          lift-map {Z = λ _ → QDelay Y} (λ g₁ → abs (dbind g₁ x))
+          (λ r → compat-abs-dbind r (irefl (proj₂ ≈EqR))) (g f))
+       (~→map~-abs {X}{Delay Y}{≈EqR}) ⟩
+  lift-map {Z = λ _ → QDelay Y}
+           (λ g → abs (dbind g x)) 
+           (λ r → compat-abs-dbind r (irefl (proj₂ ≈EqR))) 
+           (abs-map f)
+  ≅⟨ ax3-map {Z = λ _ → QDelay Y}
+             (λ g → abs (dbind g x)) 
+             (λ r → compat-abs-dbind r (irefl (proj₂ ≈EqR))) 
+             f ⟩
+  abs (dbind f x)
+  ∎
+
 .~→map~-abs-delay : ∀{X}{Y}(f : X → Delay Y) → ~→map~ (abs ∘ f) ≅ abs-map f
 ~→map~-abs-delay f = cong (λ g → g f) ~→map~-abs 
 
@@ -248,21 +274,7 @@ qlaw1 {X} = ext (λ q →
        (λ x →                  
          proof
          qbind (abs ∘ now) (abs x)
-         ≅⟨ qbindabs ⟩
-         lift-map (λ g → abs (dbind g x)) 
-                  (λ r → compat-abs-dbind r (irefl (proj₂ ≈EqR)))
-                  (~→map~ (abs ∘ now))
-         ≅⟨ cong
-            (lift-map (λ g → abs (dbind g x))
-                      (λ r → compat-abs-dbind r (irefl (proj₂ ≈EqR))))
-                      (~→map~-abs-delay now) ⟩
-         lift-map (λ g → abs (dbind g x)) 
-                  (λ r → compat-abs-dbind r (irefl (proj₂ ≈EqR)))
-                  (abs-map now)
-         ≅⟨ ax3-map {Z = λ _ → QDelay X} 
-                    (λ g → abs (dbind g x))
-                    (λ r → compat-abs-dbind r (irefl (proj₂ ≈EqR))) 
-                    now ⟩
+         ≅⟨ qbindabsabs ⟩
          abs (dbind now x)                
          ≅⟨ ax1 _ _ (dlaw1 x) ⟩
          abs x
