@@ -252,15 +252,66 @@ qR2 {X}{Y}{Z}{f}{g} x =
   qbind (λ _ → qrest f x) (g x)
   ≡⟨⟩
   qbind (λ _ → qbind (abs ∘ now ∘ proj₁) (qbind (λ y → abs (now (x , y))) (f x))) (g x)
-  ≅⟨ {!!} ⟩ --cong (λ h → qbind (λ _ → h (f x)) (g x)) {!ext (λ _ → sym qlaw3)!} ⟩
+  ≅⟨ cong (λ h → qbind (λ _ → h (f x)) (g x)) (sym qlaw3) ⟩
+  qbind (λ _ → qbind (λ y → qbind (abs ∘ now ∘ proj₁) (abs (now (x , y)))) (f x)) (g x)
+  ≅⟨ cong (λ h → qbind (λ _ → qbind h (f x)) (g x)) (ext (λ _ → qbindabsabs)) ⟩
+  qbind (λ _ → qbind (λ y → abs (dbind (now ∘ proj₁) (now (x , y)))) (f x)) (g x)
+  ≡⟨⟩
   qbind (λ _ → qbind (λ _ → abs (now x)) (f x)) (g x)
-  ≅⟨ {!!} ⟩
+  ≅⟨ lift
+       {Y =
+        λ y →
+          qbind (λ _ → qbind (λ _ → abs (now x)) y) (g x) ≅
+          qbind (λ _ → qbind (λ _ → abs (now x)) (g x)) y}
+       (λ y → 
+         proof 
+         qbind (λ _ → qbind (abs ∘ (λ _ → now x)) (abs y)) (g x)
+         ≅⟨ cong (λ h → qbind h (g x)) (ext (λ _ → qbindabsabs)) ⟩
+         qbind (λ _ → abs (dbind (λ _ → now x) y)) (g x)
+         ≅⟨ lift
+              {Y =
+               λ z →
+                 qbind (λ _ → abs (dbind (λ _ → now x) y)) z ≅
+                 qbind (λ _ → qbind (λ _ → abs (now x)) z) (abs y)}
+              (λ z → 
+                proof
+                qbind (λ _ → abs (dbind (λ _ → now x) y)) (abs z)
+                ≅⟨ qbindabsabs ⟩
+                abs (dbind (λ _ → dbind (λ _ → now x) y) z)
+                ≅⟨ ax1 _ _ (∼→≈ (lemma2 {dy = y} {dz = z})) ⟩
+                abs (dbind (λ _ → dbind (λ _ → now x) z) y)
+                ≅⟨ sym qbindabsabs ⟩
+                qbind (λ _ → abs (dbind (λ _ → now x) z)) (abs y)
+                ≅⟨ cong (λ h → qbind h (abs y)) (ext (λ _ → sym qbindabsabs)) ⟩
+                qbind (λ _ → qbind (abs ∘ (λ _ → now x)) (abs z)) (abs y)
+                ∎) 
+              (λ r → fixtypes' (cong (qbind (λ _ → abs (dbind (λ _ → now x) y))) (ax1 _ _ r))) 
+              (g x) ⟩
+         qbind (λ _ → qbind (abs ∘ (λ _ → now x)) (g x)) (abs y)
+         ∎)
+       (λ r →
+            fixtypes''
+            (cong (qbind (λ _ → qbind (abs ∘ (λ _ → now x)) (g x)))
+             (ax1 _ _ r))) 
+       (f x) ⟩
   qbind (λ _ → qbind (λ _ → abs (now x)) (g x)) (f x)
-  ≅⟨ {!!} ⟩
+  ≡⟨⟩
+  qbind (λ _ → qbind (λ y → abs (dbind (now ∘ proj₁) (now (x , y)))) (g x)) (f x)
+  ≅⟨ cong (λ h → qbind (λ _ → qbind h (g x)) (f x)) (ext (λ _ → sym qbindabsabs)) ⟩
+  qbind (λ _ → qbind (λ y → qbind (abs ∘ now ∘ proj₁) (abs (now (x , y)))) (g x)) (f x)
+  ≅⟨ cong (λ h → qbind (λ _ → h (g x)) (f x)) qlaw3 ⟩
   qbind (λ _ → qbind (abs ∘ now ∘ proj₁) (qbind (λ y → abs (now (x , y))) (g x))) (f x)
-  ≅⟨ {!!} ⟩
+  ≡⟨⟩
+  qbind (λ _ → qrest g x) (f x)
+  ≅⟨ cong (λ y → qbind (λ _ → y x) (f x)) (sym qlaw2) ⟩
+  qbind (λ _ → qbind (qrest g) (abs (now x))) (f x)
+  ≅⟨ cong (λ h → h (f x)) qlaw3 ⟩
   qbind (qrest g) (qbind (λ _ → abs (now x)) (f x))
-  ≅⟨ {!!} ⟩
+  ≡⟨⟩
+  qbind (qrest g) (qbind (λ y → abs (dbind (now ∘ proj₁) (now (x , y)))) (f x))
+  ≅⟨ cong (λ h → qbind (qrest g) (qbind h (f x))) (ext (λ _ → sym qbindabsabs)) ⟩
+  qbind (qrest g) (qbind (qbind (abs ∘ now ∘ proj₁) ∘ (abs ∘ now ∘ (λ y → (x , y)))) (f x))
+  ≅⟨ cong (λ h → qbind (qrest g) (h (f x))) qlaw3 ⟩
   qbind (qrest g) (qbind (abs ∘ now ∘ proj₁) (qbind (λ y → abs (now (x , y))) (f x)))
   ≡⟨⟩
   qbind (qrest g) (qrest f x)
