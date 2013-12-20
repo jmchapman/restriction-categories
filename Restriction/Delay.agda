@@ -347,6 +347,53 @@ dR3 {X}{Y}{Z}{f}{g} x =
   drest (dbind g ∘ (drest f)) x
   d∎
 
+.qR3 : ∀{X Y Z}{f : X → QDelay Y}{g : X → QDelay Z}(x : X) → 
+       qbind (qrest g) (qrest f x) ≅ qrest (qbind g ∘ (qrest f)) x
+qR3 {X}{Y}{Z}{f}{g} x = 
+  proof
+  qbind (qrest g) (qrest f x)
+  ≡⟨⟩
+  qbind (qrest g) (qbind (abs ∘ now ∘ proj₁) (qbind (λ y → abs (now (x , y))) (f x)))
+  ≅⟨ cong (λ h → qbind (qrest g) (h (f x))) (sym qlaw3) ⟩
+  qbind (qrest g) (qbind (qbind (abs ∘ now ∘ proj₁) ∘ (abs ∘ now ∘ (λ y → (x , y)))) (f x))
+  ≅⟨ cong (λ h → qbind (qrest g) (qbind h (f x))) (ext (λ _ → qbindabsabs)) ⟩
+  qbind (qrest g) (qbind (λ y → abs (dbind (now ∘ proj₁) (now (x , y)))) (f x))
+  ≡⟨⟩
+  qbind (qrest g) (qbind (λ _ → abs (now x)) (f x))
+  ≅⟨ cong (λ h → h (f x)) (sym qlaw3) ⟩
+  qbind (λ _ → qbind (qrest g) (abs (now x))) (f x)
+  ≅⟨ cong (λ y → qbind (λ _ → y x) (f x)) qlaw2 ⟩
+  qbind (λ _ → qrest g x) (f x)
+  ≡⟨⟩
+  qbind (λ _ → qbind (abs ∘ now ∘ proj₁) (qbind (λ y → abs (now (x , y))) (g x))) (f x)
+  ≅⟨ cong (λ h → qbind (λ _ → h (g x)) (f x)) (sym qlaw3) ⟩
+  qbind (λ _ → qbind (λ y → qbind (abs ∘ now ∘ proj₁) (abs (now (x , y)))) (g x)) (f x)
+  ≅⟨ cong (λ h → qbind (λ _ → qbind h (g x)) (f x)) (ext (λ _ → qbindabsabs)) ⟩
+  qbind (λ _ → qbind (λ y → abs (dbind (now ∘ proj₁) (now (x , y)))) (g x)) (f x)
+  ≡⟨⟩
+  qbind (λ _ → qbind (λ _ → abs (now x)) (g x)) (f x)
+  ≅⟨ cong (λ h → h (f x)) qlaw3 ⟩
+  qbind (λ _ → abs (now x)) (qbind (λ _ → g x) (f x))
+  ≡⟨⟩
+  qbind (λ y → abs (dbind (now ∘ proj₁) (now (x , y)))) (qbind (λ _ → g x) (f x))
+  ≅⟨ cong (λ h → qbind h (qbind (λ _ → g x) (f x))) (ext (λ _ → sym qbindabsabs)) ⟩
+  qbind (λ y → qbind (abs ∘ now ∘ proj₁) (abs (now (x , y)))) (qbind (λ _ → g x) (f x))
+  ≅⟨ cong (λ h → h (qbind (λ _ → g x) (f x))) qlaw3 ⟩
+  qbind (abs ∘ now ∘ proj₁) (qbind (λ y → abs (now (x , y))) (qbind (λ _ → g x) (f x)))
+  ≅⟨ cong (λ h → qbind (abs ∘ now ∘ proj₁) (qbind (λ y → abs (now (x , y))) (qbind (λ _ → h x) (f x)))) (sym qlaw2) ⟩
+  qbind (abs ∘ now ∘ proj₁) (qbind (λ y → abs (now (x , y))) (qbind (λ _ → qbind g (abs (now x))) (f x)) )
+  ≅⟨ cong (λ h → qbind (abs ∘ now ∘ proj₁) (qbind (λ y → abs (now (x , y))) (h (f x)))) qlaw3 ⟩
+  qbind (abs ∘ now ∘ proj₁) (qbind (λ y → abs (now (x , y))) (qbind g (qbind (λ _ → abs (now x)) (f x))))
+  ≡⟨⟩
+  qbind (abs ∘ now ∘ proj₁) (qbind (λ y → abs (now (x , y))) (qbind g (qbind (λ y → abs (dbind (now ∘ proj₁) (now (x , y)))) (f x))))
+  ≅⟨ cong (λ h → qbind (abs ∘ now ∘ proj₁) (qbind (λ y → abs (now (x , y))) (qbind g (qbind h (f x))))) (ext (λ _ → sym qbindabsabs))  ⟩
+  qbind (abs ∘ now ∘ proj₁) (qbind (λ y → abs (now (x , y))) (qbind g (qbind (qbind (abs ∘ now ∘ proj₁) ∘ (abs ∘ now ∘ (λ y → (x , y)))) (f x))))
+  ≅⟨ cong (λ h → qbind (abs ∘ now ∘ proj₁) (qbind (λ y → abs (now (x , y))) (qbind g (h (f x))))) qlaw3 ⟩
+  qbind (abs ∘ now ∘ proj₁) (qbind (λ y → abs (now (x , y))) (qbind g (qbind (abs ∘ now ∘ proj₁) (qbind (λ y → abs (now (x , y))) (f x)))))
+  ≡⟨⟩
+  qrest (qbind g ∘ (qrest f)) x
+  ∎
+
 dR4 : ∀{X Y Z}{f : X → Delay Y}{g : Y → Delay Z}(x : X) →
       (dbind (drest g) ∘ f) x ≈ (dbind f ∘ (drest (dbind g ∘ f))) x
 dR4 {X}{Y}{Z}{f}{g} x = 
