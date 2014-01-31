@@ -82,6 +82,7 @@ mutual
 
 -- Convergence
 
+{-
 data _↓_ {X : Set} : Delay ∞ X → X → Set where
   now↓ : ∀{x} → now x ↓ x
   later↓ : ∀{c x} → force c ↓ x → later c ↓ x
@@ -89,8 +90,17 @@ data _↓_ {X : Set} : Delay ∞ X → X → Set where
 ↓~ : ∀{X}{c c' : Delay ∞ X}{x} → c ~⟨ ∞ ⟩~ c' → c ↓ x → c' ↓ x
 ↓~ ~now p = p
 ↓~ (~later p) (later↓ q) = later↓ (↓~ (~force p) q)
+-}
 
-unique↓ : ∀{X}{c : Delay ∞ X}{x y : X} → c ↓ x → c ↓ y → x ≅ y
+data _↓⟨_⟩_ {X : Set} : Delay ∞ X → Size → X → Set where
+  now↓   : ∀{i x} → now x ↓⟨ i ⟩ x
+  later↓ : ∀{i c x} → force c ↓⟨ i ⟩ x → later c ↓⟨ ↑ i ⟩ x
+
+↓~ : ∀{X}{i}{c c' : Delay ∞ X}{x} → c ~⟨ i ⟩~ c' → c ↓⟨ i ⟩ x → c' ↓⟨ i ⟩ x
+↓~ ~now p = p
+↓~ (~later p) (later↓ q) = later↓ (↓~ (~force p) q)
+
+unique↓ : ∀{X}{i}{c : Delay ∞ X}{x y : X} → c ↓⟨ i ⟩ x → c ↓⟨ i ⟩ y → x ≅ y
 unique↓ now↓ now↓ = refl
 unique↓ (later↓ p) (later↓ q) = unique↓ p q
   
@@ -99,7 +109,7 @@ unique↓ (later↓ p) (later↓ q) = unique↓ p q
 mutual
 
   data _≈⟨_⟩≈_ {X : Set} : Delay ∞ X → Size → Delay ∞ X → Set where
-    ≈↓ : ∀{i c c' x} → c ↓ x → c' ↓ x → c ≈⟨ i ⟩≈ c'
+    ≈↓ : ∀{i c c' x} → c ↓⟨ i ⟩ x → c' ↓⟨ i ⟩ x → c ≈⟨ i ⟩≈ c'
     ≈later : ∀{i c c'} → c ∞≈⟨ i ⟩≈ c' → later c ≈⟨ i ⟩≈ later c'
 
   record _∞≈⟨_⟩≈_ {X} (c : ∞Delay ∞ X) i (c' : ∞Delay ∞ X) : Set where
@@ -139,7 +149,7 @@ mutual
 
 -- Transitivity
 
-↓≈ : ∀{X}{c c' : Delay ∞ X}{x} → c ≈⟨ ∞ ⟩≈ c' → c ↓ x → c' ↓ x
+↓≈ : ∀{X}{i}{c c' : Delay ∞ X}{x} → c ≈⟨ i ⟩≈ c' → c ↓⟨ i ⟩ x → c' ↓⟨ i ⟩ x
 ↓≈ (≈↓ now↓ q) now↓ = q
 ↓≈ (≈↓ (later↓ p) r) (later↓ q) with unique↓ p q
 ↓≈ (≈↓ (later↓ p) r) (later↓ q) | refl = r
@@ -150,33 +160,17 @@ mutual
     (p : c ≈⟨ i ⟩≈ c') (p' : c' ≈⟨ i ⟩≈ c'') → c ≈⟨ i ⟩≈ c''
   ≈trans (≈↓ p q) (≈↓ r s) with unique↓ q r
   ≈trans (≈↓ p q) (≈↓ r s) | refl = ≈↓ p s
-  ≈trans (≈↓ p (later↓ q)) (≈later r) = ≈↓ p (later↓ {!↓≈ (≈force r) q !})
-  ≈trans (≈later p) (≈↓ (later↓ q) r) = {!!}
+  ≈trans (≈↓ p (later↓ q)) (≈later r) = ≈↓ p (later↓ (↓≈ (≈force r) q))
+  ≈trans (≈later p) (≈↓ (later↓ q) r) = ≈↓ (later↓ (↓≈ (≈sym (≈force p)) q)) r
   ≈trans (≈later p) (≈later q) = ≈later (∞≈trans p q)
 
   ∞≈trans : ∀ {i X} {c c' c'' : ∞Delay ∞ X}
     (p : c ∞≈⟨ i ⟩≈ c') (p' : c' ∞≈⟨ i ⟩≈ c'') → c ∞≈⟨ i ⟩≈ c''
   ≈force (∞≈trans p p') = ≈trans (≈force p) (≈force p')
 
+
 {-
 
-
-~→≈ : ∀{X}{dx dy : Delay X} → dx ~ dy → dx ≈ dy
-~→≈ now~ = refl≈
-~→≈ (later~ p) = later≈ (♯ (~→≈ (♭ p)))
-
-≈↓ : ∀{X}{dx dy : Delay X}{x : X} → dx ≈ dy → dx ↓ x → dy ↓ x
-≈↓ (↓≈ now↓ q) now↓ = q
-≈↓ (↓≈ (later↓ p) r) (later↓ q) with unique↓ p q
-≈↓ (↓≈ (later↓ p) r) (later↓ q) | refl = r
-≈↓ (later≈ p) (later↓ q) = later↓ (≈↓ (♭ p) q)
-
-trans≈ : ∀{X}{dx dy dz : Delay X} → dx ≈ dy → dy ≈ dz → dx ≈ dz
-trans≈ (↓≈ p r) (↓≈ q s) with unique↓ r q
-trans≈ (↓≈ p r) (↓≈ q s) | refl = ↓≈ p s
-trans≈ (↓≈ p (later↓ r)) (later≈ q) = ↓≈ p (later↓ (≈↓ (♭ q) r))
-trans≈ (later≈ p) (↓≈ (later↓ q) s) = ↓≈ (later↓ (≈↓ (sym≈ (♭ p)) q)) s
-trans≈ (later≈ p) (later≈ q) = later≈ (♯ (trans≈ (♭ p) (♭ q)))
 
 ≈EqR : ∀{X} → EqR (Delay X)
 ≈EqR = _≈_ , record {refl = refl≈; sym = sym≈; trans = trans≈ }
