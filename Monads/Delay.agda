@@ -46,6 +46,23 @@ unique↓ : ∀{X}{dx : Delay X}{x y : X} → dx ↓ x → dx ↓ y → x ≅ y
 unique↓ now↓ now↓ = refl
 unique↓ (later↓ p) (later↓ q) = unique↓ p q
 
+data _↯_ {X : Set} : Delay X → Delay X → Set where
+  ∼↯ : ∀{c c'} → c ∼ c' → c ↯ c'
+  later↯ : ∀{c c'} → ♭ c ↯ c' → later c ↯ c'
+
+↯→↓ : ∀{X}{x : X}{c} → c ↯ now x → c ↓ x
+↯→↓ (∼↯ now∼) = now↓
+↯→↓ (later↯ p) = later↓ (↯→↓ p)
+
+↓→↯ : ∀{X}{x : X}{c} → c ↓ x → c ↯ now x
+↓→↯ now↓ = ∼↯ now∼
+↓→↯ (later↓ p) = later↯ (↓→↯ p)
+
+trans↯ : ∀{X}{c d e : Delay X} → c ↯ d → d ↯ e → c ↯ e
+trans↯ (∼↯ p) (∼↯ q) = ∼↯ (trans∼ p q)
+trans↯ (∼↯ (later∼ p)) (later↯ q) = later↯ (trans↯ (∼↯ (♭ p)) q)
+trans↯ (later↯ p) q = later↯ (trans↯ p q)
+
 -- weak bisimilarity
 
 data _≈_ {X : Set} : Delay X → Delay X → Set where
@@ -79,6 +96,8 @@ trans≈ (later≈ p) (later≈ q) = later≈ (♯ (trans≈ (♭ p) (♭ q)))
 
 ≈EqR : ∀{X} → EqR (Delay X)
 ≈EqR = _≈_ , record {refl = refl≈; sym = sym≈; trans = trans≈ }
+
+-- Quotienting Delay by weak bisimilarity
 
 QDelay : Set → Set
 QDelay X = Quotient.Q (quot (Delay X) ≈EqR)
@@ -150,6 +169,62 @@ laterlem2' .(later dx) {dy} {later dz} (later≈ {dx} p) q =
 laterlem2 : ∀{X}(dx : Delay X){dy} → dx ≈ later dy → dx ≈ ♭ dy
 laterlem2 dx p = laterlem2' dx p refl≈
 
+-- Equivalent formulations of weak bisimilarity
+
+data _≈'_ {X : Set} : Delay X → Delay X → Set where
+ now≈'    : ∀{x} → now x ≈' now x
+ laterl≈' : ∀{x c} → ♭ c ↓ x → later c ≈' now x
+ laterr≈' : ∀{x c} → ♭ c ↓ x → now x ≈' later c
+ later≈'  : ∀{c c'} → ∞ (♭ c ≈' ♭ c') → later c ≈' later c'
+
+≈'→≈ : ∀{X}{x y : Delay X} → x ≈' y → x ≈ y
+≈'→≈ now≈' = ↓≈ now↓ now↓
+≈'→≈ (laterl≈' p) = ↓≈ (later↓ p) now↓
+≈'→≈ (laterr≈' p) = ↓≈ now↓ (later↓ p)
+≈'→≈ (later≈' p) = later≈ (♯ (≈'→≈ (♭ p)))
+
+≈→≈' : ∀{X}{x y : Delay X} → x ≈ y → x ≈' y
+≈→≈' (↓≈ now↓ now↓) = now≈'
+≈→≈' (↓≈ now↓ (later↓ q)) = laterr≈' q
+≈→≈' (↓≈ (later↓ p) now↓) = laterl≈' p
+≈→≈' (↓≈ (later↓ p) (later↓ q)) = later≈' (♯ (≈→≈' (↓≈ p q)))
+≈→≈' (later≈ p) = later≈' (♯ (≈→≈' (♭ p)))
+
+data _≈''_ {X : Set} : Delay X → Delay X → Set where
+  nowl≈'' : ∀{c x} → c ↓ x → now x ≈'' c
+  nowr≈'' : ∀{c x} → c ↓ x → c ≈'' now x
+  ↯≈''    : ∀{c c' d d'} → ♭ c ↯ d → ♭ c' ↯ d' → ∞ (d ≈'' d') → 
+            later c ≈'' later c'
+
+≈''-lemma : ∀{X}{c c' d d' : Delay X} → c ↯ d → c' ↯ d' → d ≈'' d' → c ≈'' c'
+≈''-lemma (∼↯ now∼) (∼↯ now∼) r = r
+≈''-lemma (∼↯ now∼) (∼↯ (later∼ q)) (nowl≈'' (later↓ r)) = nowl≈'' (later↓ (∼↓ (sym∼ (♭ q)) r))
+≈''-lemma (∼↯ (later∼ p)) (∼↯ now∼) (nowr≈'' (later↓ r)) = nowr≈'' (later↓ (∼↓ (sym∼ (♭ p)) r))
+≈''-lemma (∼↯ (later∼ p)) (∼↯ (later∼ q)) (↯≈'' r s t) = ↯≈'' (∼↯ (♭ p)) (∼↯ (♭ q)) (♯ (≈''-lemma r s (♭ t)))
+≈''-lemma (∼↯ now∼) (later↯ q) (nowl≈'' now↓) = nowl≈'' (later↓ (↯→↓ q))
+≈''-lemma (∼↯ now∼) (later↯ q) (nowl≈'' (later↓ r)) = nowl≈'' (later↓ (↯→↓ (trans↯ q (later↯ (↓→↯ r)))))
+≈''-lemma (∼↯ now∼) (later↯ q) (nowr≈'' now↓) = nowl≈'' (later↓ (↯→↓ q))
+≈''-lemma (∼↯ (later∼ p)) (later↯ q) (nowr≈'' (later↓ r)) = ↯≈'' (∼↯ (♭ p)) q (♯ (nowr≈'' r))
+≈''-lemma (∼↯ (later∼ p)) (later↯ q) (↯≈'' r s t) = ↯≈'' (∼↯ (♭ p)) (trans↯ q (later↯ (∼↯ refl∼))) (♯ ≈''-lemma r s (♭ t))
+≈''-lemma (later↯ p) (∼↯ now∼) (nowl≈'' now↓) = nowr≈'' (later↓ (↯→↓ p))
+≈''-lemma (later↯ p) (∼↯ now∼) (nowr≈'' r) = nowr≈'' (later↓ (↯→↓ (trans↯ p (↓→↯ r))))
+≈''-lemma (later↯ p) (∼↯ (later∼ q)) (nowl≈'' (later↓ r)) = ↯≈'' p (∼↯ (♭ q)) (♯ (nowl≈'' r))
+≈''-lemma (later↯ p) (∼↯ (later∼ q)) (↯≈'' r s t) = ↯≈'' (trans↯ p (later↯ (∼↯ refl∼))) (∼↯ (♭ q)) (♯ (≈''-lemma r s (♭ t)))
+≈''-lemma (later↯ p) (later↯ q) r = ↯≈'' p q (♯ r)
+
+≈''→≈ : ∀{X}{x y : Delay X} → x ≈'' y → x ≈ y
+≈''→≈ (nowl≈'' p) = ↓≈ now↓ p
+≈''→≈ (nowr≈'' p) = ↓≈ p now↓
+≈''→≈ (↯≈'' p q r) = later≈ (♯ ≈''→≈ (≈''-lemma p q (♭ r)))
+
+≈→≈'' : ∀{X}{x y : Delay X} → x ≈ y → x ≈'' y
+≈→≈'' (↓≈ now↓ now↓) = nowl≈'' now↓
+≈→≈'' (↓≈ now↓ (later↓ q)) = nowl≈'' (later↓ q)
+≈→≈'' (↓≈ (later↓ p) now↓) = nowr≈'' (later↓ p)
+≈→≈'' (↓≈ (later↓ p) (later↓ q)) = 
+  ↯≈'' (∼↯ refl∼) (∼↯ refl∼) (♯ (≈→≈'' (↓≈ p q)))
+≈→≈'' (later≈ p) = ↯≈'' (∼↯ refl∼) (∼↯ refl∼) (♯ (≈→≈'' (♭ p)))
+
 -- monad operations
 
 dbind : ∀{X Y} → (X → Delay Y) → Delay X → Delay Y
@@ -199,16 +274,23 @@ dbindlater : ∀{X Y}{f : X → ∞ (Delay Y)}(dx : Delay X) →
              dbind (later ∘ f) dx ∼ later (♯ (dbind (♭ ∘ f) dx))
 dbindlater dx = dbindlater' dx _ (later∼ (♯ refl∼))
 
-dlaw1 : ∀{X}(dx : Delay X) → dbind now dx ≈ dx
-dlaw1 (now x) = refl≈
-dlaw1 (later dx) = later≈ (♯ dlaw1 (♭ dx))
+dlaw1∼ : ∀{X}(dx : Delay X) → dbind now dx ∼ dx
+dlaw1∼ (now x) = refl∼
+dlaw1∼ (later dx) = later∼ (♯ dlaw1∼ (♭ dx))
 
 --dlaw2 holds definitionally
 
+dlaw3∼ : ∀{X Y Z}{f : X → Delay Y} {g : Y → Delay Z}(dx : Delay X) → 
+         dbind (dbind g ∘ f) dx ∼ dbind g (dbind f dx)
+dlaw3∼ {f = f}{g = g} (now x)   = refl∼
+dlaw3∼ {f = f}{g = g} (later x) = later∼ (♯ dlaw3∼ (♭ x))
+
+dlaw1 : ∀{X}(dx : Delay X) → dbind now dx ≈ dx
+dlaw1 dx = ∼→≈ (dlaw1∼ dx)
+
 dlaw3 : ∀{X Y Z}{f : X → Delay Y} {g : Y → Delay Z}(dx : Delay X) → 
         dbind (dbind g ∘ f) dx ≈ dbind g (dbind f dx)
-dlaw3 {f = f}{g = g} (now x)   = refl≈
-dlaw3 {f = f}{g = g} (later x) = later≈ (♯ dlaw3 (♭ x))
+dlaw3 dx = ∼→≈ (dlaw3∼ dx)
 
 open Cat Sets
 
@@ -524,6 +606,7 @@ DelayM = record {
   law1 = qlaw1 ;
   law2 = qlaw2;
   law3 = qlaw3 }
+
 
 dmap : ∀{X Y} → (X → Y) → Delay X → Delay Y
 dmap f = dbind (now ∘ f) --rep (Fun.HMap (TFun DelayM) f (abs x))

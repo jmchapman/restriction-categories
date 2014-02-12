@@ -1,6 +1,7 @@
 
 module Monads.Delay.Order where
 
+open import Relation.Binary.HeterogeneousEquality
 open import Monads.Delay
 open import Coinduction
 

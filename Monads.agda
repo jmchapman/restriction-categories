@@ -46,3 +46,35 @@ TFun {C} M =
       ≅⟨ law3 ⟩
       comp (bind (comp η f)) (bind (comp η g))
       ∎}
+
+record MHom {C : Cat}(M : Monad C)(N : Monad C) : Set where
+  open Cat C
+  open Monad M renaming (T to S; η to ηS; bind to bindS; μ to μS)
+  open Monad N renaming (η to ηT; bind to bindT; μ to μT)
+  field Φ : ∀{X} → Hom (S X) (T X)
+        .hlaw1 : ∀{X} → comp Φ (ηS {X}) ≅ ηT {X}
+        .hlaw2 : ∀{X} → comp Φ (μS {X}) ≅ 
+                        comp μT (comp Φ (bindS (comp ηS (Φ {X}))))
+
+id-mhom : ∀{C}{M : Monad C} → MHom M M
+id-mhom {C}{M} = 
+  let open Cat C
+      open Monad M
+  in record { 
+       Φ = iden ; 
+       hlaw1 = idl ; 
+       hlaw2 = 
+         proof
+         comp iden μ
+         ≅⟨ idl ⟩
+         μ
+         ≅⟨ sym idr ⟩
+         comp μ iden
+         ≅⟨ cong (comp μ) (sym law1) ⟩
+         comp μ (bind η)
+         ≅⟨ cong (λ f → comp μ (bind f)) (sym idr) ⟩
+         comp μ (bind (comp η iden))
+         ≅⟨ cong (comp μ) (sym idl) ⟩
+         comp μ (comp iden (bind (comp η iden)))
+         ∎}
+
