@@ -89,7 +89,7 @@ module Completeness (X : SplitRestCat) where
       in spaneq
         (record { hom = s; tot = lemiii rcat (smon s (r , law2)) })
         (Iso.inv (IsoTot stot isos) ,,
-        TotEq _ _ (
+        TotEq (
           proof
           comp s r
           ≅⟨ law1 ⟩
@@ -97,9 +97,9 @@ module Completeness (X : SplitRestCat) where
           ≅⟨ lemiii rcat idmono ⟩
           iden
           ∎) ,, 
-        TotEq _ _ law2 ) 
-        (TotEq _ _ idl) 
-        (TotEq _ _ refl)
+        TotEq law2 ) 
+        (TotEq idl) 
+        (TotEq refl)
 
   .fcomp : ∀{A B C}{g : Hom B C}{f : Hom A B} → HMap1 (comp g f) ~Span~ compspan (HMap1 g) (HMap1 f)
   fcomp {A}{B}{C}{g}{f} = 
@@ -219,10 +219,8 @@ module Completeness (X : SplitRestCat) where
     in spaneq
         (record { hom = u; tot = lemiii rcat (iso→mono cat (proj₂ isosplitmap))})
         (IsoTot (record { hom = u; tot = lemiii rcat (iso→mono cat (proj₂ isosplitmap)) }) (proj₂ isosplitmap)) 
-        (TotEq _ _ isosplitlaw2) 
-        (TotEq _ 
-               _ 
-               (proof
+        (TotEq isosplitlaw2) 
+        (TotEq (proof
                 comp (comp (comp g mg) (comp rg (comp (comp f mf) m'))) u
                 ≅⟨ cong (λ y → comp y u) equat ⟩
                 comp (comp (comp g f) (comp mf m')) u
@@ -303,8 +301,8 @@ module Completeness (X : SplitRestCat) where
     in spaneq
       (record { hom = proj₁ umap; tot = lemiii rcat (iso→mono cat (proj₂ umap)) }) 
       (IsoTot (record { hom = proj₁ umap; tot = lemiii rcat (iso→mono cat (proj₂ umap))}) (proj₂ umap))
-      (TotEq _ _ ulaw2)
-      (TotEq _ _ eq)
+      (TotEq ulaw2)
+      (TotEq eq)
 
   RFunct : RestFun rcat RestPartials
   RFunct = record {
@@ -660,8 +658,8 @@ module Completeness (X : SplitRestCat) where
     in ~sym (spaneq
                 αt 
                 (IsoTot αt (proj₂ (lemmamap (record { E = A; e = rest r; law = lemii rcat}) spl spl')))
-                (TotEq _ nt (lemmalaw2 (record { E = A; e = rest r; law = lemii rcat}) spl spl'))
-                (TotEq _ gt equat))
+                (TotEq {g = nt} (lemmalaw2 (record { E = A; e = rest r; law = lemii rcat}) spl spl'))
+                (TotEq {g = gt} equat))
 
   .HIso1 : ∀{A B}(q : QSpan A B) → abs (HMap1 (qHMap2 q)) ≅ q
   HIso1 {A}{B} q = Quotient.lift (quot (Span A B) Span~EqR)

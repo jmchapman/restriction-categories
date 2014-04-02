@@ -14,6 +14,7 @@ module PartialMaps.Cat (X : Cat)(M : StableSys X) where
     open import Categories.Pullbacks.PastingLemmas X
 
     record Span (A B : Obj) : Set where
+      constructor span
       field A' : Obj
             mhom : Hom A' A
             fhom : Hom A' B
@@ -27,12 +28,7 @@ module PartialMaps.Cat (X : Cat)(M : StableSys X) where
             .q  : comp (Span.fhom m'f') s ≅ (Span.fhom mf)
 
     ~refl : ∀{A B}{mf : Span A B} → mf ~Span~ mf
-    ~refl {A}{B}{mf} = 
-      let open Span mf renaming (mhom to m; fhom to f) 
-      in spaneq iden 
-                idiso 
-                idr
-                idr
+    ~refl = spaneq iden idiso idr idr
 
     ~sym : ∀{A B}{mf m'f' : Span A B} → mf ~Span~ m'f' → m'f' ~Span~ mf
     ~sym {A}{B}{mf}{m'f'} (spaneq s (inv ,, rinv ,, linv) q r) = 

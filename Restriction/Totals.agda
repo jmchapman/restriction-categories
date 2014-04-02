@@ -15,8 +15,13 @@ module Restriction.Totals (X : RestCat) where
 
   open Tot
 
-  .TotEq : ∀{A B}(f g : Tot A B) → hom f ≅ hom g → f ≅ g
-  TotEq {A}{B} f g p = cong₂
+  .TotEq' : ∀{A B}(f g : Hom A B) → f ≅ g → {p : rest f ≅ iden}
+            {q : rest g ≅ iden} → 
+            _≅_ {_}{Tot A B} (record {hom = f; tot = p}) {Tot A B}(record {hom = g; tot = q})
+  TotEq' g .g refl = refl
+
+  .TotEq : ∀{A B}{f g : Tot A B} → hom f ≅ hom g → f ≅ g
+  TotEq {A}{B}{f}{g} p = cong₂
     {_}
     {_}
     {_}
@@ -56,13 +61,12 @@ module Restriction.Totals (X : RestCat) where
     Hom  = Tot;
     iden = identot;
     comp = comptot;
-    idl  = λ{_}{_}{f} → TotEq (comptot identot f) f idl;
-    idr  = λ{_}{_}{f} → TotEq (comptot f identot) f idr;
-    ass  = λ{_}{_}{_}{_}{f}{g}{h} → 
-      TotEq (comptot (comptot f g) h) (comptot f (comptot g h)) ass}
+    idl  = TotEq idl;
+    idr  = TotEq idr;
+    ass  = TotEq ass}
 
   .MonoTot : ∀{A B}(f : Tot A B) → Mono cat (hom f) → Mono Total f
-  MonoTot f p {C}{g}{h} q = TotEq g h (p (cong hom q))
+  MonoTot f p q = TotEq (p (cong hom q))
 
   IsoTot : ∀{A B}(f : Tot A B) → Iso cat (hom f) → Iso Total f
   IsoTot f fiso = 
@@ -79,9 +83,8 @@ module Restriction.Totals (X : RestCat) where
                           comp g iden
                           ∎) }
 
-    in gt  ,, 
-     TotEq (comptot f gt) identot p ,,
-     TotEq (comptot gt f) identot q
+    in gt  ,, TotEq p ,, TotEq q
 
   TotEqHom : ∀{A B}{f g : Tot A B} → f ≅ g → hom f ≅ hom g
   TotEqHom p = cong hom p
+

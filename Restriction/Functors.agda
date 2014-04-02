@@ -31,7 +31,7 @@ RF {X} = record {
         open Tot
 
 .RFFaithful : ∀{X} → Faithful (F {X})
-RFFaithful {X} = λ {_} {_} {f} {g} → TotEq f g
+RFFaithful {X} = TotEq
   where open Restriction.Totals X
         open Tot
 

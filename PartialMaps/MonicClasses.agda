@@ -39,7 +39,7 @@ module PartialMaps.MonicClasses (X : SplitRestCat) where
 -}
 
   .MXmon : ∀{B E}{s : Tot B E} → SRestIde s → Mono Total s
-  MXmon {_}{_}{s} sride {_}{g}{h} q = TotEq g h (smon (hom s) (SRestIde.rs sride , SRestIde.law2s sride) (cong hom q))
+  MXmon {_}{_}{s} sride q = TotEq (smon (hom s) (SRestIde.rs sride , SRestIde.law2s sride) (cong hom q))
 
 
   MXiso : ∀{B E}{s : Tot B E} → Iso s → SRestIde s
@@ -234,7 +234,7 @@ module PartialMaps.MonicClasses (X : SplitRestCat) where
           W = D; 
           h = mt';
           k = ft';
-          scom = TotEq (comptot ft mt') (comptot mt ft') sqscom}
+          scom = TotEq sqscom}
 
         prop : (sq' : Square ft mt) →
                Σ' (PMap sq' sq) λ u → (u' : PMap sq' sq) → PMap.mor u ≅  PMap.mor u'
@@ -348,13 +348,13 @@ module PartialMaps.MonicClasses (X : SplitRestCat) where
               αpmap : PMap sq' sq
               αpmap = record {
                 mor = αt;
-                prop1 = TotEq (comptot mt' αt) xt αprop;
-                prop2 = TotEq (comptot ft' αt) yt αprop2}
+                prop1 = TotEq αprop;
+                prop2 = TotEq αprop2}
           in αpmap ,,
                (λ umap' →
                   let open PMap umap' renaming (mor to ut')
                       open Tot ut' renaming (hom to u')
-                  in TotEq αt ut'
+                  in TotEq 
                      (smon m' (r' , law2e')
                       (proof
                        comp m' α 
