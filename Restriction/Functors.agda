@@ -58,26 +58,6 @@ _○R_ {C}{D}{E} F G = record {
     HMap (fun F) (HMap (fun G) (rest C f))
     ∎}
 
-RCCat : Cat
-RCCat = record {
-         Obj = RestCat;
-         Hom = RestFun;
-         iden = IdRF;
-         comp = _○R_;
-         idl = refl;
-         idr = refl;
-         ass = refl }
-{-
-record RestFun (X Y : RestCat) : Set where
-  open Cat
-  open RestCat
-  open Fun
-  field fun   : Fun (cat X) (cat Y)
-        .frest : ∀{A B}{f : Hom (cat X) A B} → 
-                rest Y (HMap fun f) ≅ HMap fun (rest X f)
--}
-
-
 .RFun≅ : ∀{C D}{F G : RestFun C D} → RestFun.fun F ≅ RestFun.fun G → F ≅ G
 RFun≅ {C}{D}{F}{G} p  = 
   let
@@ -95,3 +75,24 @@ RFun≅ {C}{D}{F}{G} p  =
     p
     (iext (λ X → iext (λ Y → iext (λ f → fixtypes''
       (cong (λ F → HMap F (rest C f)) p)))))
+
+RCCat : Cat
+RCCat = record {
+         Obj = RestCat;
+         Hom = RestFun;
+         iden = IdRF;
+         comp = _○R_;
+         idl = RFun≅ (Fun≅ refl (λ _ → refl));
+         idr = RFun≅ (Fun≅ refl (λ _ → refl));
+         ass = RFun≅ (Fun≅ refl (λ _ → refl)) }
+{-
+record RestFun (X Y : RestCat) : Set where
+  open Cat
+  open RestCat
+  open Fun
+  field fun   : Fun (cat X) (cat Y)
+        .frest : ∀{A B}{f : Hom (cat X) A B} → 
+                rest Y (HMap fun f) ≅ HMap fun (rest X f)
+-}
+
+

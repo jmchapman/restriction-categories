@@ -11,9 +11,9 @@ module Categories.Idems (X : Cat) where
           .law : comp e e ≅ e
 
   .idem≅ : ∀{ide ide' : Idem} → 
-                    let open Idem ide
-                        open Idem ide' renaming (E to E'; e to e')
-                    in E ≅ E' → e ≅ e' → ide ≅ ide'
+           let open Idem ide
+               open Idem ide' renaming (E to E'; e to e')
+           in E ≅ E' → e ≅ e' → ide ≅ ide'
   idem≅ {ide} {ide'} p q = cong₃ 
     {A = Obj}
     {B = λ E → Hom E E}
