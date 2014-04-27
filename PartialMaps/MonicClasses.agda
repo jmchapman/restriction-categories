@@ -150,11 +150,22 @@ module PartialMaps.MonicClasses (X : SplitRestCat) where
         e' : Hom C C
         e' = rest (comp e f)
 
-        open Split (rsplit (comp e f)) renaming (B to D; 
+        ide : Idem 
+        ide = record { 
+          E = C ; 
+          e = rest (comp e f) ; 
+          law = lemii }
+
+        .restide : RestIdem rcat ide
+        restide = sym (lemi) 
+
+        open Split (rsplit ide restide) renaming (B to D; 
                                                  s to m'; 
                                                  r to r';
                                                  law1 to law1e';
                                                  law2 to law2e')
+
+
         .mp' : _
         mp' = lemiii (smon m' ((r' , law2e')))
         

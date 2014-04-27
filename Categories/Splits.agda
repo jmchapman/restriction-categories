@@ -219,8 +219,7 @@ FaithfulIncl : (E : IdemClass) → Faithful (Incl E)
 FaithfulIncl E refl = refl
 
 FullIncl : (E : IdemClass) → Full (Incl E)
-FullIncl E {A}{B}{f} =
-  let open IdemClass E
-      open SplitMap f
-  in imap ,, 
-     split≅ _ _ refl
+FullIncl E {A}{B}{f} = 
+  let open SplitMap f
+  in imap ,, split≅ _ _ refl
+

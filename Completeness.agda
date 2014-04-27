@@ -51,13 +51,22 @@ module Completeness (X : SplitRestCat) where
 
   HMap1 : ∀{A C}(f : Hom A C) → Span A C
   HMap1 {A}{C} f =
-    let open Split (rsplit f)
+    let ide : Idem 
+        ide = record { 
+          E = A ; 
+          e = rest f ; 
+          law = lemii rcat }
+
+        .restide : RestIdem rcat ide
+        restide = sym (lemi rcat) 
+
+        open Split (rsplit ide restide)
 
         mhom : Tot B A
         mhom = record { hom = s; tot = lemiii rcat (smon s (r , law2)) }
   
         fhom : Tot B C
-        fhom = record { hom = comp f s; tot = totcomprest f (rsplit f)}
+        fhom = record { hom = comp f s; tot = totcomprest f (rsplit ide restide)}
 
         m∈ : SRestIde mhom
         m∈ = record { As = C; fs = f; rs = r; law1s = law1; law2s = law2 }
@@ -70,7 +79,16 @@ module Completeness (X : SplitRestCat) where
 
   .fid : ∀{A} → HMap1 (iden {A}) ~Span~ idspan {A}
   fid {A} = 
-    let open Split (rsplit (iden {A}))
+    let ide : Idem 
+        ide = record { 
+          E = A ; 
+          e = rest (iden {A}) ; 
+          law = lemii rcat}
+
+        .restide : RestIdem rcat ide
+        restide = sym (lemi rcat) 
+
+        open Split (rsplit ide restide)
                                  
         isos : Iso cat s
         isos = r ,, 
@@ -103,17 +121,46 @@ module Completeness (X : SplitRestCat) where
 
   .fcomp : ∀{A B C}{g : Hom B C}{f : Hom A B} → HMap1 (comp g f) ~Span~ compspan (HMap1 g) (HMap1 f)
   fcomp {A}{B}{C}{g}{f} = 
-    let open Split (rsplit f) renaming (B to Af; 
+    let fide : Idem 
+        fide = record { 
+          E = A ; 
+          e = rest f ; 
+          law = lemii rcat }
+
+        .frestide : RestIdem rcat fide
+        frestide = sym (lemi rcat) 
+
+        open Split (rsplit fide frestide) renaming (B to Af; 
                                         s to mf; 
                                         r to rf; 
                                         law1 to law1f;
                                         law2 to law2f)
-        open Split (rsplit g) renaming (B to Ag; 
+
+        gide : Idem 
+        gide = record { 
+          E = B ; 
+          e = rest g ; 
+          law = lemii rcat }
+
+        .grestide : RestIdem rcat gide
+        grestide = sym (lemi rcat)
+ 
+        open Split (rsplit gide grestide) renaming (B to Ag; 
                                         s to mg; 
                                         r to rg; 
                                         law1 to law1g;
                                         law2 to law2g)
-        open Split (rsplit (comp g f)) renaming (B to Agf; 
+        fgide : Idem 
+        fgide = record { 
+          E = A ; 
+          e = rest (comp g f) ; 
+          law = lemii rcat }
+
+        .fgrestide : RestIdem rcat fgide
+        fgrestide = sym (lemi rcat) 
+
+
+        open Split (rsplit fgide fgrestide) renaming (B to Agf; 
                                         s to mgf; 
                                         r to rgf; 
                                         law1 to law1gf;
@@ -129,6 +176,15 @@ module Completeness (X : SplitRestCat) where
         open Tot fmft renaming (hom to fmf; tot to fmfp')
         open Tot ht renaming (hom to h; tot to hp)
 
+        ide : Idem 
+        ide = record { 
+          E = _ ; 
+          e = rest (comp (rest g) (comp f mf)) ; 
+          law = lemii rcat }
+
+        .restide : RestIdem rcat ide
+        restide = sym (lemi rcat) 
+
         .law1gf : comp (comp mf m') (comp r' rf) ≅ rest (comp g f)
         law1gf = 
           proof
@@ -137,7 +193,7 @@ module Completeness (X : SplitRestCat) where
           comp mf (comp m' (comp r' rf))
           ≅⟨ cong (comp mf) (sym ass) ⟩
           comp mf (comp (comp m' r') rf)
-          ≅⟨ cong (λ y → comp mf (comp y rf)) (Split.law1 (rsplit (comp (rest g) (comp f mf)))) ⟩
+          ≅⟨ cong (λ y → comp mf (comp y rf)) (Split.law1 (rsplit ide restide)) ⟩
           comp mf (comp (rest (comp (rest g) (comp f mf))) rf)
           ≅⟨ cong (λ y → comp mf (comp y rf)) (sym (lemiv rcat)) ⟩
           comp mf (comp (rest (comp g (comp f mf))) rf)
@@ -171,7 +227,7 @@ module Completeness (X : SplitRestCat) where
           comp r' (comp iden m')
           ≅⟨ cong (comp r') idl ⟩
           comp r' m'
-          ≅⟨ Split.law2 (rsplit (comp (rest g) (comp f mf))) ⟩
+          ≅⟨ Split.law2 (rsplit ide restide) ⟩
           iden
           ∎
 
@@ -180,19 +236,19 @@ module Completeness (X : SplitRestCat) where
 
         isosplitmap : Σ (Hom Agf W) λ u → Iso cat u
         isosplitmap = lemmamap (record { E = A ; e = rest (comp g f); law = lemii rcat}) 
-                               (rsplit (comp g f))
+                               (rsplit fgide fgrestide)
                                fgsplit
 
         u = proj₁ isosplitmap
 
         isosplitlaw1 : comp u rgf ≅ comp r' rf
         isosplitlaw1 = lemmalaw1 (record { E = A ; e = rest (comp g f); law = lemii rcat}) 
-                                 (rsplit (comp g f))
+                                 (rsplit fgide fgrestide)
                                  fgsplit
        
         isosplitlaw2 : comp (comp mf m') u ≅ mgf
         isosplitlaw2 = lemmalaw2 (record { E = A ; e = rest (comp g f); law = lemii rcat}) 
-                                 (rsplit (comp g f))
+                                 (rsplit fgide fgrestide)
                                  fgsplit
 
         equat : comp (comp g mg) h ≅ comp (comp g f) (comp mf m')
