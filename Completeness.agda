@@ -178,7 +178,7 @@ module Completeness (X : SplitRestCat) where
 
         ide : Idem 
         ide = record { 
-          E = _ ; 
+          E = Af ; 
           e = rest (comp (rest g) (comp f mf)) ; 
           law = lemii rcat }
 
