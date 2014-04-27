@@ -303,8 +303,26 @@ module Completeness (X : SplitRestCat) where
 
   .frest : ∀{A B}{f : Hom A B} → restp (HMap1 f) ~Span~ HMap1 (rest f)
   frest {A}{B}{f = f} = 
-    let open Split (rsplit f) renaming (B to A'; s to m)
-        open Split (rsplit (rest f)) renaming (B to A''; s to m'; r to r'; law1 to law1'; law2 to law2')
+    let ide : Idem 
+        ide = record { 
+          E = A ; 
+          e = rest f ; 
+          law = lemii rcat }
+
+        .restide : RestIdem rcat ide
+        restide = sym (lemi rcat) 
+
+        ride : Idem 
+        ride = record { 
+          E = A ; 
+          e = rest (rest f) ; 
+          law = lemii rcat }
+
+        .rrestide : RestIdem rcat ride
+        rrestide = sym (lemi rcat) 
+
+        open Split (rsplit ide restide) renaming (B to A'; s to m)
+        open Split (rsplit ride rrestide) renaming (B to A''; s to m'; r to r'; law1 to law1'; law2 to law2')
 
         ide : Idem
         ide = record { E = A; e = rest f; law = lemii rcat}
@@ -319,22 +337,22 @@ module Completeness (X : SplitRestCat) where
         umap = lemmamap' ide 
                          ide'
                          ide≅ide'
-                         (rsplit f)
-                         (rsplit (rest f))
+                         (rsplit ide restide)
+                         (rsplit ride rrestide)
 
         ulaw1 : comp (proj₁ umap) r ≅ r'
         ulaw1 = lemmalaw1' ide 
                            ide'
                            ide≅ide'
-                           (rsplit f)
-                           (rsplit (rest f))
+                           (rsplit ide restide)
+                           (rsplit ride rrestide)
 
         ulaw2 : comp m' (proj₁ umap) ≅ m
         ulaw2 = lemmalaw2' ide 
                            ide'
                            ide≅ide'
-                           (rsplit f)
-                           (rsplit (rest f))
+                           (rsplit ide restide)
+                           (rsplit ride rrestide)
 
         eq : comp (comp (rest f) m') (proj₁ umap) ≅ m
         eq = 
@@ -733,7 +751,16 @@ module Completeness (X : SplitRestCat) where
 
   .HIso2' : ∀{A C}(f : Hom A C) → HMap2 (HMap1 f) ≅ f
   HIso2' {A}{C} f = 
-    let open Split (rsplit f)
+    let ide : Idem 
+        ide = record { 
+          E = A ; 
+          e = rest f ; 
+          law = lemii rcat }
+
+        .restide : RestIdem rcat ide
+        restide = sym (lemi rcat) 
+
+        open Split (rsplit ide restide)
     in 
       proof
       comp (comp f s) r
