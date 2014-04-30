@@ -216,6 +216,20 @@ lift₂→lift' {A}{A'}{B}{R}{R'} q q' f p x x' =
              ∎))
           x
 
+.lift₂absabs : ∀{A A' B R R'}(q : Quotient A R)(q' : Quotient A' R')
+             (f : A → A' → B)(p : compat₂ R R' f)(x : A)(x' : A') → 
+             lift₂ q q' f p (Quotient.abs q x) (Quotient.abs q' x') ≅ f x x'
+lift₂absabs {R = R} q q' f p x x' = 
+  let open Quotient q
+      open Quotient q' renaming (abs to abs'; lift to lift'; ax3 to ax3' ) in
+      proof
+      lift₂ q q' f p (abs x) (abs' x')
+      ≅⟨ lift₂→lift q q' f p x (abs' x') ⟩
+      lift' (f x) (p (irefl (proj₂ R))) (abs' x') 
+      ≅⟨ ax3' (f x) (p (irefl (proj₂ R))) x' ⟩
+      f x x'
+      ∎
+
 -- introducing the axiom (A → B)/∼' ≅ A → B/~
 
 map~ : ∀{A B}(R : EqR B)(f g : A → B) → Set
