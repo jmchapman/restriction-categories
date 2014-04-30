@@ -76,6 +76,21 @@ record Quotient (A : Set) (R : EqR A) : Set where
 
 postulate quot : (A : Set) (R : EqR A) → Quotient A R
 
+
+conglift : ∀{A B}{R}{Q : Quotient A R}(f g : A → B) → 
+  let open Quotient Q
+      _∼_ , _ = R in
+      (p : ∀{b b'} → b ∼ b' → f b ≅ f b') → 
+      (p' : ∀{b b'} → b ∼ b' → g b ≅ g b') → 
+      f ≅ g → 
+      lift {λ _ → B} f p ≅ lift g p'
+conglift {Q = Q} f .f p p' refl = 
+ let open Quotient Q in cong 
+     {x = λ{_ _} → p}
+     {y = λ{_ _} → p'}
+     (lift f) 
+     (iext (λ _ → iext (λ _ → ext (λ _ → fixtypes' refl))))
+
 compat₂ : ∀{A A' B}(R : EqR A)(R' : EqR A') → (A → A' → B) → Set
 compat₂ R R' f = 
   let open Σ R renaming (proj₁ to _~_) 
@@ -96,35 +111,13 @@ lift₂ {A}{A'}{B}{R}{R'} q q' f p =
       .fa≅fb : ∀{a b : A} → a ~ b → f a ≅ f b
       fa≅fb r = ext (λ a' → p r (irefl e'))
 
-      conglift : (x y : A' → B)
-                 (p : ∀{b b'} → b ≈ b' → x b ≅ x b') → 
-                 (p' : ∀{b b'} → b ≈ b' → y b ≅ y b') → 
-                 (a b : A) → x ≅ y → 
-                 lift' x p ≅ lift' y p'
-      conglift x y p p' a b q = cong₂ 
-        {_}
-        {_}
-        {_}
-        {_}
-        {λ x → {b b' : A'} → b ≈ b' → x b ≅ x b'}
-        {_}
-        {_}
-        {_}
-        {p}
-        {p'} 
-        (lift' {λ _ → B}) 
-        q 
-        (iext λ (a' : A') → iext λ (b' : A') → ext λ (r : a' ≈ b') → fixtypes'
-          (cong (λ h → h a') q))
-
-  in lift g (λ {a b} r → conglift 
+  in lift g (λ {a b} r →  conglift 
     (f a) 
     (f b) 
     (p (irefl e)) 
     (p (irefl e)) 
-    a 
-    b 
-    (fa≅fb r))
+    (fa≅fb r)
+ )
 
 .liftabs≅iden : ∀{A R}(q : Quotient A R) → 
                let open Quotient q
@@ -150,28 +143,6 @@ lift₂→lift {A}{A'}{B}{R}{R'} q q' f p x x' =
                                  abs to abs'; 
                                  lift to lift'; 
                                  ax3 to ax3')
-
-      conglift : (x y : A' → B)
-                 (p : ∀{b b'} → b ≈ b' → x b ≅ x b') → 
-                 (p' : ∀{b b'} → b ≈ b' → y b ≅ y b') → 
-                 (a b : A) → x ≅ y → 
-                 lift' x p ≅ lift' y p'
-      conglift x y p p' a b q = cong₂ 
-        {_}
-        {_}
-        {_}
-        {_}
-        {λ x → {b b' : A'} → b ≈ b' → x b ≅ x b'}
-        {_}
-        {_}
-        {_}
-        {p}
-        {p'} 
-        (lift' {λ _ → B}) 
-        q 
-        (iext λ (a' : A') → iext λ (b' : A') → ext λ (r : a' ≈ b') → fixtypes'
-          (cong (λ h → h a') q))
-
       s : ∀{a b} → a ~ b → 
           lift' (f a) (λ r → p (irefl e) r) ≅ lift' (f b) (λ r → p (irefl e) r)
       s {a}{b} r = conglift 
@@ -179,8 +150,6 @@ lift₂→lift {A}{A'}{B}{R}{R'} q q' f p x x' =
         (f b) 
         (p (irefl e))
         (p (irefl e)) 
-        a 
-        b
         (ext (λ _ → p r (irefl e'))) 
 
   in 
@@ -207,27 +176,6 @@ lift₂→lift' {A}{A'}{B}{R}{R'} q q' f p x x' =
                                  lift to lift'; 
                                  ax3 to ax3')
 
-      conglift : (x y : A' → B)
-                 (p : ∀{b b'} → b ≈ b' → x b ≅ x b') → 
-                 (p' : ∀{b b'} → b ≈ b' → y b ≅ y b') → 
-                 (a b : A) → x ≅ y → 
-                 lift' x p ≅ lift' y p'
-      conglift x y p p' a b q = cong₂ 
-        {_}
-        {_}
-        {_}
-        {_}
-        {λ x₁ → {b₁ b' : A'} → b₁ ≈ b' → x₁ b₁ ≅ x₁ b'}
-        {_}
-        {_}
-        {_}
-        {p}
-        {p'} 
-        (lift' {λ _ → B}) 
-        q 
-        (iext λ (a' : A') → iext λ (b' : A') → ext λ (r : a' ≈ b') → fixtypes'
-          (cong (λ h → h a') q))
-
       s : ∀{a b} → a ~ b → 
           lift' (f a) (λ r → p (irefl e) r) ≅ lift' (f b) (λ r → p (irefl e) r)
       s {a}{b} r = conglift 
@@ -235,8 +183,6 @@ lift₂→lift' {A}{A'}{B}{R}{R'} q q' f p x x' =
         (f b) 
         (p (irefl e))
         (p (irefl e)) 
-        a
-        b
         (ext (λ a' → p r (irefl e'))) 
 
   in lift {λ y → lift₂ q q' f p y (abs' x') 
