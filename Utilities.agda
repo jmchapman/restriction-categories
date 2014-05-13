@@ -150,81 +150,18 @@ module Lift₂ {A A' B : Set}{R R'}(q : Quotient A R)(q' : Quotient A' R') where
             lift (λ b → f b x') (λ r → p r (irefl e')) (abs a) 
             ∎) 
           x
-
  
-{-
-lift₂ : ∀{A A' B R R'}(q : Quotient A R)(q' : Quotient A' R')
-        (f : A → A' → B) → .(compat₂ R R' f) → Quotient.Q q → Quotient.Q q' → B
-lift₂ {A}{A'}{B}{R}{R'} q q' f p = 
-  let _~_ , e = R
-      _≈_ , e' = R'
-      open Quotient q 
-      open Quotient q' renaming (Q to Q'; abs to abs'; lift to lift')
+  .lift₂absabs : (f : A → A' → B)(p : compat₂ f)(x : A)(x' : A') → 
+               lift₂ f p (abs x) (abs' x') ≅ f x x'
+  lift₂absabs f p x x' = 
+        proof
+        lift₂ f p (abs x) (abs' x')
+        ≅⟨ lift₂→lift f p x (abs' x') ⟩
+        lift' (f x) (p (irefl (proj₂ R))) (abs' x') 
+        ≅⟨ ax3' (f x) (p (irefl (proj₂ R))) x' ⟩
+        f x x'
+        ∎
   
-      g : A → Q' → B
-      g a = lift' (f a) (p (irefl e))
-
-  in lift g (λ r → liftcong q' (ext (λ a' → p r (irefl e'))))
-
-.liftabs≅iden : ∀{A R}(q : Quotient A R) → 
-               let open Quotient q
-               in (x : Q) → lift {λ _ → Q} abs (ax1 _ _) x ≅ x
-liftabs≅iden q = 
-  let open Quotient q
-  in lift≅ q (ax3 abs (ax1 _ _))
-
-.lift₂→lift : ∀{A A' B R R'}(q : Quotient A R)(q' : Quotient A' R')
-             (f : A → A' → B)(p : compat₂ R R' f)(x : A)
-             (x' : Quotient.Q q') → 
-             lift₂ q q' f p (Quotient.abs q x) x' ≅ 
-             Quotient.lift q' (f x) (p (IsEquivalence.refl (proj₂ R))) x' 
-lift₂→lift {A}{A'}{B}{R}{R'} q q' f p x x' = 
-  let _~_ , e = R
-      _≈_ , e' = R'
-      open Quotient q 
-      open Quotient q' renaming (Q to Q'; 
-                                 abs to abs'; 
-                                 lift to lift'; 
-                                 ax3 to ax3')
-  in
-    proof
-    lift₂ q q' f p (abs x) x'
-    ≅⟨ cong (λ g → g x') (ax3 (λ a → lift' (f a) (p (irefl e))) (λ r → liftcong q' (ext (λ a' → p r (irefl e')))) x) ⟩
-    lift' (f x) (λ r → p (irefl e) r) x'
-    ∎
-
-.lift₂→lift' : ∀{A A' B R R'}(q : Quotient A R)(q' : Quotient A' R')
-               (f : A → A' → B)(p : compat₂ R R' f)(x : Quotient.Q q)
-               (x' : A') →
-               lift₂ q q' f p x (Quotient.abs q' x') ≅ 
-               Quotient.lift q 
-                             (λ a → f a x') 
-                             (λ r → p r (irefl (proj₂ R')))
-                             x
-lift₂→lift' {A}{A'}{B}{R}{R'} q q' f p x x' = 
-  let _~_ , e = R
-      _≈_ , e' = R'
-      open Quotient q 
-      open Quotient q' renaming (Q to Q'; 
-                                 abs to abs'; 
-                                 lift to lift'; 
-                                 ax3 to ax3')
-
-  in lift≅ q
-           {b = λ y → lift₂ q q' f p y (abs' x')}
-           (λ a →
-             proof
-             lift₂ q q' f p (abs a) (abs' x') 
-             ≅⟨ lift₂→lift q q' f p a (abs' x') ⟩
-             lift' (f a) (p (irefl e)) (abs' x') 
-             ≅⟨ ax3' (f a) (p (irefl e)) x' ⟩
-             f a x' 
-             ≅⟨ sym (ax3 (λ b → f b x') (λ r → p r (irefl e')) a) ⟩
-             lift (λ b → f b x') (λ r → p r (irefl e')) (abs a) 
-             ∎) 
-           x
--}
-
 -- introducing the axiom (A → B)/∼' ≅ A → B/~
 
 map~ : ∀{A B}(R : EqR B)(f g : A → B) → Set
