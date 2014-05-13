@@ -70,7 +70,6 @@ record Quotient (A : Set) (R : EqR A) : Set where
   field lift : {B : Q → Set}(f : (a : A) → B (abs a)) → .(compat {B} f) →
                (q : Q) → B q
         .ax1 : (a b : A) → a ~ b → abs a ≅ abs b
-        ax2 : (a b : A) → abs a ≅ abs b → a ~ b
         .ax3 : {B : Q → Set}(f : (a : A) → B (abs a))(p : compat {B} f)
                (a : A) → (lift {B} f p) (abs a) ≅ f a
 
@@ -109,7 +108,6 @@ module Lift₂ {A A' B : Set}{R R'}(q : Quotient A R)(q' : Quotient A' R') where
                              compat to compat';
                              lift to lift'; 
                              ax1 to ax1';
-                             ax2 to ax2';
                              ax3 to ax3')
 
   compat₂ : (A → A' → B) → Set

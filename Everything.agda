@@ -48,7 +48,7 @@ open import Restriction.Pred
 open import Restriction.SplitRestCats
 open import Restriction.Totals
 open import Restriction.Order
---open import Restriction.Delay
+open import Restriction.Delay
 open import Restriction.Maybe
 
 -- Partial Map Categories

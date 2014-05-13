@@ -115,9 +115,6 @@ lift {X} = Quotient.lift (quot (Delay X) ≈EqR)
 .ax1 : ∀{X}(dx dx' : Delay X) → dx ≈ dx' → abs dx ≅ abs dx'
 ax1 {X} = Quotient.ax1 (quot (Delay X) ≈EqR)
 
-ax2 : ∀{X}(dx dx' : Delay X) → abs dx ≅ abs dx' → dx ≈ dx'
-ax2 {X} = Quotient.ax2 (quot (Delay X) ≈EqR)
-
 .ax3 : ∀{X}{Y : QDelay X → Set}(f : (x : Delay X) → Y (abs x))
        (p : compat {X}{Y} f)(x : Delay X) →  (lift {X}{Y} f p) (abs x) ≅ f x
 ax3 {X} = Quotient.ax3 (quot (Delay X) ≈EqR)
@@ -139,9 +136,6 @@ lift-map {X}{Y} = Quotient.lift (quot (X → Delay Y) (EqR→ ≈EqR))
 
 .ax1-map : ∀{X Y}(f g : X → Delay Y) → map~ ≈EqR f g → abs-map f ≅ abs-map g
 ax1-map {X}{Y} = Quotient.ax1 (quot (X → Delay Y) (EqR→ ≈EqR))
-
-ax2-map : ∀{X Y}(f g : X → Delay Y) → abs-map f ≅ abs-map g → map~ ≈EqR f g
-ax2-map {X}{Y} = Quotient.ax2 (quot (X → Delay Y) (EqR→ ≈EqR))
 
 .ax3-map : ∀{X Y}{Z : QDelay-map X Y → Set}
            (F : (f : X → Delay Y) → Z (abs-map f))(p : compat-map {X}{Y}{Z} F)

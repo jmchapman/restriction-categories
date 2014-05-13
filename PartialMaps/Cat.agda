@@ -516,10 +516,6 @@ module PartialMaps.Cat (X : Cat)(M : StableSys X) where
              mf ~Span~ m'f' → abs mf ≅ abs m'f'
       ax1 = Q.ax1
 
-      ax2 : (mf m'f' : Span A B) → 
-            abs mf ≅ abs m'f' → mf ~Span~ m'f'
-      ax2 = Q.ax2
-
       .ax3 : ∀{C}(f : Span A B → C)(p : compat f)(mf : Span A B) → 
             (lift f p) (abs mf) ≅ f mf
       ax3  = Q.ax3
