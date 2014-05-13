@@ -231,6 +231,11 @@ dbind : ∀{X Y} → (X → Delay Y) → Delay X → Delay Y
 dbind f (now x)   = f x
 dbind f (later x) = later (♯ dbind f (♭ x))
 
+dbindcong1∼ : ∀{X Y}(f : X → Delay Y){dx dx' : Delay X} → dx ∼ dx' → 
+              dbind f dx ∼ dbind f dx'
+dbindcong1∼ f now∼ = refl∼
+dbindcong1∼ f (later∼ p) = later∼ (♯ (dbindcong1∼ f (♭ p)))
+
 dbindcong1↓'' : ∀{X Y}(f : X → Delay Y){x y}{dx : Delay X} → dx ↓ x → 
                 f x ≈ now y → dbind f dx ↓ y
 dbindcong1↓'' f now↓ q = ≈↓ (sym≈ q) now↓
@@ -293,10 +298,10 @@ dlaw3 : ∀{X Y Z}{f : X → Delay Y} {g : Y → Delay Z}(dx : Delay X) →
 dlaw3 dx = ∼→≈ (dlaw3∼ dx)
 
 open Cat Sets
+open Lift₂
 
-.compat-abs-dbind : ∀{X Y} → compat₂ {X → Delay Y} 
-                                     (EqR→ ≈EqR) 
-                                     ≈EqR 
+.compat-abs-dbind : ∀{X Y} → compat₂ (quot (X → Delay Y) (EqR→ ≈EqR))
+                                     (quot (Delay X) ≈EqR)
                                      (λ g x → abs (dbind g x))
 compat-abs-dbind {X}{Y}{f}{_}{_}{y} p q = ax1 _ _ (trans≈ (dbindcong1 f q) 
                                                           (dbindcong2 p y))
@@ -532,7 +537,7 @@ qlaw3 {X}{Y}{Z}{f}{g} = ext (λ q →
          ≅⟨ cong₂ {_}{_}{_}{_}{_}{_}{_}{_}
                   {λ {h}{_}{_}{l} p r → ax1 _ _ (dbindcong2 (λ y → trans≈ (dbindcong1 h (r y)) (dbindcong2 p (l y))) x)}
                   {λ {h}{_}{_}{l} p r → ax1 _ _ (trans≈ (dbindcong1 h (dbindcong2 r x)) (dbindcong2 p (dbind l x)))}
-                  (λ p (r : compat₂ (EqR→ ≈EqR) (EqR→ ≈EqR) p) →
+                  (λ p (r : compat₂ (quot (Y → Delay Z) (EqR→ ≈EqR)) (quot (X → Delay Y) (EqR→ ≈EqR)) p) →
                     lift₂ (quot (Y → Delay Z) (EqR→ ≈EqR)) (quot (X → Delay Y) (EqR→ ≈EqR)) p r (~→map~ g) (~→map~ f)) 
                   (ext (λ l → ext (λ h → ax1 _ _ (dlaw3 x)))) 
                   (iext (λ _ → iext (λ _ → iext (λ _ → iext (λ _ → ext (λ _ → ext (λ _ → fixtypes' (ax1 _ _ (dlaw3 x))))))))) ⟩

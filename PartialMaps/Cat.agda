@@ -524,6 +524,8 @@ module PartialMaps.Cat (X : Cat)(M : StableSys X) where
             (lift f p) (abs mf) ≅ f mf
       ax3  = Q.ax3
 
+    open Lift₂
+
     qcomp : ∀{A B C} → QSpan B C → QSpan A B → QSpan A C
     qcomp {A}{B}{C} = lift₂ (qspan B C)
                             (qspan A B)
