@@ -1,25 +1,32 @@
+{-# OPTIONS --type-in-type #-}
 open import Categories
 
 module Categories.Isos (X : Cat) where
-  open import Utilities
 
-  open Cat X
+open import Utilities
+open Cat X
+open import Categories.Monos X
 
+record Iso {A B : Obj}(f : Hom A B) : Set where
+  constructor iso
+  field inv  : Hom B A
+        rinv : comp f inv ≅ iden {B}
+        linv : comp inv f ≅ iden {A}
 
-  record Iso {A B : Obj} (f : Hom A B) : Set where
-    constructor _,,_,,_
-    field inv  : Hom B A
-          .rinv : comp f inv ≅ iden {B}
-          .linv : comp inv f ≅ iden {A}
+record _∼_ (A B : Obj) : Set where
+  field f    : Hom A B
+        g    : Hom B A 
+        rinv : comp f g ≅ iden {B}
+        linv : comp g f ≅ iden {A}
 
-  idiso : ∀{A} → Iso (iden {A})
-  idiso = iden ,, idl ,, idl
+idIso : ∀{A} → Iso (iden {A})
+idIso = iso iden idl idl
 
-  .invuniq : ∀{A B}(f : Hom A B)(p q : Iso f) → Iso.inv p ≅ Iso.inv q
-  invuniq f piso qiso =
-    let open Iso piso renaming (inv to g; rinv to p; linv to p') 
-        open Iso qiso renaming (inv to g'; rinv to q; linv to q') 
-    in
+invUniq : ∀{A B}{f : Hom A B}(p q : Iso f) → Iso.inv p ≅ Iso.inv q
+invUniq {f = f} r s =
+  let open Iso r renaming (inv to g; rinv to p; linv to p')
+      open Iso s renaming (inv to g'; rinv to q; linv to q')
+  in
     proof 
     g 
     ≅⟨ sym idr ⟩ 
@@ -34,13 +41,10 @@ module Categories.Isos (X : Cat) where
     g'
     ∎
 
-
-  open import Categories.Monos X
-
-  .iso→mono : ∀{A B}{f : Hom A B} → Iso f → Mono f
-  iso→mono {_}{_}{f} f'iso {_}{g}{h} q =
-    let open Iso f'iso renaming (inv to f'; rinv to p; linv to p')
-    in
+isoIsMono : ∀{A B}{f : Hom A B} → Iso f → Mono f
+isoIsMono {f = f} r {_}{g}{h} q =
+  let open Iso r renaming (inv to f'; rinv to p; linv to p')
+  in
     proof 
     g 
     ≅⟨ sym idl ⟩ 
@@ -59,36 +63,33 @@ module Categories.Isos (X : Cat) where
     h 
     ∎
 
-  .compisos : ∀{A B C}{f : Hom A B}{g : Hom B C} → Iso f → Iso g → 
-             Iso (comp g f)
-  compisos {_}{_}{_} {f} {g} piso qiso = 
-    let open Iso piso renaming (inv to f'; rinv to p; linv to p') 
-        open Iso qiso renaming (inv to g'; rinv to q; linv to q') 
-    in 
-    (comp f' g') ,, 
-    (proof 
-     comp (comp g f) (comp f' g') 
-     ≅⟨ ass ⟩ 
-     comp g (comp f (comp f' g')) 
-     ≅⟨ cong (comp g) (sym ass) ⟩ 
-     comp g (comp (comp f f') g') 
-     ≅⟨ cong (λ h → comp g (comp h g')) p ⟩ 
-     comp g (comp iden g') 
-     ≅⟨ cong (comp g) idl ⟩ 
-     comp g g' 
-     ≅⟨ q ⟩ 
-     iden 
-     ∎) ,, 
-    (proof 
-     comp (comp f' g') (comp g f) 
-     ≅⟨ ass ⟩ 
-     comp f' (comp g' (comp g f)) 
-     ≅⟨ cong (comp f') (sym ass) ⟩ 
-     comp f' (comp (comp g' g) f) 
-     ≅⟨ cong (λ h → comp f' (comp h f)) q' ⟩ 
-     comp f' (comp iden f) 
-     ≅⟨ cong (comp f') idl ⟩ 
-     comp f' f 
-     ≅⟨ p' ⟩ 
-     iden 
-     ∎)
+compIso : ∀{A B C}{g : Hom B C}{f : Hom A B} → Iso g → Iso f → 
+          Iso (comp g f)
+compIso {g = g}{f} (iso g' q q') (iso f' p p') = 
+  iso (comp f' g')
+      (proof 
+       comp (comp g f) (comp f' g') 
+       ≅⟨ ass ⟩ 
+       comp g (comp f (comp f' g')) 
+       ≅⟨ cong (comp g) (sym ass) ⟩ 
+       comp g (comp (comp f f') g') 
+       ≅⟨ cong (λ h → comp g (comp h g')) p ⟩ 
+       comp g (comp iden g') 
+       ≅⟨ cong (comp g) idl ⟩ 
+       comp g g' 
+       ≅⟨ q ⟩ 
+       iden 
+       ∎)
+      (proof 
+       comp (comp f' g') (comp g f) 
+       ≅⟨ ass ⟩ 
+       comp f' (comp g' (comp g f)) 
+       ≅⟨ cong (comp f') (sym ass) ⟩ 
+       comp f' (comp (comp g' g) f) 
+       ≅⟨ cong (λ h → comp f' (comp h f)) q' ⟩ 
+       comp f' (comp iden f) 
+       ≅⟨ cong (comp f') idl ⟩ 
+       comp f' f 
+       ≅⟨ p' ⟩ 
+       iden 
+       ∎)

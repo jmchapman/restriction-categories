@@ -8,51 +8,33 @@ open import Data.Unit hiding (decSetoid; preorder; setoid; _≤_) public
 open import Data.Product public
 open import Function public
 
-record Σ' (A : Set)(B : A → Set) : Set where
-    constructor _,,_
-    field fst : A
-          .snd : B fst
-open Σ' public
+postulate 
+  ext : {A : Set}{B B' : A → Set}{f : ∀ a → B a}{g : ∀ a → B' a} → 
+        (∀ a → f a ≅ g a) → f ≅ g
 
+postulate 
+  iext : {A : Set}{B B' : A → Set}{f : ∀ {a} → B a}{g : ∀{a} → B' a} → 
+         (∀ a → f {a} ≅ g {a}) → 
+         _≅_ {_}{ {a : A} → B a} f { {a : A} → B' a} g
 
-postulate ext : {A : Set}{B B' : A → Set}{f : ∀ a → B a}{g : ∀ a → B' a} → 
-                (∀ a → f a ≅ g a) → f ≅ g
+proof-irr : {A B : Set}{x : A}{y : B}(p q : x ≅ y) → p ≅ q
+proof-irr refl refl = refl
 
-postulate iext : {A : Set}{B B' : A → Set}{f : ∀ {a} → B a}{g : ∀{a} → B' a} → 
-                 (∀ a → f {a} ≅ g {a}) → 
-                 _≅_ {_}{ {a : A} → B a} f { {a : A} → B' a} g
-
-cong₃ : {A : Set}
-        {B : A → Set}
-        {C : (a : A) → B a → Set}
-        {D : (a : A)(b : B a) → C a b → Set}
+cong₃ : {A B C D : Set}
+        (f : A → B → C → D)
         {a a' : A} → a ≅ a' → 
-        {b : B a}{b' : B a'} → b ≅ b' → 
-        {c : C a b}{c' : C a' b'} → c ≅ c' → 
-        (f : (a : A)(b : B a)(c : C a b) → D a b c) → f a b c ≅ f a' b' c'
-cong₃ refl refl refl f = refl
+        {b b' : B} → b ≅ b' → 
+        {c c' : C} → c ≅ c' → 
+        f a b c ≅ f a' b' c'
+cong₃ f refl refl refl = refl
 
-cong₄ : {A : Set}
-        {B : A → Set}
-        {C : (a : A) → B a → Set}
-        {D : (a : A) → B a → Set}
-        {E : Set}
-        {a a' : A} → a ≅ a' → 
-        {b : B a}{b' : B a'} → b ≅ b' → 
-        {c : C a b}{c' : C a' b'} → c ≅ c' → 
-        {d : D a b}{d' : D a' b'} → d ≅ d' → 
-        (f : (a : A)(b : B a) → C a b → D a b → E) → f a b c d ≅ f a' b' c' d'
-cong₄ refl refl refl refl f = refl
+hirL : {A A' A'' A''' : Set}{a : A}{a' : A'}{a'' : A''}{a''' : A'''}
+      {p : a ≅ a'}{q : a'' ≅ a'''} → a ≅ a'' → p ≅ q
+hirL {p = refl}{refl} refl = refl
 
-fixtypes' : {A A' A'' A''' : Set}{a : A}{a' : A'}{a'' : A''}{a''' : A'''}
-            {p : a ≅ a'}{q : a'' ≅ a'''} →
-            a ≅ a'' → p ≅ q
-fixtypes' {p = refl} {refl} refl = refl
-
-fixtypes'' : {A A' A'' A''' : Set}{a : A}{a' : A'}{a'' : A''}{a''' : A'''}
-             {p : a ≅ a'}{q : a'' ≅ a'''} →
-              a' ≅ a''' → p ≅ q
-fixtypes'' {p = refl}{q = refl} refl = refl
+hirR : {A A' A'' A''' : Set}{a : A}{a' : A'}{a'' : A''}{a''' : A'''}
+       {p : a ≅ a'}{q : a'' ≅ a'''} → a' ≅ a''' → p ≅ q
+hirR {p = refl}{refl} refl = refl
 
 EqR : (A : Set) → Set
 EqR A = Σ (Rel A _) (λ R → IsEquivalence R)
@@ -64,290 +46,121 @@ record Quotient (A : Set) (R : EqR A) : Set where
   field Q : Set
         abs : A → Q 
 
-  compat : {B : Q → Set} → ((a : A) → B (abs a)) → Set
-  compat f = ∀{a b} → a ~ b → f a ≅ f b
+  compat : (B : Q → Set) → ((a : A) → B (abs a)) → Set
+  compat B f = ∀{a b} → a ~ b → f a ≅ f b
      
-  field lift : {B : Q → Set}(f : (a : A) → B (abs a)) → .(compat {B} f) →
-               (q : Q) → B q
-        .ax1 : (a b : A) → a ~ b → abs a ≅ abs b
-        .ax3 : {B : Q → Set}(f : (a : A) → B (abs a))(p : compat {B} f)
-               (a : A) → (lift {B} f p) (abs a) ≅ f a
+  field sound : compat (λ _ → Q) abs
+        qelim : (B : Q → Set)(f : (a : A) → B (abs a)) → compat B f →
+                (x : Q) → B x
+        qbeta : (B : Q → Set)(f : (a : A) → B (abs a))(p : compat B f)
+                (a : A) → (qelim B f p) (abs a) ≅ f a
 
-postulate quot : (A : Set) (R : EqR A) → Quotient A R
+postulate quot : (A : Set)(R : EqR A) → Quotient A R
 
-lift≅ : ∀{A R}(q : Quotient A R) →
-        let open Quotient q
-        in {B : Q → Set}{b b' : (q : Q) → B q} → 
-           ((a : A) → b (abs a) ≅ b' (abs a)) → (x : Q) → b x ≅ b' x
-lift≅ {_}{_} q {_}{b}{b'} p = 
-  let open Quotient q
-  in lift {λ y → b y ≅ b' y} p (λ r → fixtypes' (cong b (ax1 _ _ r)))
+module QuotientLib {A : Set}{R : EqR A}(q : Quotient A R) where
 
-liftcong : ∀{A R B}(q : Quotient A R) →
-           let open Quotient q
-           in {f g : A → B}{p : compat f}{p' : compat g} → f ≅ g → lift f p ≅ lift g p'
-liftcong q {f}{.f}{p}{p'} refl = 
-  let open Quotient q
-  in cong {x = λ {_}{_} → p}{y = λ {_}{_} → p'} (lift f) (iext (λ _ → iext (λ _ → ext (λ _ → fixtypes' refl))))
+  open Quotient q
 
-.liftabs≅iden : ∀{A R}(q : Quotient A R) → 
-               let open Quotient q
-               in (x : Q) → lift {λ _ → Q} abs (ax1 _ _) x ≅ x
-liftabs≅iden q = 
-  let open Quotient q
-  in lift≅ q (ax3 abs (ax1 _ _))
+  lift : ∀{B}(f : A → B) → compat _ f → Q → B
+  lift = qelim _
 
-module Lift₂ {A A' B : Set}{R R'}(q : Quotient A R)(q' : Quotient A' R') where
-
-  open Σ R renaming (proj₁ to _~_ ; proj₂ to e)
-  open Σ R' renaming (proj₁ to _≈_ ; proj₂ to e')
-  
-  open Quotient q 
-  open Quotient q' renaming (Q to Q'; 
-                             abs to abs';
-                             compat to compat';
-                             lift to lift'; 
-                             ax1 to ax1';
-                             ax3 to ax3')
-
-  compat₂ : (A → A' → B) → Set
-  compat₂ f = ∀{a b a' b'} → a ~ a' → b ≈ b' → f a b ≅ f a' b'
-
-  lift₂ : (f : A → A' → B) → .(compat₂ f) → Q → Q' → B
-  lift₂ f p = 
-    let g : A → Q' → B
-        g a = lift' (f a) (p (irefl e))
-  
-    in lift g (λ r → liftcong q' (ext (λ a' → p r (irefl e'))))
-  
-  .lift₂→lift : (f : A → A' → B)(p : compat₂ f)(x : A)(x' : Q') → 
-                lift₂ f p (abs x) x' ≅ 
-                lift' (f x) (p (irefl e)) x' 
-  lift₂→lift f p x x' = 
-      proof
-      lift₂ f p (abs x) x'
-      ≅⟨ cong (λ g → g x') (ax3 (λ a → lift' (f a) (p (irefl e))) (λ r → liftcong q' (ext (λ a' → p r (irefl e')))) x) ⟩
-      lift' (f x) (p (irefl e)) x'
-      ∎
-
-
-  .lift₂→lift' : (f : A → A' → B)(p : compat₂ f)(x : Q)(x' : A') →
-                 lift₂ f p x (abs' x') ≅ 
-                 lift (λ a → f a x') (λ r → p r (irefl e')) x
-  lift₂→lift' f p x x' = 
-    lift≅ q
-          {b = λ y → lift₂ f p y (abs' x')}
-          (λ a →
+  qelimCong : (B B' : Q → Set)
+              {f : (a : A) → B (abs a)}{g : (a : A) → B' (abs a)}
+              {p : compat B f}{p' : compat B' g} → 
+              (∀ a → f a ≅ g a) → ∀ x → qelim B f p x ≅ qelim B' g p' x
+  qelimCong B B' {f}{g}{p}{p'} r = 
+    qelim (λ z → qelim B f p z ≅ qelim B' g p' z) 
+          (λ a → 
             proof
-            lift₂ f p (abs a) (abs' x') 
-            ≅⟨ lift₂→lift f p a (abs' x') ⟩
-            lift' (f a) (p (irefl e)) (abs' x') 
-            ≅⟨ ax3' (f a) (p (irefl e)) x' ⟩
-            f a x' 
-            ≅⟨ sym (ax3 (λ b → f b x') (λ r → p r (irefl e')) a) ⟩
-            lift (λ b → f b x') (λ r → p r (irefl e')) (abs a) 
+            qelim B f p (abs a)
+            ≅⟨ qbeta B f p a ⟩
+            f a
+            ≅⟨ r a ⟩
+            g a
+            ≅⟨ sym (qbeta B' g p' a) ⟩
+            qelim B' g p' (abs a)
             ∎) 
-          x
- 
-  .lift₂absabs : (f : A → A' → B)(p : compat₂ f)(x : A)(x' : A') → 
-               lift₂ f p (abs x) (abs' x') ≅ f x x'
-  lift₂absabs f p x x' = 
-        proof
-        lift₂ f p (abs x) (abs' x')
-        ≅⟨ lift₂→lift f p x (abs' x') ⟩
-        lift' (f x) (p (irefl (proj₂ R))) (abs' x') 
-        ≅⟨ ax3' (f x) (p (irefl (proj₂ R))) x' ⟩
-        f x x'
-        ∎
+          (λ s → hirL (cong (qelim B f p) (sound s))) 
+
+  qelimabs≅iden : {x : Q} → lift abs sound x ≅ x
+  qelimabs≅iden =
+    qelim (λ z → lift abs sound z ≅ z)
+          (qbeta _ abs sound) 
+          (λ p → hirR (sound p)) 
+          _
+
+module Quotient₂Lib {A A' : Set}{R : EqR A}{R' : EqR A'}
+                    (q : Quotient A R)(q' : Quotient A' R') where
+
+  open QuotientLib
+  open Σ R renaming (proj₁ to _∼_; proj₂ to e)
+  open Σ R' renaming (proj₁ to _≈_; proj₂ to e')
+  open Quotient q
+  open Quotient q' renaming (Q to Q'; abs to abs'; qelim to qelim'; 
+                             sound to sound'; qbeta to qbeta')
+
+  compat₂ : (B : Q → Q' → Set)
+            (f : (a : A)(a' : A') → B (abs a) (abs' a')) → Set
+  compat₂ B f = ∀{a b a' b'} → a ∼ a' → b ≈ b' → f a b ≅ f a' b'
+
+  qelim₂ : (B : Q → Q' → Set)
+           (f : (a : A)(a' : A') → B (abs a) (abs' a')) 
+           (p : compat₂ B f)(x : Q)(x' : Q') → B x x'
+  qelim₂ B f p = 
+    let g : (a : A)(x' : Q') → B (abs a) x'
+        g a = qelim' (B (abs a)) (f a) (p (irefl e))
+    in qelim (λ x → (x' : Q') → B x x') g 
+             (λ r → ext (qelimCong q' _ _ (λ _ → p r (irefl e'))))
   
--- introducing the axiom (A → B)/∼' ≅ A → B/~
-
-map~ : ∀{A B}(R : EqR B)(f g : A → B) → Set
-map~ (_~_ , _) f g = ∀ x → f x ~ g x  
-
-refl-map~ : ∀{A B R}{f : A → B} → map~ R f f
-refl-map~ {R = _ , p} x = irefl p
-
-sym-map~ : ∀{A B R}{f g : A → B} → map~ R f g → map~ R g f
-sym-map~ {R = _ , p} q x = isym p (q x)
-
-trans-map~ : ∀{A B R}{f g h : A → B} → map~ R f g → map~ R g h → map~ R f h
-trans-map~ {R = _ , p} q r x = itrans p (q x) (r x)
-
-EqR→ : ∀{A B}(R : EqR B) → EqR (A → B)
-EqR→ R = map~ R , 
-             record { 
-               refl = refl-map~ {R = R} ; 
-               sym = sym-map~ {R = R} ; 
-               trans = trans-map~ {R = R} }
-
-map~→~ : ∀{A B R} → Quotient.Q (quot (A → B) (EqR→ R)) → 
-         A → Quotient.Q (quot B R)
-map~→~ {A}{B}{R} f = 
-  let open Quotient (quot B R)
-      open Quotient (quot (A → B) (EqR→ R)) hiding (abs; ax1)
-                                            renaming (lift to lift-map)      
-  in lift-map (λ g → abs ∘ g) (λ p → ext (λ a → ax1 _ _ (p a))) f
-
-.map~→~-abs : ∀{A B R} → 
-              map~→~ {A}{B}{R} ∘ Quotient.abs (quot (A → B) (EqR→ R)) ≅ 
-              (λ (f : A → B) a → Quotient.abs (quot B R) (f a))
-map~→~-abs {A}{B}{R} = 
-  let open Quotient (quot B R)
-      open Quotient (quot (A → B) (EqR→ R)) hiding (abs; ax1)
-                                            renaming (lift to lift-map; 
-                                                      ax3 to ax3-map)      
-  in ext (λ f → ax3-map {λ _ → A → Quotient.Q (quot B R)} 
-                        (λ g → abs ∘ g) 
-                        (λ p → ext (λ a → ax1 _ _ (p a))) 
-                        f)
-
-.map~→~-naturality : ∀{A B C R R'}{f : B → C} →
-                     let open Quotient (quot B R) renaming (lift to liftB;
-                                                            compat to compatB)
-                         open Quotient (quot C R') renaming (Q to QC; abs to absC)
-                         open Quotient (quot (A → B) (EqR→ R)) renaming (Q to Q-mapB;
-                                                                         lift to lift-mapB;                                                     
-                                                                         compat to compat-mapB)
-                         open Quotient (quot (A → C) (EqR→ R')) renaming (Q to Q-mapC; 
-                                                                          abs to abs-mapC)      
-                     in {p : compatB {λ _ → QC} (absC ∘ f)}
-                        {q : compat-mapB {λ _ → Q-mapC} (λ l → abs-mapC (f ∘ l))} → 
-                        (g : Q-mapB) →
-                        liftB {λ _ → QC} (absC ∘ f) p ∘ map~→~ {A}{B}{R} g ≅ 
-                        map~→~ {A}{C}{R'} (lift-mapB (λ l → abs-mapC (f ∘ l)) q g)
-map~→~-naturality {A}{B}{C}{R}{R'}{f}{p}{q} g = 
-  let open Quotient (quot B R) renaming (lift to liftB; 
-                                         abs to absB; 
-                                         ax3 to ax3B)
-      open Quotient (quot C R') renaming (Q to QC; abs to absC)
-      open Quotient (quot (A → B) (EqR→ R)) renaming (lift to lift-mapB; 
-                                                      abs to abs-mapB;
-                                                      ax1 to ax1-mapB;      
-                                                      ax3 to ax3-mapB)      
-      open Quotient (quot (A → C) (EqR→ R')) renaming (Q to Q-mapC; 
-                                                       abs to abs-mapC)      
-  in lift≅ (quot (A → B) (EqR→ R))
-           {b = λ y → liftB {λ _ → QC} (absC ∘ f) p ∘ map~→~ y}
-           {b' = λ y → map~→~ {A}{C}{R'}(lift-mapB (λ l → abs-mapC (f ∘ l)) q y)}
-           (λ h → 
-             proof
-             liftB {λ _ → QC} (absC ∘ f) p ∘ map~→~ {A}{B}{R} (abs-mapB h)
-             ≅⟨ cong (λ y → liftB {λ _ → QC} (absC ∘ f) p ∘ (y h)) (map~→~-abs {A}{B}{R}) ⟩
-             liftB {λ _ → QC} (absC ∘ f) p ∘ absB ∘ h
-             ≅⟨ ext (λ a → ax3B (absC ∘ f) p (h a)) ⟩
-             absC ∘ (f ∘ h)
-             ≅⟨ cong (λ y → y (f ∘ h)) (sym (map~→~-abs {A}{C}{R'}))  ⟩
-             map~→~ {A}{C}{R'} (abs-mapC (f ∘ h))
-             ≅⟨ cong map~→~ (sym (ax3-mapB (λ l → abs-mapC (f ∘ l)) q h)) ⟩
-             map~→~ {A}{C}{R'} (lift-mapB {λ _ → Q-mapC} (λ l → abs-mapC (f ∘ l)) q (abs-mapB h))
-             ∎)
-           g
-
-.lift-map-abs : ∀{A B R}{f : Quotient.Q (quot (A → B) (EqR→ R))}{x : A} →
-               Quotient.lift (quot (A → B) (EqR→ R)) 
-                             {λ _ → Quotient.Q (quot B R)} 
-                             (λ g → Quotient.abs (quot B R) (g x)) 
-                             (λ p → Quotient.ax1 (quot B R) _ _ (p x)) 
-                             f ≅
-               Quotient.lift (quot (A → B) (EqR→ R)) 
-                             {λ _ → A → Quotient.Q (quot B R)}
-                             (λ g → Quotient.abs (quot B R) ∘ g) 
-                             (λ p → 
-                               ext (λ a → Quotient.ax1 (quot B R) _ _ (p a)))
-                             f
-                             x
-lift-map-abs {A}{B}{R}{f}{x} = 
-  let open Quotient (quot B R)
-      open Quotient (quot (A → B) (EqR→ R)) renaming (Q to Q-map;
-                                                      abs to abs-map;
-                                                      lift to lift-map; 
-                                                      ax1 to ax1-map;      
-                                                      ax3 to ax3-map)      
-  in lift≅ (quot (A → B) (EqR→ R))
-           {b = λ y → lift-map {λ _ → Q} (λ g → abs (g x)) (λ p → ax1 _ _ (p x)) y}
-           {b' = λ y → lift-map {λ _ → A → Q} (λ g → abs ∘ g) (λ p → ext (λ a → ax1 _ _ (p a))) y x}
-           (λ h → 
-           proof
-           lift-map {λ _ → Q} (λ g → abs (g x)) (λ p → ax1 _ _ (p x)) (abs-map h)
-           ≅⟨ ax3-map (λ g → abs (g x)) (λ p → ax1 _ _ (p x)) h ⟩
-           abs (h x)
-           ≅⟨ cong (λ g → g x) 
-                   (sym (ax3-map {λ _ → A → Q} 
-                                 (λ g → abs ∘ g) 
-                                 (λ p → ext (λ a → ax1 _ _ (p a))) 
-                                 h)) ⟩
-           lift-map {λ _ → A → Q} 
-                    (λ g → abs ∘ g) 
-                    (λ p → ext (λ a → ax1 _ _ (p a))) 
-                    (abs-map h) 
-                    x
-           ∎)
-           f
-
-postulate
-  ~→map~ : ∀{A B R} → (A → Quotient.Q (quot B R)) → 
-           Quotient.Q (quot (A → B) (EqR→ R))
-
-  ~iso1 : ∀{A B R}{f : Quotient.Q (quot (A → B) (EqR→ R))} →
-          ~→map~ (map~→~ {A}{B}{R} f) ≅ f
-
-  ~iso2 : ∀{A B R}{f : (A → Quotient.Q (quot B R))} →
-          map~→~ {A}{B}{R} (~→map~ f) ≅ f
-
-.~→map~-abs : ∀{A B R} → 
-              ~→map~ {A}{B}{R} ∘ 
-              (λ (f : A → B) a → Quotient.abs (quot B R) (f a)) ≅ 
-              Quotient.abs (quot (A → B) (EqR→ R))
-~→map~-abs {A}{B}{R} = 
-  let open Quotient (quot B R)
-      open Quotient (quot (A → B) (EqR→ R)) renaming (lift to lift-map; 
-                                                      abs to abs-map)      
-  in ext (λ f → 
-    proof 
-    ~→map~ (λ a → abs (f a)) 
-    ≅⟨ cong (λ g → ~→map~ (g f)) (sym map~→~-abs) ⟩
-    ~→map~ (map~→~ (abs-map f))
-    ≅⟨ ~iso1 ⟩ 
-    abs-map f 
-    ∎)
-
-.~⇢map~-naturality : ∀{A B C R R'}{f : B → C} →
-                     let open Quotient (quot B R) renaming (Q to QB;
-                                                            lift to liftB;
-                                                            compat to compatB)
-                         open Quotient (quot C R') renaming (Q to QC; abs to absC)
-                         open Quotient (quot (A → B) (EqR→ R)) renaming (lift to lift-mapB;                                                     
-                                                                         compat to compat-mapB)
-                         open Quotient (quot (A → C) (EqR→ R')) renaming (Q to Q-mapC; 
-                                                                          abs to abs-mapC)      
-                     in {p : compatB {λ _ → QC} (absC ∘ f)}
-                        {q : compat-mapB {λ _ → Q-mapC} (λ l → abs-mapC (f ∘ l))} → 
-                        (g : A → QB) →
-                        ~→map~ {A}{C}{R'} (liftB {λ _ → QC} (absC ∘ f) p ∘ g) ≅ 
-                        lift-mapB {λ _ → Q-mapC} (λ l → abs-mapC (f ∘ l)) q (~→map~ {A}{B}{R} g)
-~⇢map~-naturality {A}{B}{C}{R}{R'}{f}{p}{q} g = 
-  let open Quotient (quot B R) renaming (lift to liftB; 
-                                         abs to absB; 
-                                         ax3 to ax3B)
-      open Quotient (quot C R') renaming (Q to QC; abs to absC)
-      open Quotient (quot (A → B) (EqR→ R)) renaming (lift to lift-mapB; 
-                                                      abs to abs-mapB;
-                                                      ax1 to ax1-mapB;      
-                                                      ax3 to ax3-mapB)      
-      open Quotient (quot (A → C) (EqR→ R')) renaming (Q to Q-mapC; 
-                                                       abs to abs-mapC)      
-  in 
+  lift₂ : ∀{B}(f : A → A' → B)(p : compat₂ _ f) → Q → Q' → B
+  lift₂ = qelim₂ _ 
+  
+  qbeta₂ : (B : Q → Q' → Set)
+            (f : (a : A)(a' : A') → B (abs a) (abs' a')) 
+            (p : compat₂ B f)(a : A)(a' : A') → 
+            qelim₂ B f p (abs a) (abs' a') ≅ f a a'
+  qbeta₂ B f p a a' = 
     proof
-    ~→map~ {A}{C}{R'} (liftB {λ _ → QC} (absC ∘ f) p ∘ g)
-    ≅⟨ cong
-         (λ y → ~→map~ {A} {C} {R'} (liftB {λ _ → QC} (absC ∘ f) p ∘ y))
-         (sym ~iso2) ⟩
-    ~→map~ {A}{C}{R'} (liftB {λ _ → QC} (absC ∘ f) p ∘ (map~→~ (~→map~ g)))
-    ≅⟨ cong ~→map~ (map~→~-naturality (~→map~ g)) ⟩
-    ~→map~ {A}{C}{R'} (map~→~ (lift-mapB {λ _ → Q-mapC} (λ l → abs-mapC (f ∘ l)) q (~→map~ g)))
-    ≅⟨ ~iso1 ⟩
-    lift-mapB {λ _ → Q-mapC} (λ l → abs-mapC (f ∘ l)) q (~→map~ {A}{B}{R} g)
+    qelim₂ B f p (abs a) (abs' a')
+    ≅⟨ cong (λ g → g (abs' a')) 
+            (qbeta (λ x → (x' : Q') → B x x')
+                   (λ x → qelim' (B (abs x)) (f x) (p (irefl e)))
+                   (λ r → ext (qelimCong q' _ _ (λ _ → p r (irefl e')))) a) ⟩
+    qelim' (B (abs a)) (f a) (p (irefl e)) (abs' a')
+    ≅⟨ qbeta' (B (abs a)) (f a) (p (irefl e)) a' ⟩
+    f a a'
     ∎
 
+module Quotient₃Lib {A A' A'' : Set}{R : EqR A}{R' : EqR A'}
+                    {R'' : EqR A''}(q : Quotient A R)
+                    (q' : Quotient A' R')(q'' : Quotient A'' R'') where
+
+  open QuotientLib
+  open Quotient₂Lib
+  open Σ R renaming (proj₁ to _∼_; proj₂ to e)
+  open Σ R' renaming (proj₁ to _≈_; proj₂ to e')
+  open Σ R'' renaming (proj₁ to _≋_; proj₂ to e'')
+  open Quotient q
+  open Quotient q' renaming (Q to Q'; abs to abs'; qelim to qelim'; 
+                             sound to sound'; qbeta to qbeta')
+  open Quotient q'' renaming (Q to Q''; abs to abs''; qelim to qelim''; 
+                              sound to sound''; qbeta to qbeta'')
+
+  compat₃ : (B : Q → Q' → Q'' → Set)
+            (f : (a : A)(a' : A')(a'' : A'') → 
+                 B (abs a) (abs' a') (abs'' a'')) → Set
+  compat₃ B f = 
+    ∀{a b c a' b' c'} → a ∼ a' → b ≈ b' → c ≋ c' → f a b c ≅ f a' b' c'
+
+  qelim₃ : (B : Q → Q' → Q'' → Set)
+           (f : (a : A)(a' : A')(a'' : A'') → 
+                B (abs a) (abs' a') (abs'' a'')) →
+           compat₃ B f → (x : Q)(x' : Q')(x'' : Q'') → B x x' x''
+  qelim₃ B f p = 
+    let g : (a : A)(x' : Q')(x'' : Q'') → B (abs a) x' x''
+        g a = qelim₂ q' q'' (B (abs a)) (f a) (p (irefl e))
+    in qelim (λ x → (x' : Q')(x'' : Q'') → B x x' x'') g 
+             (λ r → ext (qelimCong q' _ _ 
+               (λ s → ext (qelimCong q'' _ _ 
+                                   (λ a → p r (irefl e') (irefl e''))))))
 

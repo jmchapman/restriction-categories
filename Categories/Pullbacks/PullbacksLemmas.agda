@@ -1,11 +1,41 @@
 open import Categories
+
 module Categories.Pullbacks.PullbacksLemmas (X : Cat) where
+
 open import Utilities
 open Cat X
 open import Categories.Monos X
 open import Categories.Pullbacks X
 open import Function
+open SqMap
 
+monicPullback : ∀{A' A}{m : Hom A' A} → Mono m → Pullback m m
+monicPullback {X}{Z}{f} p = record { 
+  sq = square X iden iden refl; 
+  uniqPul = λ {(square _ h k scom) → 
+    record { 
+      sqMor = h; 
+      leftTr = idl; 
+      rightTr =
+        proof 
+        comp iden h
+        ≅⟨ cong (comp iden) (p scom) ⟩ 
+        comp iden k
+        ≅⟨ idl ⟩ 
+        k
+        ∎} ,
+    λ u' → 
+      proof 
+      h
+      ≅⟨ sym (leftTr u') ⟩ 
+      comp iden (sqMor u')
+      ≅⟨ idl ⟩ 
+      sqMor u'
+      ∎}}
+
+
+
+{-
 .pullbackmonic : ∀{X Y Z}{f : Hom X Z}{g : Hom Y Z} → Mono g → 
                 (q : Pullback f g) → Mono (Square.h (Pullback.sq q))
 pullbackmonic {X}{Y}{Z}{f}{g} p q {A}{f₁}{f₂} r = 
@@ -163,3 +193,4 @@ iso→pullback {X}{Y}{Z}{f}{g} giso =
                      ≅⟨ idl ⟩ 
                      mor u'  
                      ∎)}
+-}

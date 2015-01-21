@@ -1,7 +1,9 @@
 {-# OPTIONS --type-in-type #-}
 open import Categories
 open import PartialMaps.Stable
+
 module Soundness (X : Cat) (M : StableSys X) where
+
 open import Utilities
 open import Restriction.Cat
 open import PartialMaps.Cat X M
@@ -10,110 +12,63 @@ open import Categories.Pullbacks X
 open StableSys X M
 open import Categories.Pullbacks.PullbacksLemmas X
 open import Categories.Pullbacks.PastingLemmas X
+open import Categories.Isos X
 
-import Categories.Isos
+restSpan : ∀{A B} → Span A B → Span A A
+restSpan (span A' mhom fhom m∈) = span A' mhom mhom m∈
 
-restp : ∀{A B} → Span A B → Span A A
-restp mf = record { 
-  A' = A'; 
-  mhom = mhom; 
-  fhom = mhom; 
-  m∈ = m∈ }
-  where open Span mf
+~congRestSpan : ∀{A B}{mf m'f' : Span A B} → mf ~Span~ m'f' → 
+                restSpan mf ~Span~ restSpan m'f'
+~congRestSpan (spaneq s i q r) = spaneq s i q q
 
-Span~restp : ∀{A B}{mf m'f' : Span A B} → mf ~Span~ m'f' → 
-             restp mf ~Span~ restp m'f'
-Span~restp (spaneq s i q r) = spaneq s i q q
+qrestSpan : ∀{A B} → QSpan A B → QSpan A A
+qrestSpan = lift (abs ∘ restSpan) (sound ∘ ~congRestSpan)
 
-.R1p : ∀{A B} → {mf : Span A B} → compspan mf (restp mf) ~Span~ mf
-R1p {A}{B}{mf} =
-  let open Span mf
+R1Span : ∀{A B}{mf : Span A B} → compSpan mf (restSpan mf) ~Span~ mf
+R1Span {mf = span _ m f m∈} =
+  let p , _ = pul∈sys m m∈
+      pullback (square _ h _ scom) _ = p
+  in spaneq h (pullbackIso (monicPullback (mono∈sys m∈)) p) refl (cong (comp f) (mono∈sys m∈ scom))
 
-      p : Pullback mhom mhom
-      p = proj₁ (pul mhom m∈)
-
-      open Pullback p 
-      open Square sq
-
-      p' : Pullback mhom mhom
-      p' = monic→pullback (mon m∈)
-
-  in spaneq h 
-            (pullbackiso p' p) 
-            (proof 
-             comp mhom h 
-             ≅⟨ refl ⟩ 
-             comp mhom h 
-             ∎) 
-            (proof
-             comp fhom h 
-             ≅⟨ cong (comp fhom) (mon m∈ scom) ⟩ 
-             comp fhom k 
-             ∎)
-
-.R2p : ∀{A B C}{mf : Span A B}{m'f' : Span A C} → 
-       compspan (restp mf) (restp m'f') ~Span~ compspan (restp m'f') (restp mf)
-R2p {mf = mf} {m'f' = m'f'} = 
-  let open Span mf renaming (mhom to m; fhom to f)
-      open Span m'f' renaming (A' to A''; mhom to m'; fhom to f'; m∈ to m'∈) 
-
-      p : Pullback m m'
-      p = sympul (proj₁ (pul m' m∈))
-
-      open Pullback p
-      open Square sq
-
-      p' : Pullback m m'
-      p' = proj₁ (pul m m'∈)
-
-      open Pullback p' renaming (sq to sq'; prop to prop')
-      open Square sq' renaming (W to W'; h to h'; k to k'; scom to scom')
-
-      pu : PMap sq sq'
-      pu = fst (prop' sq)
-
-      open PMap pu renaming (mor to u)
+R2Span : ∀{A B C}{mf : Span A B}{m'f' : Span A C} → 
+          compSpan (restSpan mf) (restSpan m'f') ~Span~ compSpan (restSpan m'f') (restSpan mf)
+R2Span {mf = span _ m f m∈} {span _ m' f' m'∈} = 
+  let p , _ = pul∈sys m' m∈
+      pullback sq _ = symPullback p
+      square _ h k scom = sq
+      p' , _ = pul∈sys m m'∈
+      pullback sq' uniqPul' = p'
+      square _ h' k' scom' = sq'
+      sqmap u leftTr rightTr  , _ = uniqPul' sq
   in spaneq u 
-            (pullbackiso p' p) 
+            (pullbackIso p' (symPullback p)) 
             (proof
              comp (comp m h') u 
              ≅⟨ ass ⟩
              comp m (comp h' u) 
-             ≅⟨ cong (comp m) prop1 ⟩
+             ≅⟨ cong (comp m) leftTr ⟩
              comp m h 
              ≅⟨ scom ⟩ 
-             comp m' k ∎) 
+             comp m' k 
+             ∎) 
             (proof
              comp (comp m' k') u 
              ≅⟨ ass ⟩
              comp m' (comp k' u) 
-             ≅⟨ cong (comp m') prop2 ⟩
+             ≅⟨ cong (comp m') rightTr ⟩
              comp m' k 
              ≅⟨ sym scom ⟩ 
              comp m h 
              ∎)
- 
-.R3p : ∀{A B C}{mf : Span A B}{m'f' : Span A C} →
-       compspan (restp m'f') (restp mf) ~Span~ restp (compspan m'f' (restp mf))
-R3p {mf = mf} {m'f' = m'f'} = 
-  let open Span mf renaming (mhom to m; fhom to f)
-      open Span m'f' renaming (A' to A''; mhom to m'; fhom to f'; m∈ to m'∈) 
 
-      p : Pullback m m'
-      p = proj₁ (pul m m'∈)
-
-      open Pullback p
-      open Square sq
-      open Categories.Isos X
-
+R3Span : ∀{A B C}{mf : Span A B}{m'f' : Span A C} →
+          compSpan (restSpan m'f') (restSpan mf) ~Span~ restSpan (compSpan m'f' (restSpan mf))
+R3Span {mf = span _ m f m∈} {span _ m' f' m'∈} = 
+  let pullback (square _ h k scom) _ , _ = pul∈sys m m'∈
   in spaneq
     iden 
-    idiso 
-    (proof
-     comp (comp m h) iden
-     ≅⟨ idr ⟩
-     comp m h
-     ∎)
+    idIso 
+    idr
     (proof 
      comp (comp m h) iden 
      ≅⟨ idr ⟩ 
@@ -122,42 +77,24 @@ R3p {mf = mf} {m'f' = m'f'} =
      comp m' k 
      ∎)
 
-.R4p : ∀{A B C}{mf : Span A B}{m'f' : Span B C} →
-       compspan (restp m'f') mf ~Span~ compspan mf (restp (compspan m'f' mf))
-R4p {mf = mf} {m'f' = m'f'} = 
-  let open Span mf renaming (mhom to m; fhom to f)
-      open Span m'f' renaming (A' to A''; mhom to m'; fhom to f'; m∈ to m'∈)
-
-      p : Pullback f m'
-      p = proj₁ (pul f m'∈)
-
-      open Pullback p 
-      open Square sq
-
-      p'' : Pullback (comp m h) m
-      p'' = lem1 (monic→pullback (mon m∈)) (trivialpul h)
-
-      open Pullback p'' renaming (sq to sq''; prop to prop'')
-
-      p' : Pullback (comp m h) m
-      p' = proj₁ (pul (comp m h) m∈)
-
-      open Pullback p' renaming (sq to sq'; prop to prop')
-      open Square sq' renaming (W to W'; h to h'; k to k'; scom to scom')
-
-      pu : PMap sq'' sq'
-      pu = fst (prop' sq'')
-
-      open PMap pu renaming (mor to u)
-
+R4Span : ∀{A B C}{mf : Span A B}{m'f' : Span B C} →
+          compSpan (restSpan m'f') mf ~Span~ compSpan mf (restSpan (compSpan m'f' mf))
+R4Span {mf = span _ m f m∈} {span _ m' f' m'∈} = 
+  let pullback (square _ h k scom) uniqPul , _ = pul∈sys f m'∈
+      p'' = pasting1 (monicPullback (mono∈sys m∈)) (trivialPullback h)
+      pullback sq'' _ = p''
+      p' , _ = pul∈sys (comp m h) m∈
+      pullback sq' uniqPul' = p'
+      square _ h' k' scom' = sq'
+      sqmap u leftTr rightTr , _ = uniqPul' sq'' 
   in spaneq 
     u 
-    (pullbackiso p' p'') 
+    (pullbackIso p' p'') 
     (proof 
      comp (comp (comp m h) h') u 
      ≅⟨ ass ⟩ 
      comp (comp m h) (comp h' u) 
-     ≅⟨ cong (comp (comp m h)) prop1  ⟩ 
+     ≅⟨ cong (comp (comp m h)) leftTr  ⟩ 
      comp (comp m h) iden 
      ≅⟨ idr ⟩ 
      comp m h 
@@ -166,7 +103,7 @@ R4p {mf = mf} {m'f' = m'f'} =
      comp (comp f k') u
      ≅⟨ ass ⟩
      comp f (comp k' u)
-     ≅⟨ cong (comp f) prop2 ⟩
+     ≅⟨ cong (comp f) rightTr ⟩
      comp f (comp iden h)
      ≅⟨ cong (comp f) idl ⟩
      comp f h
@@ -174,165 +111,152 @@ R4p {mf = mf} {m'f' = m'f'} =
      comp m' k
      ∎)
 
-qrest : ∀{A B} → QSpan A B → QSpan A A
-qrest = lift (abs ∘ restp) (ax1 _ _ ∘ Span~restp)
+qrestSpanQbeta : ∀{A B}{mf : Span A B} → 
+                 qrestSpan (abs mf) ≅ abs (restSpan mf)
+qrestSpanQbeta = qbeta _ (abs ∘ restSpan) (sound ∘ ~congRestSpan) _
 
-.qrestabs≅ : ∀{A B}{mf : Span A B} → qrest (abs mf) ≅ abs (restp mf)
-qrestabs≅ {A}{B}{mf} = ax3 (abs ∘ restp) (ax1 _ _ ∘ Span~restp) mf
+qR1Span : ∀{A B}{x : QSpan A B} → qcompSpan x (qrestSpan x) ≅ x
+qR1Span = 
+  qelim (λ z → qcompSpan z (qrestSpan z) ≅ z) 
+        (λ mf → 
+          proof
+          qcompSpan (abs mf) (qrestSpan (abs mf))
+          ≅⟨ cong (qcompSpan (abs mf)) qrestSpanQbeta ⟩
+          qcompSpan (abs mf) (abs (restSpan mf))
+          ≅⟨ qcompSpanQbeta ⟩
+          abs (compSpan mf (restSpan mf))
+          ≅⟨ sound R1Span ⟩
+          abs mf
+          ∎)
+        (hirR ∘ sound)
+        _
 
-.qR1 : ∀{A B}{f : QSpan A B} → qcomp f (qrest f) ≅ f
-qR1 {A}{B}{f} = Quotient.lift (quot (Span A B) Span~EqR) 
-                              {λ y → qcomp y (qrest y) ≅ y}
-                              (λ a → 
-                                proof 
-                                qcomp (abs a) (qrest (abs a))
-                                ≅⟨ cong (qcomp (abs a)) qrestabs≅ ⟩
-                                qcomp (abs a) (abs (restp a))
-                                ≅⟨ qcompabsabs ⟩ 
-                                abs (compspan a (restp a))
-                                ≅⟨ ax1 _ _  R1p ⟩ 
-                                abs a 
-                                ∎) 
-                              (λ x → fixtypes'' 
-                                              (ax1 _ _ x)) 
-                              f
+qR2Span : ∀{A B C}{f : QSpan A B}{g : QSpan A C} → 
+           qcompSpan (qrestSpan g) (qrestSpan f) ≅ 
+           qcompSpan (qrestSpan f) (qrestSpan g)
+qR2Span = 
+  qelim₂ (λ x y → qcompSpan (qrestSpan x) (qrestSpan y) ≅ 
+                  qcompSpan (qrestSpan y) (qrestSpan x))
+         (λ mf ng → 
+            proof
+            qcompSpan (qrestSpan (abs mf)) (qrestSpan (abs ng))
+            ≅⟨ cong₂ qcompSpan qrestSpanQbeta qrestSpanQbeta ⟩
+            qcompSpan (abs (restSpan mf)) (abs (restSpan ng))
+            ≅⟨ qcompSpanQbeta ⟩
+            abs (compSpan (restSpan mf) (restSpan ng))
+            ≅⟨ sound (R2Span {mf = mf}{ng}) ⟩
+            abs (compSpan (restSpan ng) (restSpan mf))
+            ≅⟨ sym qcompSpanQbeta ⟩
+            qcompSpan (abs (restSpan ng)) (abs (restSpan mf))
+            ≅⟨ sym (cong₂ qcompSpan qrestSpanQbeta qrestSpanQbeta) ⟩
+            qcompSpan (qrestSpan (abs ng)) (qrestSpan (abs mf))
+            ∎)
+         (λ p r → hirR (cong₂ (λ x y → qcompSpan (qrestSpan x) (qrestSpan y)) 
+                              (sound r) (sound p)))
+         _ _
 
-.qR2 : ∀{A B C}{f : QSpan A B}{g : QSpan A C} → qcomp (qrest g) (qrest f) ≅ qcomp (qrest f) (qrest g)
-qR2 {A}{B}{C}{f}{g} = Quotient.lift (quot (Span A C) Span~EqR)
-                                    {λ y → qcomp (qrest y) (qrest f) ≅ qcomp (qrest f) (qrest y)} 
-                                    (λ a → Quotient.lift (quot (Span A B) Span~EqR)
-                                                         {λ y → qcomp (qrest (abs a)) (qrest y) ≅ qcomp (qrest y) (qrest (abs a))}
-                                                         (λ b → 
-                                                           proof
-                                                           qcomp (qrest (abs a)) (qrest (abs b))
-                                                           ≅⟨ cong (λ y → qcomp y (qrest (abs b))) qrestabs≅ ⟩
-                                                           qcomp (abs (restp a)) (qrest (abs b))
-                                                           ≅⟨ cong (qcomp (abs (restp a))) qrestabs≅ ⟩
-                                                           qcomp (abs (restp a)) (abs (restp b))
-                                                           ≅⟨ qcompabsabs ⟩
-                                                           abs (compspan (restp a) (restp b))
-                                                           ≅⟨ ax1 _ _ (R2p {mf = a}{m'f' = b}) ⟩
-                                                           abs (compspan (restp b) (restp a))
-                                                           ≅⟨ sym qcompabsabs ⟩
-                                                           qcomp (abs (restp b)) (abs (restp a))
-                                                           ≅⟨ cong (qcomp (abs (restp b))) (sym qrestabs≅) ⟩
-                                                           qcomp (abs (restp b)) (qrest (abs a))
-                                                           ≅⟨ cong (λ y → qcomp y (qrest (abs a))) (sym qrestabs≅) ⟩
-                                                           qcomp (qrest (abs b)) (qrest (abs a))
-                                                           ∎) 
-                                                         (λ x → fixtypes' (cong (qcomp (qrest (abs a)) ∘ qrest) (ax1 _ _ x)))
-                                                                         
-                                                         f) 
-                                    (λ x → fixtypes' (cong (λ y → qcomp (qrest y) (qrest f)) (ax1 _ _ x)))
-                           
-                                    g
+qR3Span : ∀{A B C}{f : QSpan A B}{g : QSpan A C} → 
+           qcompSpan (qrestSpan g) (qrestSpan f) ≅ 
+           qrestSpan (qcompSpan g (qrestSpan f))
+qR3Span = 
+  qelim₂ (λ x y → qcompSpan (qrestSpan x) (qrestSpan y) ≅ 
+                  qrestSpan (qcompSpan x (qrestSpan y)))
+         (λ mf ng → 
+            proof
+            qcompSpan (qrestSpan (abs mf)) (qrestSpan (abs ng))
+            ≅⟨ cong₂ qcompSpan qrestSpanQbeta qrestSpanQbeta ⟩
+            qcompSpan (abs (restSpan mf)) (abs (restSpan ng))
+            ≅⟨ qcompSpanQbeta ⟩
+            abs (compSpan (restSpan mf) (restSpan ng))
+            ≅⟨ sound (R3Span {mf = ng}{mf}) ⟩
+            abs (restSpan (compSpan mf (restSpan ng)))
+            ≅⟨ sym qrestSpanQbeta ⟩
+            qrestSpan (abs (compSpan mf (restSpan ng)))
+            ≅⟨ cong qrestSpan (sym qcompSpanQbeta) ⟩
+            qrestSpan (qcompSpan (abs mf) (abs (restSpan ng)))
+              ≅⟨ cong (qrestSpan ∘ qcompSpan (abs mf)) (sym qrestSpanQbeta) ⟩
+            qrestSpan (qcompSpan (abs mf) (qrestSpan (abs ng)))
+            ∎)
+         (λ p r → hirR (cong₂ (λ x y → qrestSpan (qcompSpan x (qrestSpan y))) 
+                              (sound p) (sound r)))
+         _ _
 
-.qR3 : ∀{A B C}{f : QSpan A B}{g : QSpan A C} → qcomp (qrest g) (qrest f) ≅ qrest (qcomp g (qrest f))
-qR3 {A}{B}{C}{f}{g} = Quotient.lift (quot (Span A C) Span~EqR)
-                                    {λ y → qcomp (qrest y) (qrest f) ≅ qrest (qcomp y (qrest f))} 
-                                    (λ a → Quotient.lift (quot (Span A B) Span~EqR)
-                                                         {λ y → qcomp (qrest (abs a)) (qrest y) ≅ qrest (qcomp (abs a) (qrest y))}
-                                                         (λ b → 
-                                                           proof
-                                                           qcomp (qrest (abs a)) (qrest (abs b))
-                                                           ≅⟨ cong (λ y → qcomp y (qrest (abs b))) qrestabs≅ ⟩
-                                                           qcomp (abs (restp a)) (qrest (abs b))
-                                                           ≅⟨ cong (qcomp (abs (restp a))) qrestabs≅ ⟩
-                                                           qcomp (abs (restp a)) (abs (restp b))
-                                                           ≅⟨ qcompabsabs ⟩
-                                                           abs (compspan (restp a) (restp b))
-                                                           ≅⟨ ax1 _ _ (R3p {mf = b}{m'f' = a}) ⟩
-                                                           abs (restp (compspan a (restp b)))
-                                                           ≅⟨ sym qrestabs≅ ⟩
-                                                           qrest (abs (compspan a (restp b)))
-                                                           ≅⟨ cong qrest (sym qcompabsabs) ⟩
-                                                           qrest (qcomp (abs a) (abs (restp b)))
-                                                           ≅⟨ cong (qrest ∘ qcomp (abs a)) (sym qrestabs≅) ⟩
-                                                           qrest (qcomp (abs a) (qrest (abs b)))
-                                                           ∎) 
-                                                         (λ x → fixtypes' (cong (qcomp (qrest (abs a)) ∘ qrest) (ax1 _ _ x)))
-                                             
-                                                         f) 
-                                    (λ x → fixtypes' (cong (λ y → qcomp (qrest y) (qrest f)) (ax1 _ _ x)))
-                          
-                                    g
+qR4Span : ∀{A B C}{f : QSpan A B}{g : QSpan B C} → 
+           qcompSpan (qrestSpan g) f ≅ qcompSpan f (qrestSpan (qcompSpan g f))
+qR4Span = 
+  qelim₂ (λ x y → qcompSpan (qrestSpan x) y ≅ 
+                  qcompSpan y (qrestSpan (qcompSpan x y)))
+         (λ mf ng → 
+            proof
+            qcompSpan (qrestSpan (abs mf)) (abs ng)
+            ≅⟨ cong (λ z → qcompSpan z (abs ng)) qrestSpanQbeta ⟩
+            qcompSpan (abs (restSpan mf)) (abs ng)
+            ≅⟨ qcompSpanQbeta ⟩
+            abs (compSpan (restSpan mf) ng)
+            ≅⟨ sound (R4Span {mf = ng}{mf}) ⟩
+            abs (compSpan ng (restSpan (compSpan mf ng)))
+            ≅⟨ sym qcompSpanQbeta ⟩
+            qcompSpan (abs ng) (abs (restSpan (compSpan mf ng)))
+            ≅⟨ cong (qcompSpan (abs ng)) (sym qrestSpanQbeta) ⟩
+            qcompSpan (abs ng) (qrestSpan (abs (compSpan mf ng)))
+            ≅⟨ cong (qcompSpan (abs ng) ∘ qrestSpan) (sym qcompSpanQbeta) ⟩
+            qcompSpan (abs ng) (qrestSpan (qcompSpan (abs mf) (abs ng)))
+            ∎)
+         (λ p r → hirR (cong₂ (λ x y → qcompSpan y (qrestSpan (qcompSpan x y)))
+                              (sound p) (sound r)))
+         _ _
 
-.qR4 : ∀{A B C}{f : QSpan A B}{g : QSpan B C} → qcomp (qrest g) f ≅ qcomp f (qrest (qcomp g f))
-qR4 {A}{B}{C}{f}{g} = Quotient.lift (quot (Span B C) Span~EqR)
-                                    {λ y → qcomp (qrest y) f ≅ qcomp f (qrest (qcomp y f))}
-                                    (λ a → Quotient.lift (quot (Span A B) Span~EqR)
-                                                         {λ y → qcomp (qrest (abs a)) y ≅ qcomp y (qrest (qcomp (abs a) y))}
-                                                         (λ b → 
-                                                           proof
-                                                           qcomp (qrest (abs a)) (abs b)
-                                                           ≅⟨ cong (λ y → qcomp y (abs b)) qrestabs≅ ⟩
-                                                           qcomp (abs (restp a)) (abs b)
-                                                           ≅⟨ qcompabsabs ⟩
-                                                           abs (compspan (restp a) b)
-                                                           ≅⟨ ax1 _ _ (R4p {mf = b}{m'f' = a}) ⟩
-                                                           abs (compspan b (restp (compspan a b)))
-                                                           ≅⟨ sym qcompabsabs ⟩
-                                                           qcomp (abs b) (abs (restp (compspan a b)))
-                                                           ≅⟨ cong (qcomp (abs b)) (sym qrestabs≅) ⟩
-                                                           qcomp (abs b) (qrest (abs (compspan a b)))
-                                                           ≅⟨ cong (qcomp (abs b) ∘ qrest) (sym qcompabsabs) ⟩
-                                                           qcomp (abs b) (qrest (qcomp (abs a) (abs b)))
-                                                           ∎) 
-                                                         (λ x → fixtypes' (cong (qcomp (qrest (abs a))) (ax1 _ _ x)))
-                                     
-                                                         f)
-                                    (λ x → fixtypes' (cong (λ y → qcomp (qrest y) f) (ax1 _ _ x)))
-                  
-                                    g
-
-RestPartials : RestCat
-RestPartials = record { 
+RestPar : RestCat
+RestPar = record { 
   cat = Par; 
-  rest = qrest;
-  R1 = qR1;
-  R2 = qR2;
-  R3 = qR3;
-  R4 = qR4}
+  rest = qrestSpan;
+  R1 = qR1Span;
+  R2 = qR2Span;
+  R3 = qR3Span;
+  R4 = qR4Span}
 
+
+{-
 -- every restriction in Par splits
 
 open import Categories.Idems Par
 open Categories.Isos X
+open Lemmata RestPar
 
-restpIdem : ∀{A B}(f : QSpan A B) → Idem
-restpIdem {A}{B} f = record {
-  E = A; 
-  e = qrest f;
-  law = Quotient.lift (quot (Span A B) Span~EqR)
-                      {λ y → qcomp (qrest y) (qrest y) ≅ qrest y} 
-                      (λ a → 
-                        proof
-                        qcomp (qrest (abs a)) (qrest (abs a))
-                        ≅⟨ cong (λ y → qcomp y y) qrestabs≅ ⟩
-                        qcomp (abs (restp a)) (abs (restp a))
-                        ≅⟨ qcompabsabs ⟩
-                        abs (compspan (restp a) (restp a))
-                        ≅⟨ ax1 _ _ R1p ⟩
-                        abs (restp a)
-                        ≅⟨ sym qrestabs≅ ⟩
-                        qrest (abs a)
-                        ∎) 
-                      (λ x → fixtypes' (cong (λ y → qcomp (qrest y) (qrest y)) (ax1 _ _ x)))
-                                      
-                      f}
+qrestSpanIdem : ∀{A B}(f : QSpan A B) → Idem
+qrestSpanIdem f = record { E = _; e = qrestSpan f; law = lemii}
 
-qs : ∀{A B}(f : Span A B) → Span (Span.A' f) A
-qs f = 
+sectionSpan : ∀{A B}(f : Span A B) → Span (Span.A' f) A
+sectionSpan f = 
   let open Span f
   in record { A' = A'; mhom = iden; fhom = mhom; m∈ = iso idiso }
 
-qr : ∀{A B}(f : Span A B) → Span A (Span.A' f)
-qr f = 
+retractionSpan : ∀{A B}(f : Span A B) → Span A (Span.A' f)
+retractionSpan f = 
   let open Span f
   in record { A' = A'; mhom = mhom; fhom = iden; m∈ = m∈ }
 
-restpSplit : ∀{A B}(f : Span A B) → Split (restpIdem (abs f))
-restpSplit {A}{B} f = 
+{-
+qrestSpanSplit : ∀{A B}(f : QSpan A B) → Split (qrestSpanIdem f)
+qrestSpanSplit = 
+  qelim (Split ∘ qrestSpanIdem)
+        (λ mf → let open Span mf in record { 
+          B = A' ; 
+          s = abs (sectionSpan mf) ; 
+          r = abs (retractionSpan mf) ; 
+          law1 = {!!} ; 
+          law2 = {!!} })
+        (λ x → {!split≅ !})
+-}
+
+
+
+
+{-
+
+
+restSpanSplit : ∀{A B}(f : Span A B) → Split (restSpanIdem (abs f))
+restSpanSplit {A}{B} f = 
   let open Span f
   in record { 
     B    = A'; 
@@ -356,7 +280,7 @@ restpSplit {A}{B} f =
                 k 
                 ∎
 
-          lem' : compspan (qs f) (qr f) ~Span~ restp f
+          lem' : compSpan (qs f) (qr f) ~Span~ restSpan f
           lem' = spaneq (PMap.mor (fst (Pullback.prop myp sq))) 
                          (pullbackiso myp (proj₁ (pul (iden {A'}) (iso idiso))))
                          refl
@@ -369,11 +293,11 @@ restpSplit {A}{B} f =
       in proof
          qcomp (abs (qs f)) (abs (qr f))
          ≅⟨ qcompabsabs ⟩
-         abs (compspan (qs f) (qr f))
-         ≅⟨ ax1 _ _ lem' ⟩
-         abs (restp f)
-         ≅⟨ sym qrestabs≅ ⟩
-         qrest (abs f)
+         abs (compSpan (qs f) (qr f))
+         ≅⟨ sound _ _ lem' ⟩
+         abs (restSpan f)
+         ≅⟨ sym qrestSpanQbeta ⟩
+         qrestSpan (abs f)
          ∎;
     law2 = 
       let open Pullback (proj₁ (pul mhom m∈)) 
@@ -382,7 +306,7 @@ restpSplit {A}{B} f =
           myp : Pullback mhom mhom 
           myp = monic→pullback (mon m∈)
   
-          lem : compspan (qr f) (qs f) ~Span~ idspan
+          lem : compSpan (qr f) (qs f) ~Span~ idSpan
           lem = spaneq (PMap.mor (fst (Pullback.prop myp sq))) 
                        (pullbackiso myp (proj₁ (pul mhom m∈))) 
                        refl 
@@ -398,22 +322,22 @@ restpSplit {A}{B} f =
       in proof
          qcomp (abs (qr f)) (abs (qs f))
          ≅⟨ qcompabsabs ⟩
-         abs (compspan (qr f) (qs f))
-         ≅⟨ ax1 _ _ lem ⟩
-         abs idspan
+         abs (compSpan (qr f) (qs f))
+         ≅⟨ sound _ _ lem ⟩
+         abs idSpan
          ∎}
 
 
 {-
 
-restpIdem : ∀{A B}(f : Span A B) → Idem
-restpIdem {A}{B} f = record {
+restSpanIdem : ∀{A B}(f : Span A B) → Idem
+restSpanIdem {A}{B} f = record {
   E = A; 
-  e = abs (restp f); 
-  law = ax1 _ _ (~trans (~cong (ax3 _) (ax3 _)) R1p)}
+  e = abs (restSpan f); 
+  law = sound _ _ (~trans (~cong (qbeta _) (qbeta _)) R1p)}
 
-restpSplit : ∀{A B}(f : Span A B) → Split (restpIdem f)
-restpSplit {A}{B} f = let open Span f
+restSpanSplit : ∀{A B}(f : Span A B) → Split (restSpanIdem f)
+restSpanSplit {A}{B} f = let open Span f
   in record { 
   B    = A'; 
   s    = abs (record {A' = A'; mhom = iden; fhom = mhom; m∈ = iso idiso }); 
@@ -434,10 +358,10 @@ restpSplit {A}{B} f = let open Span f
                    ≅⟨ idl ⟩
                    k 
                    ∎
-         in ax1 
+         in sound 
          _ 
          _ 
-         (~trans (~cong (ax3 _) (ax3 _)) 
+         (~trans (~cong (qbeta _) (qbeta _)) 
                  (spaneq (PMap.mor (fst (Pullback.prop myp sq))) 
                          (pullbackiso myp (proj₁ (pul (iden {A'}) (iso idiso))))
                          refl
@@ -450,10 +374,10 @@ restpSplit {A}{B} f = let open Span f
              open Square sq
              myp : Pullback mhom mhom 
              myp = monic→pullback (mon m∈)
-         in ax1 
+         in sound 
          _ 
          _ 
-         (~trans (~cong (ax3 _) (ax3 _)) 
+         (~trans (~cong (qbeta _) (qbeta _)) 
                  (spaneq (PMap.mor (fst (Pullback.prop myp sq))) 
                         (pullbackiso myp (proj₁ (pul mhom m∈))) 
                         refl 
@@ -467,4 +391,7 @@ restpSplit {A}{B} f = let open Span f
                          comp iden k 
                          ∎)))}
 
+-}
+
+-}
 -}

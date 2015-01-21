@@ -1,5 +1,6 @@
 {-# OPTIONS --type-in-type #-}
 module Restriction.Cat where
+
 open import Utilities
 open import Categories
 
@@ -7,21 +8,21 @@ record RestCat : Set where
   field cat  : Cat
   open  Cat cat
   field rest : ∀{A B} → Hom A B → Hom A A
-        .R1   : ∀{A B}{f : Hom A B} → comp f (rest f) ≅ f 
-        .R2   : ∀{A B C}{f : Hom A B}{g : Hom A C} →
+        R1   : ∀{A B}{f : Hom A B} → comp f (rest f) ≅ f 
+        R2   : ∀{A B C}{f : Hom A B}{g : Hom A C} →
                comp (rest f) (rest g) ≅ comp (rest g) (rest f)
-        .R3   : ∀{A B C}{f : Hom A B}{g : Hom A C} →
+        R3   : ∀{A B C}{f : Hom A B}{g : Hom A C} →
                comp (rest g) (rest f) ≅ rest (comp g (rest f))
-        .R4   : ∀{A B C}{f : Hom A B}{g : Hom B C} →
+        R4   : ∀{A B C}{f : Hom A B}{g : Hom B C} →
                comp (rest g) f ≅ comp f (rest (comp g f))
 
-
 module Lemmata (X : RestCat) where
+
   open RestCat X
   open Cat cat
   open import Categories.Monos cat
   
-  .lemii : ∀{A B}{f : Hom A B} → comp (rest f) (rest f) ≅ rest f
+  lemii : ∀{A B}{f : Hom A B} → comp (rest f) (rest f) ≅ rest f
   lemii {f = f} = 
     proof
     comp (rest f) (rest f) 
@@ -31,7 +32,7 @@ module Lemmata (X : RestCat) where
     rest f
     ∎
 
-  .lemiii : ∀{A B}{f : Hom A B} → Mono f → rest f ≅ iden
+  lemiii : ∀{A B}{f : Hom A B} → Mono f → rest f ≅ iden
   lemiii {f = f} p = p $
     proof
     comp f (rest f)
@@ -41,7 +42,7 @@ module Lemmata (X : RestCat) where
     comp f iden
     ∎
 
-  .lemi : ∀{A B}{f : Hom A B} → rest (rest f) ≅ rest f
+  lemi : ∀{A B}{f : Hom A B} → rest (rest f) ≅ rest f
   lemi {f = f} = 
     proof
     rest (rest f)
@@ -49,13 +50,13 @@ module Lemmata (X : RestCat) where
     rest (comp iden (rest f))
     ≅⟨ sym R3 ⟩ 
     comp (rest iden) (rest f)
-    ≅⟨ cong (λ g → comp g (rest f)) (lemiii idmono) ⟩ 
+    ≅⟨ cong (λ g → comp g (rest f)) (lemiii idMono) ⟩ 
     comp iden (rest f)
     ≅⟨ idl ⟩ 
     rest f
     ∎
 
-  .lemiv : ∀{A B C}{f : Hom A B}{g : Hom B C} → 
+  lemiv : ∀{A B C}{f : Hom A B}{g : Hom B C} → 
           rest (comp g f) ≅ rest (comp (rest g) f)
   lemiv {f = f}{g = g} = 
     proof
@@ -74,6 +75,7 @@ module Lemmata (X : RestCat) where
     rest (comp (rest g) f) 
     ∎
 
+{-
   _≤_ : ∀{A B} → Hom A B → Hom A B → Set
   f ≤ g = comp g (rest f) ≅ f
 
@@ -116,3 +118,4 @@ Trivial C = record {
    comp f iden 
    ∎}
   where open Cat C
+-}
