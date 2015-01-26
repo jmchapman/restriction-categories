@@ -9,24 +9,31 @@ open RestCat X
 open Cat cat
 open import Categories.Idems 
 open import Categories.Splits
-open import Restriction.Idems
+import Restriction.Idems
 open import Restriction.SplitCatIsRestCat X
 open import Restriction.SplitRestCats
 open import Restriction.Functors
 
-SC = SplitCat cat (restIdemClass X)
-RSC = RestSplitCat (restIdemClass X)
+SC = SplitCat cat (Restriction.Idems.restIdemClass X)
+RSC = RestSplitCat (Restriction.Idems.restIdemClass X)
+ObjSC = Cat.Obj SC
+HomSC = Cat.Hom SC
+IdemSC = Idem SC
+SplitSC = Split SC
+isRestIdemRSC = Restriction.Idems.isRestIdem RSC
 
-BRestIdemSplit : (i : Idem SC) → Σ (Idem cat) (isRestIdem X)
-BRestIdemSplit (idem p m _) = restIdemMorIsRestIdem X {p}{p} m
+open Restriction.Idems X
 
-sRestIdemSplit : (i : Idem SC) → isRestIdem RSC i → Cat.Hom SC (BRestIdemSplit i) (Idem.E i) --IdemMor _ (proj₁ (BRestIdemSplit i)) (proj₁ (Idem.E i))
+BRestIdemSplit : (i : IdemSC) → ObjSC
+BRestIdemSplit (idem p m _) = restIdemMorIsRestIdem {p}{p} m
+
+sRestIdemSplit : (i : IdemSC) → isRestIdemRSC i → HomSC (BRestIdemSplit i) (Idem.E i)
 sRestIdemSplit (idem (idem _ e idemLaw , q) m _) r =
   let idemmor f _ = m
   in idemmor (hat m)
              (proof
               comp e (comp (hat m) (hat m))
-              ≅⟨ cong (comp e) (restIdemMorIsIdemLaw X m) ⟩
+              ≅⟨ cong (comp e) (restIdemMorIsIdemLaw m) ⟩
               comp e (hat m)
               ≅⟨ cong (comp e) (restIdemMorComm m) ⟩
               comp e (comp e (rest f))
@@ -38,7 +45,7 @@ sRestIdemSplit (idem (idem _ e idemLaw , q) m _) r =
               hat m
               ∎)
 
-rRestIdemSplit : (i : Idem SC) → isRestIdem RSC i → Cat.Hom SC (Idem.E i) (BRestIdemSplit i)
+rRestIdemSplit : (i : IdemSC) → isRestIdemRSC i → HomSC (Idem.E i) (BRestIdemSplit i)
 rRestIdemSplit (idem (idem _ e idemLaw , q) m _) r =
   let idemmor f _ = m
   in idemmor (hat m)
@@ -46,7 +53,7 @@ rRestIdemSplit (idem (idem _ e idemLaw , q) m _) r =
               comp (hat m) (comp (hat m) e) 
               ≅⟨ sym ass ⟩
               comp (comp (hat m) (hat m)) e 
-              ≅⟨ cong (λ x → comp x e) (restIdemMorIsIdemLaw X m) ⟩
+              ≅⟨ cong (λ x → comp x e) (restIdemMorIsIdemLaw m) ⟩
               comp (hat m) e
               ≅⟨ ass ⟩
               comp (rest f) (comp e e)
@@ -54,19 +61,19 @@ rRestIdemSplit (idem (idem _ e idemLaw , q) m _) r =
               hat m
               ∎)
 
-sl1RestIdemSplit : (i : Idem SC) → isRestIdem RSC i → 
+sl1RestIdemSplit : (i : Idem SC) → isRestIdemRSC i → 
                    comp (hat (Idem.e i)) (hat (Idem.e i)) ≅ IdemMor.imap (Idem.e i) 
 sl1RestIdemSplit (idem _ m _) r =
   let idemmor f _ = m
   in proof
      comp (hat m) (hat m)
-     ≅⟨ restIdemMorIsIdemLaw X m ⟩
+     ≅⟨ restIdemMorIsIdemLaw m ⟩
      hat m
-     ≅⟨ sym (idemMorEqProj _ r) ⟩
+     ≅⟨ sym (cong IdemMor.imap r) ⟩
      f
      ∎
 
-restIdemSplit : (i : Idem SC) → isRestIdem RSC i → Split SC i
+restIdemSplit : (i : IdemSC) → isRestIdemRSC i → SplitSC i
 restIdemSplit i r = 
   let idem _ m _ = i
   in record {
@@ -74,12 +81,13 @@ restIdemSplit i r =
     s = sRestIdemSplit i r ;
     r = rRestIdemSplit i r ;
     splitLaw1 = idemMorEq _ (sl1RestIdemSplit i r) ;
-    splitLaw2 = idemMorEq _ (restIdemMorIsIdemLaw X m) }
+    splitLaw2 = idemMorEq _ (restIdemMorIsIdemLaw m) }
 
 SplitRestSplitCat : SplitRestCat
 SplitRestSplitCat = record { rcat = RSC ; restIdemSplit = restIdemSplit }
 
 InclRestSplitCat : RestFun X RSC
 InclRestSplitCat = record { 
-  fun = InclSplitCat cat (restIdemClass X) ; 
+  fun = InclSplitCat cat restIdemClass ; 
   frest = idemMorEq cat idr }
+

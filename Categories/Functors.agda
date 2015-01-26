@@ -54,31 +54,35 @@ Faithful {C} F = ∀{A B}{f g : Hom C A B} → HMap F f ≅ HMap F g → f ≅ g
 Full : ∀{C D} → Fun C D → Set
 Full {C}{D} F = ∀{A B}{f : Hom D (OMap F A) (OMap F B)} → Σ (Hom C A B) λ g → HMap F g ≅ f
 
--- .funEq : ∀{C D}{F₀ G₀ : Obj C → Obj D}
---          {F₁ : ∀{X Y} → Hom C X Y → Hom D (F₀ X) (F₀ Y)}
---          {G₁ : ∀{X Y} → Hom C X Y → Hom D (G₀ X) (G₀ Y)}
---          {p : ∀{X} → F₁ (iden C {X}) ≅ iden D {F₀ X}}
---          {p' : ∀{X} → G₁ (iden C {X}) ≅ iden D {G₀ X}}
---          {q : ∀{X Y Z}{f : Hom C Y Z}{g : Hom C X Y} → 
---               F₁ (comp C f g) ≅ comp D (F₁ f) (F₁ g)}
---          {q' : ∀{X Y Z}{f : Hom C Y Z}{g : Hom C X Y} → 
---                G₁ (comp C f g) ≅ comp D (G₁ f) (G₁ g)} →
---          (∀ X → F₀ X ≅ G₀ X) → 
---          (∀ {X}{Y} (f : Hom C X Y) → F₁ f ≅ G₁ f) → 
---          functor {C}{D} F₀ F₁ p q ≅ functor {C}{D} G₀ G₁ p' q'  
--- funEq p q with ext p | ext q
--- funEq p₁ q₁ | refl | b = {!b!}
+funEq : ∀{C D}{F₀ G₀ : Obj C → Obj D}
+        {F₁ : ∀{X Y} → Hom C X Y → Hom D (F₀ X) (F₀ Y)}
+        {G₁ : ∀{X Y} → Hom C X Y → Hom D (G₀ X) (G₀ Y)}
+        {p : ∀{X} → F₁ (iden C {X}) ≅ iden D {F₀ X}}
+        {p' : ∀{X} → G₁ (iden C {X}) ≅ iden D {G₀ X}}
+        {q : ∀{X Y Z}{f : Hom C Y Z}{g : Hom C X Y} → 
+             F₁ (comp C f g) ≅ comp D (F₁ f) (F₁ g)}
+        {q' : ∀{X Y Z}{f : Hom C Y Z}{g : Hom C X Y} → 
+              G₁ (comp C f g) ≅ comp D (G₁ f) (G₁ g)} →
+        (r : F₀ ≅ G₀) → (λ {X}{Y} → subst (λ H → Hom C X Y → Hom D (H X) (H Y)) r F₁) ≅ (λ {X}{Y} → G₁ {X}{Y}) →
+        functor {C}{D} F₀ F₁ p q ≅ functor {C}{D} G₀ G₁ p' q'  
+funEq refl refl = 
+  cong₂ (functor _ _) 
+        (iext (λ _ → proof-irr _ _)) 
+        (iext (λ _ → iext (λ _ → iext (λ _ → iext (λ _ → iext (λ _ → proof-irr _ _))))))
 
--- -- Cat of Cats
--- CCat : Cat
--- CCat = record {
---   Obj = Cat;
---   Hom = Fun;
---   iden = idFun;
---   comp = _○_;
---   idl = {!!} ; --Fun≅ (ext (λ _ → refl)) (λ _ → refl);
---   idr = {!!} ; --Fun≅ (ext (λ _ → refl)) (λ _ → refl);
---   ass = {!!} } --Fun≅ (ext (λ _ → refl)) (λ _ → refl) }
+-- Cat of Cats
+CCat : Cat
+CCat = record {
+  Obj = Cat;
+  Hom = Fun;
+  iden = idFun;
+  comp = _○_;
+  idl = funEq refl refl ;
+  idr = funEq refl refl ;
+  ass = funEq refl refl }
+
+
+
 
 
 

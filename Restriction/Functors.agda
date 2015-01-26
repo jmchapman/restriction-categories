@@ -11,6 +11,7 @@ open Cat
 open Fun 
 
 record RestFun (X Y : RestCat) : Set where
+  constructor restfunctor
   field fun   : Fun (cat X) (cat Y)
         frest : ∀{A B}{f : Hom (cat X) A B} → 
                 rest Y (HMap fun f) ≅ HMap fun (rest X f)
@@ -34,6 +35,22 @@ _○R_ {C}{D}{E} G F = record {
     HMap (fun G) (HMap (fun F) (rest C f))
     ∎}
 
+restFunEq : ∀{C D}{F G : Fun (cat C) (cat D)}
+            {p : ∀{A B}{f : Hom (cat C) A B} → rest D (HMap F f) ≅ HMap F (rest C f)}
+            {q : ∀{A B}{f : Hom (cat C) A B} → rest D (HMap G f) ≅ HMap G (rest C f)} →
+            F ≅ G → restfunctor {C}{D} F p ≅ restfunctor {C}{D} G q
+restFunEq refl = cong (restfunctor _) (iext (λ _ → iext (λ _ → iext (λ _ → proof-irr _ _)))) 
+
+RCCat : Cat
+RCCat = record {
+  Obj = RestCat;
+  Hom = RestFun;
+  iden = idRestFun;
+  comp = _○R_;
+  idl = restFunEq (funEq refl refl) ; 
+  idr = restFunEq (funEq refl refl) ; 
+  ass = restFunEq (funEq refl refl) } 
+
 {-
 .RFun≅ : ∀{C D}{F G : RestFun C D} → RestFun.fun F ≅ RestFun.fun G → F ≅ G
 RFun≅ {C}{D}{F}{G} p  = 
@@ -53,16 +70,6 @@ RFun≅ {C}{D}{F}{G} p  =
     (iext (λ X → iext (λ Y → iext (λ f → hir'
       (cong (λ F → HMap F (rest C f)) p)))))
 
-
-RCCat : Cat
-RCCat = record {
-         Obj = RestCat;
-         Hom = RestFun;
-         iden = IdRF;
-         comp = _○R_;
-         idl = RFun≅ (Fun≅ refl (λ _ → refl));
-         idr = RFun≅ (Fun≅ refl (λ _ → refl));
-         ass = RFun≅ (Fun≅ refl (λ _ → refl)) }
 -}
 
 

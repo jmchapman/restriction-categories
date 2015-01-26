@@ -37,9 +37,8 @@ hatImapLaw {i} (idemmor f q) =
 restIdemMor : {i i' : Idem} → IdemMor i i' → IdemMor i i
 restIdemMor {i} m = idemmor (hat m) (hatImapLaw m)
 
-restIdemMorComm : {i i' : Idem}(f : IdemMor i i') →
-                  comp (rest (IdemMor.imap f)) (Idem.e i) ≅ 
-                  comp (Idem.e i) (rest (IdemMor.imap f))
+restIdemMorComm : {i i' : Idem}(m : IdemMor i i') →
+                  hat m ≅ comp (Idem.e i) (rest (IdemMor.imap m))
 restIdemMorComm {idem _ e _} m =
   let idemmor f p = m
   in

@@ -23,7 +23,7 @@ open import PartialMaps.Stable
 record SectionOfRestIdem {B E} (s : Tot B E) : Set where
   constructor sridem
   field e         : Hom E E
-        restIdem : e ≅ rest e
+        restIdem  : e ≅ rest e
         r         : Hom E B
         splitLaw1 : comp (hom s) r ≅ e
         splitLaw2 : comp r (hom s) ≅ iden {B}
@@ -49,7 +49,7 @@ sectionOfRestIdemSplit2 : ∀{B E}{s : Tot B E}(p : SectionOfRestIdem s) → Spl
 sectionOfRestIdemSplit2 p = restIdemSplit (sectionOfRestIdemIdem p) (SectionOfRestIdem.restIdem p)
 
 mono∈sysSectionsOfRestIdem : ∀{B E}{s : Tot B E} → SectionOfRestIdem s → Mono Total s
-mono∈sysSectionsOfRestIdem {_}{_}{s} p {_}{f}{g} q = 
+mono∈sysSectionsOfRestIdem p {_}{f}{g} q = 
   totEq (sectionIsMono (sectionOfRestIdemSplit p) (cong hom q))
 
 iso∈sysSectionOfRestIdem : ∀{B E}{s : Tot B E} → Iso s → SectionOfRestIdem s
@@ -57,7 +57,7 @@ iso∈sysSectionOfRestIdem (iso (tot g _) rinv linv) =
   sridem iden (sym (lemiii (idMono cat))) g (cong hom rinv) (cong hom linv)
 
 restRetractionProp : ∀{B E}{s : Tot B E}(p : SectionOfRestIdem s) → 
-                      SectionOfRestIdem.e p ≅ rest (SectionOfRestIdem.r p)
+                     SectionOfRestIdem.e p ≅ rest (SectionOfRestIdem.r p)
 restRetractionProp {s = s} p  =
   let open SectionOfRestIdem p
   in
