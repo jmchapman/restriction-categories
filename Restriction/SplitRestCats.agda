@@ -11,9 +11,5 @@ open import Restriction.Idems
 
 record SplitRestCat : Set where
   field rcat          : RestCat
-  -- open RestCat rcat
-  -- open Categories.Idems cat
-  -- open Categories.Splits cat
-  -- open Restriction.Idems rcat
   field restIdemSplit : (i : Idem (RestCat.cat rcat)) → isRestIdem rcat i → 
                         Split (RestCat.cat rcat) i

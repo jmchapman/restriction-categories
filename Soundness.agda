@@ -22,7 +22,7 @@ restSpan (span A' mhom fhom m∈) = span A' mhom mhom m∈
 ~congRestSpan (spaneq s i q r) = spaneq s i q q
 
 qrestSpan : ∀{A B} → QSpan A B → QSpan A A
-qrestSpan = lift (abs ∘ restSpan) (sound ∘ ~congRestSpan)
+qrestSpan = lift _ (abs ∘ restSpan) (sound ∘ ~congRestSpan)
 
 R1Span : ∀{A B}{mf : Span A B} → compSpan mf (restSpan mf) ~Span~ mf
 R1Span {mf = span _ m f m∈} =
@@ -111,47 +111,47 @@ R4Span {mf = span _ m f m∈} {span _ m' f' m'∈} =
      comp m' k
      ∎)
 
-qrestSpanQbeta : ∀{A B}{mf : Span A B} → 
+liftbetaRest : ∀{A B}{mf : Span A B} → 
                  qrestSpan (abs mf) ≅ abs (restSpan mf)
-qrestSpanQbeta = qbeta _ (abs ∘ restSpan) (sound ∘ ~congRestSpan) _
+liftbetaRest = liftbeta _ (abs ∘ restSpan) (sound ∘ ~congRestSpan) _
 
 qR1Span : ∀{A B}{x : QSpan A B} → qcompSpan x (qrestSpan x) ≅ x
 qR1Span = 
-  qelim (λ z → qcompSpan z (qrestSpan z) ≅ z) 
+  lift (λ z → qcompSpan z (qrestSpan z) ≅ z) 
         (λ mf → 
           proof
           qcompSpan (abs mf) (qrestSpan (abs mf))
-          ≅⟨ cong (qcompSpan (abs mf)) qrestSpanQbeta ⟩
+          ≅⟨ cong (qcompSpan (abs mf)) liftbetaRest ⟩
           qcompSpan (abs mf) (abs (restSpan mf))
-          ≅⟨ qcompSpanQbeta ⟩
+          ≅⟨ liftbetaComp ⟩
           abs (compSpan mf (restSpan mf))
           ≅⟨ sound R1Span ⟩
           abs mf
           ∎)
-        (hirR ∘ sound)
+        (fixtypes ∘ sound)
         _
 
 qR2Span : ∀{A B C}{f : QSpan A B}{g : QSpan A C} → 
            qcompSpan (qrestSpan g) (qrestSpan f) ≅ 
            qcompSpan (qrestSpan f) (qrestSpan g)
 qR2Span = 
-  qelim₂ (λ x y → qcompSpan (qrestSpan x) (qrestSpan y) ≅ 
+  lift₂ (λ x y → qcompSpan (qrestSpan x) (qrestSpan y) ≅ 
                   qcompSpan (qrestSpan y) (qrestSpan x))
          (λ mf ng → 
             proof
             qcompSpan (qrestSpan (abs mf)) (qrestSpan (abs ng))
-            ≅⟨ cong₂ qcompSpan qrestSpanQbeta qrestSpanQbeta ⟩
+            ≅⟨ cong₂ qcompSpan liftbetaRest liftbetaRest ⟩
             qcompSpan (abs (restSpan mf)) (abs (restSpan ng))
-            ≅⟨ qcompSpanQbeta ⟩
+            ≅⟨ liftbetaComp ⟩
             abs (compSpan (restSpan mf) (restSpan ng))
             ≅⟨ sound (R2Span {mf = mf}{ng}) ⟩
             abs (compSpan (restSpan ng) (restSpan mf))
-            ≅⟨ sym qcompSpanQbeta ⟩
+            ≅⟨ sym liftbetaComp ⟩
             qcompSpan (abs (restSpan ng)) (abs (restSpan mf))
-            ≅⟨ sym (cong₂ qcompSpan qrestSpanQbeta qrestSpanQbeta) ⟩
+            ≅⟨ sym (cong₂ qcompSpan liftbetaRest liftbetaRest) ⟩
             qcompSpan (qrestSpan (abs ng)) (qrestSpan (abs mf))
             ∎)
-         (λ p r → hirR (cong₂ (λ x y → qcompSpan (qrestSpan x) (qrestSpan y)) 
+         (λ p r → fixtypes (cong₂ (λ x y → qcompSpan (qrestSpan x) (qrestSpan y)) 
                               (sound r) (sound p)))
          _ _
 
@@ -159,50 +159,50 @@ qR3Span : ∀{A B C}{f : QSpan A B}{g : QSpan A C} →
            qcompSpan (qrestSpan g) (qrestSpan f) ≅ 
            qrestSpan (qcompSpan g (qrestSpan f))
 qR3Span = 
-  qelim₂ (λ x y → qcompSpan (qrestSpan x) (qrestSpan y) ≅ 
+  lift₂ (λ x y → qcompSpan (qrestSpan x) (qrestSpan y) ≅ 
                   qrestSpan (qcompSpan x (qrestSpan y)))
          (λ mf ng → 
             proof
             qcompSpan (qrestSpan (abs mf)) (qrestSpan (abs ng))
-            ≅⟨ cong₂ qcompSpan qrestSpanQbeta qrestSpanQbeta ⟩
+            ≅⟨ cong₂ qcompSpan liftbetaRest liftbetaRest ⟩
             qcompSpan (abs (restSpan mf)) (abs (restSpan ng))
-            ≅⟨ qcompSpanQbeta ⟩
+            ≅⟨ liftbetaComp ⟩
             abs (compSpan (restSpan mf) (restSpan ng))
             ≅⟨ sound (R3Span {mf = ng}{mf}) ⟩
             abs (restSpan (compSpan mf (restSpan ng)))
-            ≅⟨ sym qrestSpanQbeta ⟩
+            ≅⟨ sym liftbetaRest ⟩
             qrestSpan (abs (compSpan mf (restSpan ng)))
-            ≅⟨ cong qrestSpan (sym qcompSpanQbeta) ⟩
+            ≅⟨ cong qrestSpan (sym liftbetaComp) ⟩
             qrestSpan (qcompSpan (abs mf) (abs (restSpan ng)))
-              ≅⟨ cong (qrestSpan ∘ qcompSpan (abs mf)) (sym qrestSpanQbeta) ⟩
+              ≅⟨ cong (qrestSpan ∘ qcompSpan (abs mf)) (sym liftbetaRest) ⟩
             qrestSpan (qcompSpan (abs mf) (qrestSpan (abs ng)))
             ∎)
-         (λ p r → hirR (cong₂ (λ x y → qrestSpan (qcompSpan x (qrestSpan y))) 
+         (λ p r → fixtypes (cong₂ (λ x y → qrestSpan (qcompSpan x (qrestSpan y))) 
                               (sound p) (sound r)))
          _ _
 
 qR4Span : ∀{A B C}{f : QSpan A B}{g : QSpan B C} → 
            qcompSpan (qrestSpan g) f ≅ qcompSpan f (qrestSpan (qcompSpan g f))
 qR4Span = 
-  qelim₂ (λ x y → qcompSpan (qrestSpan x) y ≅ 
+  lift₂ (λ x y → qcompSpan (qrestSpan x) y ≅ 
                   qcompSpan y (qrestSpan (qcompSpan x y)))
          (λ mf ng → 
             proof
             qcompSpan (qrestSpan (abs mf)) (abs ng)
-            ≅⟨ cong (λ z → qcompSpan z (abs ng)) qrestSpanQbeta ⟩
+            ≅⟨ cong (λ z → qcompSpan z (abs ng)) liftbetaRest ⟩
             qcompSpan (abs (restSpan mf)) (abs ng)
-            ≅⟨ qcompSpanQbeta ⟩
+            ≅⟨ liftbetaComp ⟩
             abs (compSpan (restSpan mf) ng)
             ≅⟨ sound (R4Span {mf = ng}{mf}) ⟩
             abs (compSpan ng (restSpan (compSpan mf ng)))
-            ≅⟨ sym qcompSpanQbeta ⟩
+            ≅⟨ sym liftbetaComp ⟩
             qcompSpan (abs ng) (abs (restSpan (compSpan mf ng)))
-            ≅⟨ cong (qcompSpan (abs ng)) (sym qrestSpanQbeta) ⟩
+            ≅⟨ cong (qcompSpan (abs ng)) (sym liftbetaRest) ⟩
             qcompSpan (abs ng) (qrestSpan (abs (compSpan mf ng)))
-            ≅⟨ cong (qcompSpan (abs ng) ∘ qrestSpan) (sym qcompSpanQbeta) ⟩
+            ≅⟨ cong (qcompSpan (abs ng) ∘ qrestSpan) (sym liftbetaComp) ⟩
             qcompSpan (abs ng) (qrestSpan (qcompSpan (abs mf) (abs ng)))
             ∎)
-         (λ p r → hirR (cong₂ (λ x y → qcompSpan y (qrestSpan (qcompSpan x y)))
+         (λ p r → fixtypes (cong₂ (λ x y → qcompSpan y (qrestSpan (qcompSpan x y)))
                               (sound p) (sound r)))
          _ _
 
@@ -239,7 +239,7 @@ retractionSpan f =
 {-
 qrestSpanSplit : ∀{A B}(f : QSpan A B) → Split (qrestSpanIdem f)
 qrestSpanSplit = 
-  qelim (Split ∘ qrestSpanIdem)
+  lift (Split ∘ qrestSpanIdem)
         (λ mf → let open Span mf in record { 
           B = A' ; 
           s = abs (sectionSpan mf) ; 
@@ -296,7 +296,7 @@ restSpanSplit {A}{B} f =
          abs (compSpan (qs f) (qr f))
          ≅⟨ sound _ _ lem' ⟩
          abs (restSpan f)
-         ≅⟨ sym qrestSpanQbeta ⟩
+         ≅⟨ sym liftbetaRest ⟩
          qrestSpan (abs f)
          ∎;
     law2 = 
@@ -334,7 +334,7 @@ restSpanIdem : ∀{A B}(f : Span A B) → Idem
 restSpanIdem {A}{B} f = record {
   E = A; 
   e = abs (restSpan f); 
-  law = sound _ _ (~trans (~cong (qbeta _) (qbeta _)) R1p)}
+  law = sound _ _ (~trans (~cong (liftbeta _) (liftbeta _)) R1p)}
 
 restSpanSplit : ∀{A B}(f : Span A B) → Split (restSpanIdem f)
 restSpanSplit {A}{B} f = let open Span f
@@ -361,7 +361,7 @@ restSpanSplit {A}{B} f = let open Span f
          in sound 
          _ 
          _ 
-         (~trans (~cong (qbeta _) (qbeta _)) 
+         (~trans (~cong (liftbeta _) (liftbeta _)) 
                  (spaneq (PMap.mor (fst (Pullback.prop myp sq))) 
                          (pullbackiso myp (proj₁ (pul (iden {A'}) (iso idiso))))
                          refl
@@ -377,7 +377,7 @@ restSpanSplit {A}{B} f = let open Span f
          in sound 
          _ 
          _ 
-         (~trans (~cong (qbeta _) (qbeta _)) 
+         (~trans (~cong (liftbeta _) (liftbeta _)) 
                  (spaneq (PMap.mor (fst (Pullback.prop myp sq))) 
                         (pullbackiso myp (proj₁ (pul mhom m∈))) 
                         refl 

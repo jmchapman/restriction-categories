@@ -34,6 +34,31 @@ restIdemSplitGen f = restIdemSplit _ (sym lemi)
 sectionTotProp : {i : Idem}(sp : Split i) → rest (Split.s sp) ≅ iden {Split.B sp}
 sectionTotProp {_} sp = lemiii (sectionIsMono sp)
 
+-- leftLeg : ∀{A C}(f : Hom A C) → Tot (Split.B (restIdemSplitGen f)) A
+-- leftLeg f = 
+--   let open Split (restIdemSplitGen f)
+--   in tot s (sectionTotProp (restIdemSplitGen f))
+
+-- rightLeg : ∀{A C}(f : Hom A C) → Tot (Split.B (restIdemSplitGen f)) C
+-- rightLeg f = 
+--   let open Split (restIdemSplitGen f)
+--   in tot (comp f s) 
+--       (proof
+--        rest (comp f s)
+--        ≅⟨ lemiv ⟩
+--        rest (comp (rest f) s)
+--        ≅⟨ cong (λ y → rest (comp y s)) (sym splitLaw1) ⟩
+--        rest (comp (comp s r) s)
+--        ≅⟨ cong rest ass ⟩
+--        rest (comp s (comp r s))
+--        ≅⟨ cong (rest ∘ comp s) splitLaw2 ⟩
+--        rest (comp s iden)
+--        ≅⟨ cong rest idr ⟩
+--        rest s
+--        ≅⟨ sectionTotProp (restIdemSplitGen f) ⟩
+--        iden
+--        ∎) 
+
 HMap1 : ∀{A C}(f : Hom A C) → Span A C
 HMap1 f = 
   let open Split (restIdemSplitGen f)
@@ -230,7 +255,7 @@ fcomp {g = g}{f} =
   abs (HMap1 (comp g f)) 
   ≅⟨ sound {mf = HMap1 (comp g f)} fcompSpan ⟩
   abs (compSpan (HMap1 g) (HMap1 f))
-  ≅⟨ sym (qcompSpanQbeta {ng = HMap1 g}{HMap1 f}) ⟩
+  ≅⟨ sym (liftbetaComp {ng = HMap1 g}{HMap1 f}) ⟩
   qcompSpan (abs (HMap1 g)) (abs (HMap1 f))
   ∎
 
@@ -285,7 +310,7 @@ frest :  ∀{A C}{f : Hom A C} → qrestSpan (abs (HMap1 f)) ≅ abs (HMap1 (res
 frest {f = f} = 
   proof
   qrestSpan (abs (HMap1 f))
-  ≅⟨ qrestSpanQbeta {mf = HMap1 f} ⟩
+  ≅⟨ liftbetaRest {mf = HMap1 f} ⟩
   abs (restSpan (HMap1 f))
   ≅⟨ sound {mf = restSpan (HMap1 f)} frestSpan ⟩
   abs (HMap1 (rest f))
@@ -375,16 +400,16 @@ compatHMap2 {sp = span _ mt ft m∈}{span _ nt gt n∈} p =
     ∎
 
 qHMap2 : ∀{A C} → QSpan A C → Hom A C
-qHMap2 {A}{C} = lift {A}{C} HMap2 compatHMap2
+qHMap2 {A}{C} = lift {A}{C} (λ _ → Hom A C) HMap2 compatHMap2
 
-qHMap2Qbeta : ∀{A C}{mf : Span A C} → qHMap2 (abs mf) ≅ HMap2 mf
-qHMap2Qbeta {A}{C}{mf} = qbeta {A}{C} (λ _ → Hom A C) HMap2 compatHMap2 mf
+qHMap2Liftbeta : ∀{A C}{mf : Span A C} → qHMap2 (abs mf) ≅ HMap2 mf
+qHMap2Liftbeta {A}{C}{mf} = liftbeta {A}{C} (λ _ → Hom A C) HMap2 compatHMap2 mf
 
 fid2 : ∀{A} → qHMap2 (abs (idSpan {A})) ≅ iden
 fid2 = 
   proof
   qHMap2 (abs idSpan)
-  ≅⟨ qHMap2Qbeta {mf = idSpan} ⟩ 
+  ≅⟨ qHMap2Liftbeta {mf = idSpan} ⟩ 
   HMap2 idSpan
   ≅⟨ idl ⟩
   iden
@@ -433,20 +458,20 @@ fcomp2Span {ng = ng}{mf} =
 
 fcomp2 : ∀{A B C}{ng : QSpan B C}{mf : QSpan A B} → qHMap2 (qcompSpan ng mf) ≅ comp (qHMap2 ng) (qHMap2 mf)
 fcomp2 {A}{B}{C}{ng}{mf} = 
-  qelim₂ (λ ng mf → qHMap2 (qcompSpan ng mf) ≅ comp (qHMap2 ng) (qHMap2 mf)) 
+  lift₂ (λ ng mf → qHMap2 (qcompSpan ng mf) ≅ comp (qHMap2 ng) (qHMap2 mf)) 
          (λ ng mf →
            proof
            qHMap2 (qcompSpan (abs ng) (abs mf)) 
-           ≅⟨ cong qHMap2 qcompSpanQbeta ⟩
+           ≅⟨ cong qHMap2 liftbetaComp ⟩
            qHMap2 (abs (compSpan ng mf))
-           ≅⟨ qHMap2Qbeta ⟩
+           ≅⟨ qHMap2Liftbeta ⟩
            HMap2 (compSpan ng mf)
            ≅⟨ fcomp2Span {ng = ng}{mf} ⟩
            comp (HMap2 ng) (HMap2 mf)
-           ≅⟨ cong₂ comp (sym qHMap2Qbeta) (sym qHMap2Qbeta) ⟩
+           ≅⟨ cong₂ comp (sym qHMap2Liftbeta) (sym qHMap2Liftbeta) ⟩
            comp (qHMap2 (abs ng)) (qHMap2 (abs mf))
            ∎)
-         (λ p q → hirR (cong₂ (λ (x : QSpan B C) (y : QSpan A B) → comp (qHMap2 x) (qHMap2 y)) (sound p) (sound q)))
+         (λ p q → fixtypes (cong₂ (λ (x : QSpan B C) (y : QSpan A B) → comp (qHMap2 x) (qHMap2 y)) (sound p) (sound q)))
          ng mf
 
 Funct2 : Fun Par cat
@@ -477,20 +502,20 @@ frestSpan2 {mf = span _ (tot m _) fhom m∈} =
 
 frest2 : ∀{A B}{mf : QSpan A B} → rest (qHMap2 mf) ≅ qHMap2 (qrestSpan mf)
 frest2 {mf = mf} = 
-  qelim (λ mf → rest (qHMap2 mf) ≅ qHMap2 (qrestSpan mf)) 
+  lift (λ mf → rest (qHMap2 mf) ≅ qHMap2 (qrestSpan mf)) 
         (λ mf → 
           proof
           rest (qHMap2 (abs mf)) 
-          ≅⟨ cong rest qHMap2Qbeta  ⟩
+          ≅⟨ cong rest qHMap2Liftbeta  ⟩
           rest (HMap2 mf) 
           ≅⟨ frestSpan2 {mf = mf} ⟩
           HMap2 (restSpan mf) 
-          ≅⟨ sym qHMap2Qbeta ⟩
+          ≅⟨ sym qHMap2Liftbeta ⟩
           qHMap2 (abs (restSpan mf))
-          ≅⟨ cong qHMap2 (sym qrestSpanQbeta) ⟩
+          ≅⟨ cong qHMap2 (sym liftbetaRest) ⟩
           qHMap2 (qrestSpan (abs mf))
           ∎)
-        (hirL ∘ (cong (rest ∘ qHMap2) ∘ sound)) 
+        (fixtypes2 ∘ (cong (rest ∘ qHMap2) ∘ sound)) 
         mf
 
 RFunct2 : RestFun RestPar rcat
@@ -559,16 +584,16 @@ HIso1Span mf =
 
 HIso1 : ∀{A C}(mf : QSpan A C) → abs (HMap1 (qHMap2 mf)) ≅ mf
 HIso1 = 
-  qelim (λ mf → abs (HMap1 (qHMap2 mf)) ≅ mf) 
+  lift (λ mf → abs (HMap1 (qHMap2 mf)) ≅ mf) 
         (λ mf → 
            proof
            abs (HMap1 (qHMap2 (abs mf)))
-           ≅⟨ cong (abs ∘ HMap1) qHMap2Qbeta ⟩
+           ≅⟨ cong (abs ∘ HMap1) qHMap2Liftbeta ⟩
            abs (HMap1 (HMap2 mf))
            ≅⟨ sound (HIso1Span mf) ⟩
            abs mf
            ∎)
-        (hirR ∘ sound)
+        (fixtypes ∘ sound)
 
 
 HIso2 : ∀{A C}(f : Hom A C) → qHMap2 (abs (HMap1 f)) ≅ f
@@ -577,7 +602,7 @@ HIso2 f =
   in 
     proof
     qHMap2 (abs (HMap1 f))
-    ≅⟨ qHMap2Qbeta ⟩
+    ≅⟨ qHMap2Liftbeta ⟩
     comp (comp f s) r
     ≅⟨ ass ⟩
     comp f (comp s r)
@@ -611,6 +636,3 @@ HIso2 f =
 
 -}
 -}
-
-
-

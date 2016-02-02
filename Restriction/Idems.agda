@@ -21,10 +21,6 @@ restIdemClass = record {
   ∈class = isRestIdem ; 
   id∈class = sym (lemiii idMono) }
 
--- .restIdemMorIsIdemLaw' : {i i' : Idem}(f : IdemMor i i') → comp (hat f) (hat f) ≅ hat f
--- restIdemMorIsIdemLaw' {i}{i'} f = idemMorEqProj {i} {i} {compIdemMor (restIdemMor f) (restIdemMor f)}
---                                     {restIdemMor f} (Lemmata.lemii (RestSplitCat restIdemClass))
-
 restIdemMorIsIdemLaw : {i i' : Idem}(f : IdemMor i i') → comp (hat f) (hat f) ≅ hat f
 restIdemMorIsIdemLaw {i} f = 
   let open Idem i

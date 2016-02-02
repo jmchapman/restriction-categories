@@ -9,6 +9,7 @@ open import Categories
 open Cat cat
 open import Categories.Idems cat
 open import Categories.Splits cat
+open import Restriction.Functors
 
 hat : {i i' : Idem} → IdemMor i i' → Hom (Idem.E i) (Idem.E i)
 hat {idem _ e _} (idemmor f _) = comp (rest f) e 
@@ -166,3 +167,8 @@ RestSplitCat E =
     R2 = λ {p}{q}{r}{f}{g} → R2split {E}{p}{q}{r}{f}{g};
     R3 = λ {p}{q}{r}{f}{g} → R3split {E}{p}{q}{r}{f}{g} ; 
     R4 = λ {p}{q}{r}{f}{g} → R4split {E}{p}{q}{r}{f}{g} }
+
+InclRestSplitCat : (E : IdemClass) → RestFun X (RestSplitCat E)
+InclRestSplitCat E = record{
+  fun = InclSplitCat E;
+  frest = idemMorEq idr}

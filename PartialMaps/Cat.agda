@@ -321,46 +321,38 @@ compat : ∀{A B}(C : QSpan A B → Set) →
          ((mf : Span A B) → C (abs mf)) → Set
 compat {A}{B} = Quotient.compat (qspan A B)
 
-qelim : ∀{A B}(C : QSpan A B → Set)
+lift : ∀{A B}(C : QSpan A B → Set)
         (f : (mf : Span A B) → C (abs mf)) → 
         compat C f → (x : QSpan A B) → C x
-qelim {A}{B} = Quotient.qelim (qspan A B)
-
-lift : ∀{A B C}(f : Span A B → C) → compat (λ _ → C) f → 
-       QSpan A B → C
-lift {A}{B} = QuotientLib.lift (qspan A B)
+lift {A}{B} = Quotient.lift (qspan A B)
 
 sound : ∀{A B}{mf ng : Span A B} → 
          mf ~Span~ ng → abs mf ≅ abs ng
 sound {A}{B} = Quotient.sound (qspan A B)
 
-qbeta : ∀{A B}(C : QSpan A B → Set)
+liftbeta : ∀{A B}(C : QSpan A B → Set)
          (f : (mf : Span A B) → C (abs mf))
          (p : compat C f)(mf : Span A B) → 
-         qelim C f p (abs mf) ≅ f mf
-qbeta {A}{B} = Quotient.qbeta (qspan A B)
+         lift C f p (abs mf) ≅ f mf
+liftbeta {A}{B} = Quotient.liftbeta (qspan A B)
 
 compat₂ : ∀{A B A' B'}(C : QSpan A B → QSpan A' B' → Set) → 
           (f : (mf : Span A B)(ng : Span A' B') → 
                C (abs mf) (abs ng)) → Set
 compat₂ {A}{B}{A'}{B'} = Quotient₂Lib.compat₂ (qspan A B) (qspan A' B')
 
-qelim₂ : ∀{A B A' B'}(C : QSpan A B → QSpan A' B' → Set)
+lift₂ : ∀{A B A' B'}(C : QSpan A B → QSpan A' B' → Set)
          (f : (mf : Span A B)(ng : Span A' B') → 
               C (abs mf) (abs ng)) → 
          compat₂ C f → (x : QSpan A B)(x' : QSpan A' B') → C x x'
-qelim₂ {A}{B}{A'}{B'} = Quotient₂Lib.qelim₂ (qspan A B) (qspan A' B')
+lift₂ {A}{B}{A'}{B'} = Quotient₂Lib.lift₂ (qspan A B) (qspan A' B')
 
-lift₂ : ∀{A B A' B' C}(f : Span A B → Span A' B' → C) → 
-        compat₂ (λ _ _ → C) f → QSpan A B → QSpan A' B' → C
-lift₂ {A}{B}{A'}{B'} = Quotient₂Lib.lift₂ (qspan A B ) (qspan A' B')
-
-qbeta₂ : ∀{A B A' B'}(C : QSpan A B → QSpan A' B' → Set)
+liftbeta₂ : ∀{A B A' B'}(C : QSpan A B → QSpan A' B' → Set)
          (f : (mf : Span A B)(ng : Span A' B') → 
               C (abs mf) (abs ng))
          (p : compat₂ C f)(mf : Span A B)(ng : Span A' B') → 
-         qelim₂ C f p (abs mf) (abs ng) ≅ f mf ng
-qbeta₂ {A}{B}{A'}{B'} = Quotient₂Lib.qbeta₂ (qspan A B) (qspan A' B')
+         lift₂ C f p (abs mf) (abs ng) ≅ f mf ng
+liftbeta₂ {A}{B}{A'}{B'} = Quotient₂Lib.liftbeta₂ (qspan A B) (qspan A' B')
 
 compat₃ : ∀{A B A' B' A'' B''}
           (C : QSpan A B → QSpan A' B' → QSpan A'' B'' → Set)
@@ -369,18 +361,18 @@ compat₃ : ∀{A B A' B' A'' B''}
 compat₃ {A}{B}{A'}{B'}{A''}{B''} = 
   Quotient₃Lib.compat₃ (qspan A B) (qspan A' B') (qspan A'' B'')
 
-qelim₃ : ∀{A B A' B' A'' B''}
+lift₃ : ∀{A B A' B' A'' B''}
          (C : QSpan A B → QSpan A' B' → QSpan A'' B'' → Set)
          (f : (mf : Span A B)(ng : Span A' B')(lh : Span A'' B'') → 
               C (abs mf) (abs ng) (abs lh)) → 
          compat₃ C f → 
          (x : QSpan A B)(x' : QSpan A' B')(x'' : QSpan A'' B'') → 
          C x x' x''
-qelim₃ {A}{B}{A'}{B'}{A''}{B''} = 
-  Quotient₃Lib.qelim₃ (qspan A B) (qspan A' B') (qspan A'' B'')
+lift₃ {A}{B}{A'}{B'}{A''}{B''} = 
+  Quotient₃Lib.lift₃ (qspan A B) (qspan A' B') (qspan A'' B'')
 
 qcompSpan : ∀{A B C} → QSpan B C → QSpan A B → QSpan A C
-qcompSpan = lift₂ (λ x y → abs (compSpan x y)) (λ p q → sound (∼cong p q))
+qcompSpan = lift₂ _ (λ x y → abs (compSpan x y)) (λ p q → sound (∼cong p q))
 
 idlSpan : ∀{A B}{mf : Span A B} → compSpan idSpan mf ~Span~ mf
 idlSpan {mf = span _ _ f _} = 
@@ -388,22 +380,22 @@ idlSpan {mf = span _ _ f _} =
       pullback (square _ h _ scom) _ = p
   in spaneq h (pullbackIso (trivialPullback f) p) refl scom
 
-qcompSpanQbeta : ∀{A B C}{ng : Span B C}{mf : Span A B} → 
+liftbetaComp : ∀{A B C}{ng : Span B C}{mf : Span A B} → 
                  qcompSpan (abs ng) (abs mf) ≅ abs (compSpan ng mf)
-qcompSpanQbeta = qbeta₂ _ (λ x y → abs (compSpan x y)) (λ p q → sound (∼cong p q)) _ _
+liftbetaComp = liftbeta₂ _ (λ x y → abs (compSpan x y)) (λ p q → sound (∼cong p q)) _ _
 
 qidlSpan : ∀{A B}{x : QSpan A B} → qcompSpan (abs idSpan) x ≅ x
 qidlSpan = 
-  qelim (λ z → qcompSpan (abs idSpan) z ≅ z)
+  lift (λ z → qcompSpan (abs idSpan) z ≅ z)
         (λ mf → 
           proof
           qcompSpan (abs idSpan) (abs mf)
-          ≅⟨ qcompSpanQbeta ⟩
+          ≅⟨ liftbetaComp ⟩
           abs (compSpan idSpan mf)
           ≅⟨ sound idlSpan ⟩
           abs mf
           ∎) 
-        (hirR ∘ sound)
+        (fixtypes ∘ sound)
         _
 
 idrSpan : {X Y : Obj} {mf : Span X Y} → compSpan mf idSpan ~Span~ mf
@@ -414,16 +406,16 @@ idrSpan {mf = span _ m _ m∈} =
 
 qidrSpan : ∀{A B}{x : QSpan A B} → qcompSpan x (abs idSpan) ≅ x
 qidrSpan = 
-  qelim (λ z → qcompSpan z (abs idSpan) ≅ z)
+  lift (λ z → qcompSpan z (abs idSpan) ≅ z)
         (λ mf → 
           proof
           qcompSpan (abs mf) (abs idSpan)
-          ≅⟨ qcompSpanQbeta ⟩
+          ≅⟨ liftbetaComp ⟩
           abs (compSpan mf idSpan)
           ≅⟨ sound idrSpan ⟩
           abs mf
           ∎) 
-        (hirR ∘ sound)
+        (fixtypes ∘ sound)
         _
 
 assSpan : {W X Y Z : Obj} 
@@ -553,23 +545,23 @@ assSpan {m''f'' = span _ m'' f'' m''∈}{span _ m' f' m'∈}{span _ m f m∈} =
 qassSpan : ∀{A B C D}{x : QSpan C D}{y : QSpan B C}{z : QSpan A B} → 
            qcompSpan (qcompSpan x y) z ≅ qcompSpan x (qcompSpan y z)
 qassSpan = 
-  qelim₃ (λ x y z → qcompSpan (qcompSpan x y) z ≅ qcompSpan x (qcompSpan y z))
+  lift₃ (λ x y z → qcompSpan (qcompSpan x y) z ≅ qcompSpan x (qcompSpan y z))
          (λ mf ng lh → 
            proof
            qcompSpan (qcompSpan (abs mf) (abs ng)) (abs lh)
-           ≅⟨ cong (λ z → qcompSpan z (abs lh)) qcompSpanQbeta ⟩
+           ≅⟨ cong (λ z → qcompSpan z (abs lh)) liftbetaComp ⟩
            qcompSpan (abs (compSpan mf ng)) (abs lh)
-           ≅⟨ qcompSpanQbeta ⟩
+           ≅⟨ liftbetaComp ⟩
            abs (compSpan (compSpan mf ng) lh)
            ≅⟨ sound assSpan ⟩
            abs (compSpan mf (compSpan ng lh))
-           ≅⟨ sym qcompSpanQbeta ⟩
+           ≅⟨ sym liftbetaComp ⟩
            qcompSpan (abs mf) (abs (compSpan ng lh))
-           ≅⟨ cong (qcompSpan (abs mf)) (sym qcompSpanQbeta) ⟩
+           ≅⟨ cong (qcompSpan (abs mf)) (sym liftbetaComp) ⟩
            qcompSpan (abs mf) (qcompSpan (abs ng) (abs lh))
            ∎) 
          (λ p r s → 
-           hirR (cong₃ (λ x y z → qcompSpan x (qcompSpan y z))
+           fixtypes (cong₃ (λ x y z → qcompSpan x (qcompSpan y z))
                        (sound p) (sound r) (sound s))) 
          _ _ _
 

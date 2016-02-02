@@ -86,8 +86,4 @@ restIdemSplit i r =
 SplitRestSplitCat : SplitRestCat
 SplitRestSplitCat = record { rcat = RSC ; restIdemSplit = restIdemSplit }
 
-InclRestSplitCat : RestFun X RSC
-InclRestSplitCat = record { 
-  fun = InclSplitCat cat restIdemClass ; 
-  frest = idemMorEq cat idr }
 
