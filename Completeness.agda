@@ -16,8 +16,8 @@ open import PartialMaps.Stable
 open import Categories.Pullbacks
 open Lemmata rcat
 open import PartialMaps.MonicClasses X
-open import PartialMaps.Cat Total SectionsOfRestIdem
-open import Soundness Total SectionsOfRestIdem
+open import PartialMaps.Cat Total SectionOfRestIdemSys
+open import Soundness Total SectionOfRestIdemSys
 open import Categories.Idems cat
 open import Categories.Splits cat
 open import Categories.Monos cat

@@ -303,8 +303,8 @@ pul∈sysSectionsOfRestIdem f {g} sr =
   in pullback sq uniqPul , 
      sridem (rest (comp e t)) (sym lemi) r' splitLaw1' splitLaw2'
 
-SectionsOfRestIdem : StableSys Total
-SectionsOfRestIdem = record { 
+SectionOfRestIdemSys : StableSys Total
+SectionOfRestIdemSys = record { 
   ∈sys = SectionOfRestIdem; 
   mono∈sys = mono∈sysSectionsOfRestIdem; 
   iso∈sys = iso∈sysSectionOfRestIdem; 
