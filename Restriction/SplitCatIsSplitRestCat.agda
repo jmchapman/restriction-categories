@@ -63,13 +63,13 @@ rRestIdemSplit (idem (idem _ e idemLaw , q) m _) r =
 
 sl1RestIdemSplit : (i : Idem SC) → isRestIdemRSC i → 
                    comp (hat (Idem.e i)) (hat (Idem.e i)) ≅ IdemMor.imap (Idem.e i) 
-sl1RestIdemSplit (idem _ m _) r =
+sl1RestIdemSplit (idem E m _) r =
   let idemmor f _ = m
   in proof
      comp (hat m) (hat m)
      ≅⟨ restIdemMorIsIdemLaw m ⟩
      hat m
-     ≅⟨ sym (cong IdemMor.imap r) ⟩
+     ≅⟨ sym (cong {B = λ _ → Hom (Idem.E (proj₁ E)) (Idem.E (proj₁ E))} IdemMor.imap r) ⟩
      f
      ∎
 

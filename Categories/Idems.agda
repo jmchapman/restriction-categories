@@ -123,46 +123,46 @@ compIdemMor {idem _ e l}{idem _ e' _}{idem _ e'' l''} (idemmor g q) (idemmor f p
            ≅⟨ cong (comp g) p ⟩
            comp g f
            ∎)
+           
+-- idlIdemMor : {i i' : Idem}{f : IdemMor i i'} → compIdemMor idIdemMor f ≅ f
+-- idlIdemMor {i}{i'}{f} = 
+--   let open IdemMor f
+--       open Idem i
+--       open Idem i' renaming (e to e' ; idemLaw to idemLaw')
+--   in 
+--     idemMorEq
+--       (proof 
+--        comp e' imap 
+--        ≅⟨ cong (comp e') (sym imapLaw) ⟩ 
+--        comp e' (comp e' (comp imap e))
+--        ≅⟨ sym ass ⟩ 
+--        comp (comp e' e') (comp imap e)
+--        ≅⟨ cong (λ y → comp y (comp imap e)) idemLaw' ⟩ 
+--        comp e' (comp imap e) 
+--        ≅⟨ imapLaw ⟩ 
+--        imap 
+--        ∎)
 
-idlIdemMor : {i i' : Idem}{f : IdemMor i i'} → compIdemMor idIdemMor f ≅ f
-idlIdemMor {i}{i'}{f} = 
-  let open IdemMor f
-      open Idem i
-      open Idem i' renaming (e to e' ; idemLaw to idemLaw')
-  in 
-    idemMorEq
-      (proof 
-       comp e' imap 
-       ≅⟨ cong (comp e') (sym imapLaw) ⟩ 
-       comp e' (comp e' (comp imap e))
-       ≅⟨ sym ass ⟩ 
-       comp (comp e' e') (comp imap e)
-       ≅⟨ cong (λ y → comp y (comp imap e)) idemLaw' ⟩ 
-       comp e' (comp imap e) 
-       ≅⟨ imapLaw ⟩ 
-       imap 
-       ∎)
-
-idrIdemMor : {i i' : Idem}{f : IdemMor i i'} → compIdemMor f idIdemMor ≅ f
-idrIdemMor {i}{i'}{f} = 
-  let open IdemMor f
-      open Idem i
-      open Idem i' renaming (e to e'; idemLaw to idemLaw')
-  in 
-    idemMorEq 
-      (proof 
-       comp imap e
-       ≅⟨ cong (λ y → comp y e) (sym imapLaw) ⟩ 
-       comp (comp e' (comp imap e)) e 
-       ≅⟨ ass ⟩ 
-       comp e' (comp (comp imap e) e)
-       ≅⟨ cong (comp e') ass ⟩ 
-       comp e' (comp imap (comp e e))
-       ≅⟨ cong (λ y → comp e' (comp imap y)) idemLaw ⟩ 
-       comp e' (comp imap e)
-       ≅⟨ imapLaw ⟩ 
-       imap 
-       ∎)
+-- idrIdemMor : {i i' : Idem}{f : IdemMor i i'} → compIdemMor f idIdemMor ≅ f
+-- idrIdemMor {i}{i'}{f} = 
+--   let open IdemMor f
+--       open Idem i
+--       open Idem i' renaming (e to e'; idemLaw to idemLaw')
+--   in 
+--     idemMorEq 
+--       (proof 
+--        comp imap e
+--        ≅⟨ cong (λ y → comp y e) (sym imapLaw) ⟩ 
+--        comp (comp e' (comp imap e)) e 
+--        ≅⟨ ass ⟩ 
+--        comp e' (comp (comp imap e) e)
+--        ≅⟨ cong (comp e') ass ⟩ 
+--        comp e' (comp imap (comp e e))
+--        ≅⟨ cong (λ y → comp e' (comp imap y)) idemLaw ⟩ 
+--        comp e' (comp imap e)
+--        ≅⟨ imapLaw ⟩ 
+--        imap 
+--        ∎)
 
 SplitCat : IdemClass → Cat
 SplitCat E = 
@@ -172,8 +172,8 @@ SplitCat E =
     Hom  = λ {(i , _) (i' , _) → IdemMor i i'};
     iden = idIdemMor;
     comp = compIdemMor;
-    idl  = idlIdemMor;
-    idr  = idrIdemMor;
+    idl  = λ {_}{_}{f} → idemMorEq (idemMorPostcomp f);
+    idr  = λ {_}{_}{f} → idemMorEq (idemMorPrecomp f);
     ass  = idemMorEq ass }
 
 InclSplitCat : (E : IdemClass) → Fun X (SplitCat E)

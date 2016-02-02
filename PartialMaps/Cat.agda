@@ -582,3 +582,4 @@ Par = record {
   idl  = qidlSpan;
   idr  = qidrSpan;
   ass  = qassSpan}
+
