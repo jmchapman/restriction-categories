@@ -9,3 +9,5 @@ http://cs.ioc.ee/~tarmo/tsem12/cockett.html
 
 Authors: James Chapman, Tarmo Uustalu, Niccolò Veltri.
 
+The master branch uses type-in-type instead of universe polymoprhism.
+The universe-polymoprhism branch uses universe polymoprhism.
