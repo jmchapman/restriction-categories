@@ -6,9 +6,7 @@ open import Coinduction
 open import Categories
 open import Monads.Kleisli
 open import Function
-open import Relation.Binary.HeterogeneousEquality
 open import Utilities
-open ≅-Reasoning renaming (begin_ to proof_)
 open import Monads.Delay
 open Cat (Kl DelayM)
 open import RestrictionDelay
@@ -216,6 +214,4 @@ DelayJoin = record {
   Jn1b = λ {_}{_}{f} → dJn1b {f = f};
   Jn2 = dJn2; 
   Jn3 = {!!} }
-
 -}
-

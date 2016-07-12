@@ -2,12 +2,9 @@
 open import Categories
 open import Monads
 
-module Monads.EMCat {a b}(C : Cat {a}{b})(Tm : Monad C) where
-
+module Monads.EMCat (C : Cat)(Tm : Monad C) where
+open import Utilities
 open import Monads.EMAlgebras C Tm
-open import Relation.Binary.HeterogeneousEquality
-open ≅-Reasoning renaming (begin_ to proof_)
-open import Function
 
 open Cat C
 open Monad Tm

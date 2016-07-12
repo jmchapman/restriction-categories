@@ -1,33 +1,28 @@
 
-module RestrictionCat where
+module Restriction.Cat where
 
-open import Categories
-open import Relation.Binary.HeterogeneousEquality
 open import Utilities
-open ≅-Reasoning renaming (begin_ to proof_)
-open import Function
-open import Data.Product
-open import Level
+open import Categories
 
-record RestCat {a b} : Set (suc (a ⊔ b)) where
-  field cat  : Cat {a}{b}
+record RestCat {i}{j} : Set (suc (i ⊔ j)) where
+  field cat  : Cat {i}{j}
   open  Cat cat
   field rest : ∀{A B} → Hom A B → Hom A A
-        .R1   : ∀{A B}{f : Hom A B} → comp f (rest f) ≅ f 
-        .R2   : ∀{A B C}{f : Hom A B}{g : Hom A C} →
+        R1   : ∀{A B}{f : Hom A B} → comp f (rest f) ≅ f 
+        R2   : ∀{A B C}{f : Hom A B}{g : Hom A C} →
                comp (rest f) (rest g) ≅ comp (rest g) (rest f)
-        .R3   : ∀{A B C}{f : Hom A B}{g : Hom A C} →
+        R3   : ∀{A B C}{f : Hom A B}{g : Hom A C} →
                comp (rest g) (rest f) ≅ rest (comp g (rest f))
-        .R4   : ∀{A B C}{f : Hom A B}{g : Hom B C} →
+        R4   : ∀{A B C}{f : Hom A B}{g : Hom B C} →
                comp (rest g) f ≅ comp f (rest (comp g f))
 
+module Lemmata {i j}(X : RestCat {i}{j}) where
 
-module Lemmata {a b}(X : RestCat {a}{b}) where
   open RestCat X
   open Cat cat
   open import Categories.Monos cat
   
-  .lemii : ∀{A B}{f : Hom A B} → comp (rest f) (rest f) ≅ rest f
+  lemii : ∀{A B}{f : Hom A B} → comp (rest f) (rest f) ≅ rest f
   lemii {f = f} = 
     proof
     comp (rest f) (rest f) 
@@ -37,7 +32,7 @@ module Lemmata {a b}(X : RestCat {a}{b}) where
     rest f
     ∎
 
-  .lemiii : ∀{A B}{f : Hom A B} → Mono f → rest f ≅ iden
+  lemiii : ∀{A B}{f : Hom A B} → Mono f → rest f ≅ iden
   lemiii {f = f} p = p $
     proof
     comp f (rest f)
@@ -47,7 +42,7 @@ module Lemmata {a b}(X : RestCat {a}{b}) where
     comp f iden
     ∎
 
-  .lemi : ∀{A B}{f : Hom A B} → rest (rest f) ≅ rest f
+  lemi : ∀{A B}{f : Hom A B} → rest (rest f) ≅ rest f
   lemi {f = f} = 
     proof
     rest (rest f)
@@ -55,13 +50,13 @@ module Lemmata {a b}(X : RestCat {a}{b}) where
     rest (comp iden (rest f))
     ≅⟨ sym R3 ⟩ 
     comp (rest iden) (rest f)
-    ≅⟨ cong (λ g → comp g (rest f)) (lemiii idmono) ⟩ 
+    ≅⟨ cong (λ g → comp g (rest f)) (lemiii idMono) ⟩ 
     comp iden (rest f)
     ≅⟨ idl ⟩ 
     rest f
     ∎
 
-  .lemiv : ∀{A B C}{f : Hom A B}{g : Hom B C} → 
+  lemiv : ∀{A B C}{f : Hom A B}{g : Hom B C} → 
           rest (comp g f) ≅ rest (comp (rest g) f)
   lemiv {f = f}{g = g} = 
     proof
@@ -81,7 +76,7 @@ module Lemmata {a b}(X : RestCat {a}{b}) where
     ∎
 
 {-
-  _≤_ : ∀{A B} → Hom A B → Hom A B → Set b
+  _≤_ : ∀{A B} → Hom A B → Hom A B → Set
   f ≤ g = comp g (rest f) ≅ f
 
   -- antisymmetry
@@ -104,10 +99,10 @@ module Lemmata {a b}(X : RestCat {a}{b}) where
     ≅⟨ q ⟩ 
     g 
     ∎
--}
 
 
-Trivial : ∀{a b} → Cat {a}{b} → RestCat
+
+Trivial : Cat → RestCat
 Trivial C = record { 
   cat  = C; 
   rest = λ _ → iden; 
@@ -123,3 +118,4 @@ Trivial C = record {
    comp f iden 
    ∎}
   where open Cat C
+-}

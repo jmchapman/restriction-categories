@@ -1,9 +1,9 @@
 
 module Monads.Delay.Order where
 
+open import Relation.Binary.HeterogeneousEquality
 open import Monads.Delay
 open import Coinduction
-open import Relation.Binary.HeterogeneousEquality
 
 -- Convergence order
 
@@ -70,7 +70,6 @@ f map⊑ g = ∀ x → f x ⊑ g x
 
 
 {-
-
 -- Order equivalence
 
 open import RestrictionCat
@@ -132,6 +131,4 @@ map⊑→≤ p = ext (map⊑→≤' p)
           dcomp (f x) (g x)
           ∎)
          refl≈)
-
 -}
-

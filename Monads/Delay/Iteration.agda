@@ -9,7 +9,6 @@ open import Monads.Delay.Independence
 open import Data.Sum
 
 {-
-
 -- Iteration
 
 d† : ∀{X Y} → (X → Delay X) → (X → Delay Y) → Delay X → Delay Y → Delay Y
@@ -116,4 +115,3 @@ G₂F≈ : ∀{X Y}{f : X → Delay X}{g : X → Delay Y} → f ⊥ g → (x : X
        g x ≈ G₂ (F f g) x
 G₂F≈ p x = G₂'F'≈ (p x)
 -}
-

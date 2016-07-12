@@ -1,654 +1,627 @@
-open import SplitRestCats
 
-module Completeness {a b}(X : SplitRestCat {a}{b}) where
+open import Restriction.SplitRestCats
 
-  open import Categories
-  open import RestrictionCat
-  open import Relation.Binary.HeterogeneousEquality
-  open import Utilities
-  open ≅-Reasoning renaming (begin_ to proof_)
-  open import Function
-  open import Data.Product
-  open import Functors
-  open import RestrictionFunctors
-  open SplitRestCat X
-  open RestCat rcat
+module Completeness {ℓ₁ ℓ₂}(X : SplitRestCat {ℓ₁}{ℓ₂}) where
 
-  open Cat cat
-  open import Totals rcat
-  open Tot
-  open import Stable 
-  open import Categories.Pullbacks
-  open Lemmata
+open import Utilities
+open import Categories
+open import Restriction.Cat
+open import Categories.Functors
+open import Restriction.Functors
+open SplitRestCat X
+open RestCat rcat
+open Cat cat
+open import Restriction.Totals rcat
+open import PartialMaps.Stable 
+open import Categories.Pullbacks
+open Lemmata rcat
+open import PartialMaps.MonicClasses X
+open import PartialMaps.Cat Total SectionOfRestIdemSys
+open import Soundness Total SectionOfRestIdemSys
+open import Categories.Idems cat
+open import Categories.Splits cat
+open import Categories.Monos cat
+open import Categories.Isos
+open import Restriction.Idems rcat
+open import Restriction.SplitCatIsRestCat rcat
 
-  open import MonicClasses X
+restIdemIdemGen : ∀{A C}(f : Hom A C) → Idem
+restIdemIdemGen f = idem _ (rest f) lemii
 
-  open import PartialMaps Total M
-  open import Soundness Total M
-  open import Categories.Idems cat
-  open import Categories.Sections cat
-  open import Categories.Monos cat
-  open import Categories.Isos
+restIdemSplitGen : ∀{A C}(f : Hom A C) → Split (restIdemIdemGen f)
+restIdemSplitGen f = restIdemSplit _ (sym lemi)
 
--- Functor definition
+sectionTotProp : {i : Idem}(sp : Split i) → rest (Split.s sp) ≅ iden {Split.B sp}
+sectionTotProp {_} sp = lemiii (sectionIsMono sp)
 
-  .totcomprest : {A C : Obj}(f : Hom A C) → (sp : Split (record { E = A; e = rest f; law = lemii rcat })) →
-                 let open Split sp
-                 in rest (comp f s) ≅ iden {B}
-  totcomprest f sp = 
-    let open Split sp
-    in 
-      proof
-      rest (comp f s)
-      ≅⟨ lemiv rcat ⟩
-      rest (comp (rest f) s)
-      ≅⟨ cong (λ y → rest (comp y s)) (sym law1) ⟩
-      rest (comp (comp s r) s)
-      ≅⟨ cong rest ass ⟩
-      rest (comp s (comp r s))
-      ≅⟨ cong (rest ∘ comp s) law2 ⟩
-      rest (comp s iden)
-      ≅⟨ cong rest idr ⟩
-      rest s
-      ≅⟨ lemiii rcat (smon s (r , law2)) ⟩
-      iden
-      ∎ 
+-- leftLeg : ∀{A C}(f : Hom A C) → Tot (Split.B (restIdemSplitGen f)) A
+-- leftLeg f = 
+--   let open Split (restIdemSplitGen f)
+--   in tot s (sectionTotProp (restIdemSplitGen f))
 
-  HMap1 : ∀{A C}(f : Hom A C) → Span A C
-  HMap1 {A}{C} f =
-    let open Split (rsplit f)
+-- rightLeg : ∀{A C}(f : Hom A C) → Tot (Split.B (restIdemSplitGen f)) C
+-- rightLeg f = 
+--   let open Split (restIdemSplitGen f)
+--   in tot (comp f s) 
+--       (proof
+--        rest (comp f s)
+--        ≅⟨ lemiv ⟩
+--        rest (comp (rest f) s)
+--        ≅⟨ cong (λ y → rest (comp y s)) (sym splitLaw1) ⟩
+--        rest (comp (comp s r) s)
+--        ≅⟨ cong rest ass ⟩
+--        rest (comp s (comp r s))
+--        ≅⟨ cong (rest ∘ comp s) splitLaw2 ⟩
+--        rest (comp s iden)
+--        ≅⟨ cong rest idr ⟩
+--        rest s
+--        ≅⟨ sectionTotProp (restIdemSplitGen f) ⟩
+--        iden
+--        ∎) 
 
-        mhom : Tot B A
-        mhom = record { hom = s; tot = lemiii rcat (smon s (r , law2)) }
-  
-        fhom : Tot B C
-        fhom = record { hom = comp f s; tot = totcomprest f (rsplit f)}
+HMap1 : ∀{A C}(f : Hom A C) → Span A C
+HMap1 f = 
+  let open Split (restIdemSplitGen f)
 
-        m∈ : SRestIde mhom
-        m∈ = record { As = C; fs = f; rs = r; law1s = law1; law2s = law2 }
+      sTotProp : rest s ≅ iden {B}
+      sTotProp = sectionTotProp (restIdemSplitGen f)
 
-    in record { 
-      A' = B; 
-      mhom = mhom;
-      fhom = fhom;
-      m∈ = m∈ }
+      compfsTotProp : rest (comp f s) ≅ iden
+      compfsTotProp =
+        proof
+        rest (comp f s)
+        ≅⟨ lemiv ⟩
+        rest (comp (rest f) s)
+        ≅⟨ cong (λ y → rest (comp y s)) (sym splitLaw1) ⟩
+        rest (comp (comp s r) s)
+        ≅⟨ cong rest ass ⟩
+        rest (comp s (comp r s))
+        ≅⟨ cong (rest ∘ comp s) splitLaw2 ⟩
+        rest (comp s iden)
+        ≅⟨ cong rest idr ⟩
+        rest s
+        ≅⟨ sTotProp ⟩
+        iden
+        ∎ 
+   in span B (tot s sTotProp) (tot (comp f s) compfsTotProp) (sridem (rest f) (sym lemi) r splitLaw1 splitLaw2)
 
-  .fid : ∀{A} → HMap1 (iden {A}) ~Span~ idspan {A}
-  fid {A} = 
-    let open Split (rsplit (iden {A}))
-                                 
-        isos : Iso cat s
-        isos = r ,, 
-               (proof
-                comp s r
-                ≅⟨ law1 ⟩
-                rest (iden {A})
-                ≅⟨ lemiii rcat idmono ⟩
-                iden
-                ∎) ,, 
-               law2
 
-        stot : Tot B A
-        stot = record { hom = s; tot = lemiii rcat (smon s (r , law2)) }
+fidSpan : ∀{A} → HMap1 iden ~Span~ idSpan {A}
+fidSpan = 
+  let open Split (restIdemSplitGen iden)
 
-      in spaneq
-        (record { hom = s; tot = lemiii rcat (smon s (r , law2)) })
-        (Iso.inv (IsoTot stot isos) ,,
-        TotEq _ _ (
+      sTotProp : rest s ≅ iden
+      sTotProp = sectionTotProp (restIdemSplitGen iden)
+
+      p : comp s r ≅ iden
+      p = 
+        proof
+        comp s r
+        ≅⟨ splitLaw1 ⟩
+        rest iden
+        ≅⟨ lemiii idMono ⟩
+        iden
+        ∎
+
+      rTotProp : rest r ≅ iden
+      rTotProp = lemiii (isoIsMono cat (iso s splitLaw2 p))
+  in spaneq (tot s sTotProp) (iso (tot r rTotProp) (totEq p) (totEq splitLaw2)) (totEq idl) (totEq refl)
+
+
+fcompSpan : ∀{A C D}{g : Hom C D}{f : Hom A C} → HMap1 (comp g f) ~Span~ compSpan (HMap1 g) (HMap1 f)
+fcompSpan {A}{C}{D}{g = g}{f} =
+  let open Split (restIdemSplitGen f)
+      open Split (restIdemSplitGen g) renaming (B to B'; s to s'; r to r'; splitLaw1 to splitLaw1'; splitLaw2 to splitLaw2')
+      open Split (restIdemSplitGen (comp g f)) renaming (B to B''; s to s''; r to r''; splitLaw1 to splitLaw1'''; splitLaw2 to splitLaw2''')
+
+      sTotProp : rest s ≅ iden {B}
+      sTotProp = sectionTotProp (restIdemSplitGen f)
+
+      s'TotProp : rest s' ≅ iden
+      s'TotProp = sectionTotProp (restIdemSplitGen g)
+
+      compfsTotProp : rest (comp f s) ≅ iden
+      compfsTotProp =
+        proof
+        rest (comp f s)
+        ≅⟨ lemiv ⟩
+        rest (comp (rest f) s)
+        ≅⟨ cong (λ y → rest (comp y s)) (sym splitLaw1) ⟩
+        rest (comp (comp s r) s)
+        ≅⟨ cong rest ass ⟩
+        rest (comp s (comp r s))
+        ≅⟨ cong (rest ∘ comp s) splitLaw2 ⟩
+        rest (comp s iden)
+        ≅⟨ cong rest idr ⟩
+        rest s
+        ≅⟨ sTotProp ⟩
+        iden
+        ∎ 
+
+      span _ _ hf _ = HMap1 f
+      span _ _ _ mg∈ = HMap1 g
+
+      p , sr = pul∈sysSectionsOfRestIdem hf mg∈
+
+-- (tot (comp f s) compfsTotProp) 
+--                                          (sridem {s = tot s' s'TotProp} (rest g) (sym lemi) r' splitLaw1' splitLaw2')
+
+      open Pullback Total p
+      open Square Total sq
+      tot m _ = h
+      tot n _ = k
+      sridem _ _ r''' _ _ = sr
+
+      open Split (restIdemSplit (idem B (rest (comp (rest g) (comp f s))) lemii) (sym lemi))
+                 renaming (splitLaw1 to splitLaw1''; splitLaw2 to splitLaw2'')
+                 hiding (s; r)
+
+      splitLaw1'''' : comp (comp s m) (comp r''' r) ≅ rest (comp g f)
+      splitLaw1'''' = 
+        proof
+        comp (comp s m) (comp r''' r)
+        ≅⟨ ass ⟩
+        comp s (comp m (comp r''' r))
+        ≅⟨ cong (comp s) (sym ass) ⟩
+        comp s (comp (comp m r''') r)
+        ≅⟨ cong (λ y → comp s (comp y r)) splitLaw1'' ⟩
+        comp s (comp (rest (comp (rest g) (comp f s))) r)
+        ≅⟨ cong (λ y → comp s (comp y r)) (sym lemiv) ⟩
+        comp s (comp (rest (comp g (comp f s))) r)
+        ≅⟨ cong (λ y → comp s (comp (rest y) r)) (sym ass) ⟩
+        comp s (comp (rest (comp (comp g f) s)) r)
+        ≅⟨ sym ass ⟩
+        comp (comp s (rest (comp (comp g f) s))) r
+        ≅⟨ cong (λ y → comp y r) (sym R4) ⟩
+        comp (comp (rest (comp g f)) s) r
+        ≅⟨ ass ⟩
+        comp (rest (comp g f)) (comp s r)
+        ≅⟨ cong (comp (rest (comp g f))) splitLaw1 ⟩
+        comp (rest (comp g f)) (rest f)
+        ≅⟨ R3 ⟩
+        rest (comp (comp g f) (rest f))
+        ≅⟨ cong rest ass ⟩
+        rest (comp g (comp f (rest f)))
+        ≅⟨ cong (rest ∘ comp g) R1 ⟩
+        rest (comp g f)
+        ∎
+
+      splitLaw2'''' : comp (comp r''' r) (comp s m) ≅ iden {W}
+      splitLaw2'''' = 
+        proof 
+        comp (comp r''' r) (comp s m)
+        ≅⟨ ass ⟩
+        comp r''' (comp r (comp s m))
+        ≅⟨ cong (comp r''') (sym ass) ⟩
+        comp r''' (comp (comp r s) m)
+        ≅⟨ cong (λ y → comp r''' (comp y m)) splitLaw2 ⟩
+        comp r''' (comp iden m)
+        ≅⟨ cong (comp r''') idl ⟩
+        comp r''' m
+        ≅⟨ splitLaw2'' ⟩
+        iden
+        ∎
+
+      u : Hom B'' W
+      u = splitMap (restIdemSplitGen (comp g f)) (split W (comp s m) (comp r''' r) splitLaw1'''' splitLaw2'''')
+
+      uIsIso : Iso cat u
+      uIsIso = splitsAreIso (restIdemSplitGen (comp g f)) (split W (comp s m) (comp r''' r) splitLaw1'''' splitLaw2'''')
+
+      uTotProp : rest u ≅ iden {B''}
+      uTotProp = lemiii (isoIsMono cat uIsIso)
+
+      rightTr : comp (comp s m) u ≅ s''
+      rightTr = splitsAreIsoRightTr (restIdemSplitGen (comp g f)) (split W (comp s m) (comp r''' r) splitLaw1'''' splitLaw2'''')
+
+      leftTr' : comp (comp g s') n ≅ comp (comp g f) (comp s m)
+      leftTr' = 
+        proof
+        comp (comp g s') n
+        ≅⟨ refl ⟩
+        comp (comp g s') (comp r' (comp (comp f s) m))
+        ≅⟨ ass ⟩
+        comp g (comp s' (comp r' (comp (comp f s) m)))
+        ≅⟨ cong (comp g) (sym ass) ⟩
+        comp g (comp (comp s' r') (comp (comp f s) m))
+        ≅⟨ cong (λ y → comp g (comp y (comp (comp f s) m))) splitLaw1' ⟩
+        comp g (comp (rest g) (comp (comp f s) m))
+        ≅⟨ sym ass ⟩
+        comp (comp g (rest g)) (comp (comp f s) m)
+        ≅⟨ cong (λ y → comp y (comp (comp f s) m)) R1 ⟩
+        comp g (comp (comp f s) m)
+        ≅⟨ cong (comp g) ass ⟩
+        comp g (comp f (comp s m))
+        ≅⟨ sym ass ⟩
+        comp (comp g f) (comp s m)
+        ∎
+
+      leftTr : comp (comp (comp g s') (comp r' (comp (comp f s) m))) u ≅ comp (comp g f) s''
+      leftTr =
+        proof
+        comp (comp (comp g s') (comp r' (comp (comp f s) m))) u
+        ≅⟨ cong (λ y → comp y u) leftTr' ⟩
+        comp (comp (comp g f) (comp s m)) u
+        ≅⟨ ass ⟩
+        comp (comp g f) (comp (comp s m) u)
+        ≅⟨ cong (comp (comp g f)) rightTr ⟩
+        comp (comp g f) s''
+        ∎
+  in spaneq (tot u uTotProp) (isoTot uIsIso) (totEq rightTr) (totEq leftTr)
+
+fcomp : ∀{A C D}{g : Hom C D}{f : Hom A C} → abs (HMap1 (comp g f)) ≅ qcompSpan (abs (HMap1 g)) (abs (HMap1 f))
+fcomp {g = g}{f} = 
+  proof
+  abs (HMap1 (comp g f)) 
+  ≅⟨ sound {mf = HMap1 (comp g f)} fcompSpan ⟩
+  abs (compSpan (HMap1 g) (HMap1 f))
+  ≅⟨ sym (liftbetaComp {ng = HMap1 g}{HMap1 f}) ⟩
+  qcompSpan (abs (HMap1 g)) (abs (HMap1 f))
+  ∎
+
+Funct : Fun cat Par
+Funct = record { 
+  OMap = λ A → A; 
+  HMap = abs ∘ HMap1;
+  fid = sound fidSpan;
+  fcomp = fcomp}
+
+frestSpan : ∀{A C}{f : Hom A C} → restSpan (HMap1 f) ~Span~ HMap1 (rest f)
+frestSpan {A}{C}{f} = 
+  let open Split (restIdemSplitGen f)
+      open Split (restIdemSplitGen (rest f)) renaming (B to B'; s to s')
+                 hiding (r; splitLaw1; splitLaw2)
+
+      eq : restIdemIdemGen f ≅ restIdemIdemGen (rest f)
+      eq = idemEq refl (sym lemi)
+
+      u : Hom B B'
+      u = splitMap≅ eq (restIdemSplitGen f) (restIdemSplitGen (rest f))
+
+      uIsIso : Iso cat u
+      uIsIso = splitsAreIso≅ eq (restIdemSplitGen f) (restIdemSplitGen (rest f))
+
+      uTotProp : rest u ≅ iden 
+      uTotProp = lemiii (isoIsMono cat uIsIso)
+
+      rightTr : comp s' u ≅ s
+      rightTr = splitsAreIsoRightTr≅ eq (restIdemSplitGen f) (restIdemSplitGen (rest f))
+
+      leftTr : comp (comp (rest f) s') u ≅ s
+      leftTr = 
+        proof
+        comp (comp (rest f) s') u
+        ≅⟨ ass ⟩
+        comp (rest f) (comp s' u)
+        ≅⟨ cong (comp (rest f)) rightTr ⟩
+        comp (rest f) s
+        ≅⟨ cong (λ y → comp y s) (sym splitLaw1) ⟩
+        comp (comp s r) s
+        ≅⟨ ass ⟩
+        comp s (comp r s)
+        ≅⟨ cong (comp s) splitLaw2 ⟩
+        comp s iden
+        ≅⟨ idr ⟩
+        s
+        ∎
+  in spaneq (tot u uTotProp) (isoTot uIsIso) (totEq rightTr) (totEq leftTr)
+
+frest :  ∀{A C}{f : Hom A C} → qrestSpan (abs (HMap1 f)) ≅ abs (HMap1 (rest f))
+frest {f = f} = 
+  proof
+  qrestSpan (abs (HMap1 f))
+  ≅⟨ liftbetaRest {mf = HMap1 f} ⟩
+  abs (restSpan (HMap1 f))
+  ≅⟨ sound {mf = restSpan (HMap1 f)} frestSpan ⟩
+  abs (HMap1 (rest f))
+  ∎
+
+RFunct : RestFun rcat RestPar
+RFunct = record { fun = Funct; frest = frest }
+
+HMap2 : ∀{A C} → Span A C → Hom A C
+HMap2 (span _ _ (tot g _) (sridem _ _ r _ _)) = comp g r
+
+compatHMap2 : ∀{A B}{sp sp' : Span A B} → sp ~Span~ sp' → HMap2 sp ≅ HMap2 sp'
+compatHMap2 {sp = span _ mt ft m∈}{span _ nt gt n∈} p = 
+  let open _~Span~_ p
+      open Iso Total sIso
+      open Tot s renaming (hom to i; totProp to iTotProp) 
+      open Tot inv renaming (hom to j; totProp to jTotProp) 
+      open Tot gt renaming (hom to g; totProp to gTotProp) 
+      open Tot ft renaming (hom to f; totProp to fTotProp) 
+      open Tot nt renaming (hom to n; totProp to nTotProp) 
+      open Tot mt renaming (hom to m; totProp to mTotProp) 
+      open SectionOfRestIdem m∈
+      open SectionOfRestIdem n∈ renaming (e to e'; r to r'; splitLaw1 to splitLaw1'; splitLaw2 to splitLaw2')
+  in
+    proof
+    comp f r
+    ≅⟨ cong (λ y → comp y r) (sym (totEqHom rightTr)) ⟩
+    comp (comp g i) r
+    ≅⟨ ass ⟩
+    comp g (comp i r)
+    ≅⟨ cong (λ y → comp g (comp y r)) (sym idl) ⟩
+    comp g (comp (comp iden i) r)
+    ≅⟨ cong (λ y → comp g (comp (comp y i) r)) (sym splitLaw2') ⟩
+    comp g (comp (comp (comp r' n) i) r)
+    ≅⟨ cong (λ y → comp g (comp y r)) ass ⟩
+    comp g (comp (comp r' (comp n i)) r)
+    ≅⟨ cong (λ y → comp g (comp (comp r' y) r)) (totEqHom leftTr) ⟩
+    comp g (comp (comp r' m) r)
+    ≅⟨ cong (comp g) ass ⟩
+    comp g (comp r' (comp m r))
+    ≅⟨ cong ((comp g) ∘ (comp r')) splitLaw1 ⟩
+    comp g (comp r' e)
+    ≅⟨ cong ((comp g) ∘ (comp r')) (restRetractionProp m∈) ⟩ 
+    comp g (comp r' (rest r))
+    ≅⟨ cong (λ y → comp g (comp y (rest r))) (sym R1) ⟩
+    comp g (comp (comp r' (rest r')) (rest r))
+    ≅⟨ cong (comp g) ass ⟩
+    comp g (comp r' (comp (rest r') (rest r)))
+    ≅⟨ cong ((comp g) ∘ (comp r')) R2 ⟩
+    comp g (comp r' (comp (rest r) (rest r')))
+    ≅⟨ cong ((comp g) ∘ (comp r')) R3 ⟩
+    comp g (comp r' (rest (comp r (rest r'))))
+    ≅⟨ cong ((comp g) ∘ (comp r') ∘ rest) (sym idl) ⟩
+    comp g (comp r' (rest (comp iden (comp r (rest r')))))
+    ≅⟨ cong (λ y → comp g (comp r' (rest (comp y (comp r (rest r')))))) (sym iTotProp) ⟩
+    comp g (comp r' (rest (comp (rest i) (comp r (rest r')))))
+    ≅⟨ cong ((comp g) ∘ (comp r')) (sym lemiv) ⟩ 
+    comp g (comp r' (rest (comp i (comp r (rest r')))))
+    ≅⟨ cong ((comp g) ∘ (comp r') ∘ rest ∘ (comp i) ∘ (comp r)) (sym (restRetractionProp n∈)) ⟩
+    comp g (comp r' (rest (comp i (comp r e'))))
+    ≅⟨ cong ((comp g) ∘ (comp r') ∘ rest ∘ (comp i) ∘ (comp r)) (sym splitLaw1') ⟩ 
+    comp g (comp r' (rest (comp i (comp r (comp n r')))))
+    ≅⟨ cong ((comp g) ∘ (comp r') ∘ rest ∘ comp i) (sym ass) ⟩
+    comp g (comp r' (rest (comp i (comp (comp r n) r'))))
+    ≅⟨ cong (λ y → comp g (comp r' (rest (comp i (comp (comp r y) r'))))) (sym idr) ⟩
+    comp g (comp r' (rest (comp i (comp (comp r (comp n iden)) r'))))
+    ≅⟨ cong (λ y → comp g (comp r' (rest (comp i (comp (comp r (comp n y)) r'))))) (totEqHom (sym rinv)) ⟩
+    comp g (comp r' (rest (comp i (comp (comp r (comp n (comp i j))) r'))))
+    ≅⟨ cong (λ y → comp g (comp r' (rest (comp i (comp (comp r y) r'))))) (sym ass) ⟩
+    comp g (comp r' (rest (comp i (comp (comp r (comp (comp n i) j)) r'))))
+    ≅⟨ cong (λ y → comp g (comp r' (rest (comp i (comp (comp r (comp y j)) r'))))) (totEqHom leftTr) ⟩
+    comp g (comp r' (rest (comp i (comp (comp r (comp m j)) r'))))
+    ≅⟨ cong (λ y → comp g (comp r' (rest (comp i (comp y r'))))) (sym ass) ⟩
+    comp g (comp r' (rest (comp i (comp (comp (comp r m) j) r'))))
+    ≅⟨ cong (λ y → comp g (comp r' (rest (comp i (comp (comp y j) r'))))) splitLaw2 ⟩
+    comp g (comp r' (rest (comp i (comp (comp iden j) r'))))
+    ≅⟨ cong (λ y → comp g (comp r' (rest (comp i (comp y r'))))) idl ⟩
+    comp g (comp r' (rest (comp i (comp j r'))))
+    ≅⟨ cong ((comp g) ∘ (comp r') ∘ rest) (sym ass) ⟩
+    comp g (comp r' (rest (comp (comp i j) r')))
+    ≅⟨ cong (λ y → comp g (comp r' (rest (comp y r')))) (totEqHom rinv) ⟩ 
+    comp g (comp r' (rest (comp iden r')))
+    ≅⟨ cong ((comp g) ∘ (comp r') ∘ rest) idl ⟩
+    comp g (comp r' (rest r'))
+    ≅⟨ cong (comp g) R1 ⟩
+    comp g r'
+    ∎
+
+qHMap2 : ∀{A C} → QSpan A C → Hom A C
+qHMap2 {A}{C} = lift {A}{C} (λ _ → Hom A C) HMap2 compatHMap2
+
+qHMap2Liftbeta : ∀{A C}{mf : Span A C} → qHMap2 (abs mf) ≅ HMap2 mf
+qHMap2Liftbeta {A}{C}{mf} = liftbeta {A}{C} (λ _ → Hom A C) HMap2 compatHMap2 mf
+
+fid2 : ∀{A} → qHMap2 (abs (idSpan {A})) ≅ iden
+fid2 = 
+  proof
+  qHMap2 (abs idSpan)
+  ≅⟨ qHMap2Liftbeta {mf = idSpan} ⟩ 
+  HMap2 idSpan
+  ≅⟨ idl ⟩
+  iden
+  ∎
+
+fcomp2Span : ∀{A B C}{ng : Span B C}{mf : Span A B} → HMap2 (compSpan ng mf) ≅ comp (HMap2 ng) (HMap2 mf)
+fcomp2Span {ng = ng}{mf} =
+  let span _ _ (tot f p) m∈ = mf
+      span _ (tot n _) (tot g _) m∈' = ng
+      sridem _ _ rf _ _ = m∈
+      open SectionOfRestIdem m∈' renaming (e to e'; restIdem to e'RestIdem; r to r'; splitLaw1 to splitLaw1'; splitLaw2 to splitLaw2')        
+      pullback (square _ (tot m' _) _ _) _ , z = pul∈sysSectionsOfRestIdem (tot f p) m∈'
+      open SectionOfRestIdem z renaming (r to r''; splitLaw1 to splitLaw1'')
+  in 
+    proof 
+    comp (comp g (comp r' (comp f m'))) (comp r'' rf) 
+    ≅⟨ sym ass ⟩
+    comp (comp (comp g (comp r' (comp f m'))) r'') rf
+    ≅⟨ cong (λ y → comp y rf) ass ⟩ 
+    comp (comp g (comp (comp r' (comp f m')) r'')) rf
+    ≅⟨ cong (λ y → comp (comp g y) rf) ass ⟩ 
+    comp (comp g (comp r' (comp (comp f m') r''))) rf
+    ≅⟨ cong (λ y → comp (comp g (comp r' y)) rf) ass ⟩ 
+    comp (comp g (comp r' (comp f (comp m' r'')))) rf
+    ≅⟨ cong (λ y → comp (comp g (comp r' (comp f y))) rf) splitLaw1'' ⟩
+    comp (comp g (comp r' (comp f (rest (comp e' f))))) rf
+    ≅⟨ cong (λ y → comp (comp g (comp r' y)) rf) (sym R4) ⟩
+    comp (comp g (comp r' (comp (rest e') f))) rf
+    ≅⟨ cong (λ y → comp (comp g (comp r' (comp y f))) rf) (sym e'RestIdem) ⟩
+    comp (comp g (comp r' (comp e' f))) rf
+    ≅⟨ cong (λ y → comp (comp g (comp r' (comp y f))) rf) (sym splitLaw1') ⟩
+    comp (comp g (comp r' (comp (comp n r') f))) rf
+    ≅⟨ cong (λ y → comp (comp g (comp r' y)) rf) ass ⟩
+    comp (comp g (comp r' (comp n (comp r' f)))) rf
+    ≅⟨ cong (λ y → comp (comp g y) rf) (sym ass) ⟩
+    comp (comp g (comp (comp r' n) (comp r' f))) rf
+    ≅⟨ cong (λ y → comp (comp g (comp y (comp r' f))) rf) splitLaw2' ⟩
+    comp (comp g (comp iden (comp r' f))) rf
+    ≅⟨ cong (λ y → comp (comp g y) rf) idl ⟩
+    comp (comp g (comp r' f)) rf
+    ≅⟨ cong (λ y → comp y rf) (sym ass) ⟩
+    comp (comp (comp g r') f) rf
+    ≅⟨ ass ⟩
+    comp (comp g r') (comp f rf) 
+    ∎
+
+fcomp2 : ∀{A B C}{ng : QSpan B C}{mf : QSpan A B} → qHMap2 (qcompSpan ng mf) ≅ comp (qHMap2 ng) (qHMap2 mf)
+fcomp2 {A}{B}{C}{ng}{mf} = 
+  lift₂ (λ ng mf → qHMap2 (qcompSpan ng mf) ≅ comp (qHMap2 ng) (qHMap2 mf)) 
+         (λ ng mf →
+           proof
+           qHMap2 (qcompSpan (abs ng) (abs mf)) 
+           ≅⟨ cong qHMap2 liftbetaComp ⟩
+           qHMap2 (abs (compSpan ng mf))
+           ≅⟨ qHMap2Liftbeta ⟩
+           HMap2 (compSpan ng mf)
+           ≅⟨ fcomp2Span {ng = ng}{mf} ⟩
+           comp (HMap2 ng) (HMap2 mf)
+           ≅⟨ cong₂ comp (sym qHMap2Liftbeta) (sym qHMap2Liftbeta) ⟩
+           comp (qHMap2 (abs ng)) (qHMap2 (abs mf))
+           ∎)
+         (λ p q → fixtypes (cong₂ (λ (x : QSpan B C) (y : QSpan A B) → comp (qHMap2 x) (qHMap2 y)) (sound p) (sound q)))
+         ng mf
+
+Funct2 : Fun Par cat
+Funct2 = record {
+  OMap = λ A → A; 
+  HMap = qHMap2;
+  fid = fid2;
+  fcomp = fcomp2 }
+
+frestSpan2 : ∀{A B}{mf : Span A B} → rest (HMap2 mf) ≅ HMap2 (restSpan mf)
+frestSpan2 {mf = span _ (tot m _) fhom m∈} = 
+  let open Tot fhom renaming (hom to f; totProp to fTotProp)
+      open SectionOfRestIdem m∈
+  in 
+    proof
+    rest (comp f r)
+    ≅⟨ lemiv ⟩
+    rest (comp (rest f) r)
+    ≅⟨ cong (λ y → rest (comp y r)) fTotProp ⟩
+    rest (comp iden r)
+    ≅⟨ cong rest idl ⟩
+    rest r
+    ≅⟨ sym (restRetractionProp m∈) ⟩
+    e
+    ≅⟨ sym splitLaw1 ⟩
+    comp m r
+    ∎
+
+frest2 : ∀{A B}{mf : QSpan A B} → rest (qHMap2 mf) ≅ qHMap2 (qrestSpan mf)
+frest2 {mf = mf} = 
+  lift (λ mf → rest (qHMap2 mf) ≅ qHMap2 (qrestSpan mf)) 
+        (λ mf → 
           proof
-          comp s r
-          ≅⟨ law1 ⟩
-          rest (iden {A})
-          ≅⟨ lemiii rcat idmono ⟩
-          iden
-          ∎) ,, 
-        TotEq _ _ law2 ) 
-        (TotEq _ _ idl) 
-        (TotEq _ _ refl)
+          rest (qHMap2 (abs mf)) 
+          ≅⟨ cong rest qHMap2Liftbeta  ⟩
+          rest (HMap2 mf) 
+          ≅⟨ frestSpan2 {mf = mf} ⟩
+          HMap2 (restSpan mf) 
+          ≅⟨ sym qHMap2Liftbeta ⟩
+          qHMap2 (abs (restSpan mf))
+          ≅⟨ cong qHMap2 (sym liftbetaRest) ⟩
+          qHMap2 (qrestSpan (abs mf))
+          ∎)
+        (fixtypes2 ∘ (cong (rest ∘ qHMap2) ∘ sound)) 
+        mf
 
-  .fcomp : ∀{A B C}{g : Hom B C}{f : Hom A B} → HMap1 (comp g f) ~Span~ compspan (HMap1 g) (HMap1 f)
-  fcomp {A}{B}{C}{g}{f} = 
-    let open Split (rsplit f) renaming (B to Af; 
-                                        s to mf; 
-                                        r to rf; 
-                                        law1 to law1f;
-                                        law2 to law2f)
-        open Split (rsplit g) renaming (B to Ag; 
-                                        s to mg; 
-                                        r to rg; 
-                                        law1 to law1g;
-                                        law2 to law2g)
-        open Split (rsplit (comp g f)) renaming (B to Agf; 
-                                        s to mgf; 
-                                        r to rgf; 
-                                        law1 to law1gf;
-                                        law2 to law2gf)
-        open Span (HMap1 f) renaming (mhom to mft; fhom to fmft; m∈ to mf∈)
-        open Span (HMap1 g) renaming (mhom to mgt; fhom to gmgt; m∈ to mg∈)
+RFunct2 : RestFun RestPar rcat
+RFunct2 = record { fun = Funct2 ; frest = frest2 }
 
-        open Pullback Total (proj₁ (MXpul fmft mg∈))
-        open Square Total sq renaming (h to mt'; k to ht)
-        open SRestIde (proj₂ (MXpul fmft mg∈)) renaming (rs to r')
-
-        open Tot mt' renaming (hom to m'; tot to mp')
-        open Tot fmft renaming (hom to fmf; tot to fmfp')
-        open Tot ht renaming (hom to h; tot to hp)
-
-        .law1gf : comp (comp mf m') (comp r' rf) ≅ rest (comp g f)
-        law1gf = 
-          proof
-          comp (comp mf m') (comp r' rf)
-          ≅⟨ ass ⟩
-          comp mf (comp m' (comp r' rf))
-          ≅⟨ cong (comp mf) (sym ass) ⟩
-          comp mf (comp (comp m' r') rf)
-          ≅⟨ cong (λ y → comp mf (comp y rf)) (Split.law1 (rsplit (comp (rest g) (comp f mf)))) ⟩
-          comp mf (comp (rest (comp (rest g) (comp f mf))) rf)
-          ≅⟨ cong (λ y → comp mf (comp y rf)) (sym (lemiv rcat)) ⟩
-          comp mf (comp (rest (comp g (comp f mf))) rf)
-          ≅⟨ cong (λ y → comp mf (comp (rest y) rf)) (sym ass) ⟩
-          comp mf (comp (rest (comp (comp g f) mf)) rf)
-          ≅⟨ sym ass ⟩
-          comp (comp mf (rest (comp (comp g f) mf))) rf
-          ≅⟨ cong (λ y → comp y rf) (sym R4) ⟩
-          comp (comp (rest (comp g f)) mf) rf
-          ≅⟨ ass ⟩
-          comp (rest (comp g f)) (comp  mf rf)
-          ≅⟨ cong (comp (rest (comp g f))) law1f ⟩
-          comp (rest (comp g f)) (rest f)
-          ≅⟨ R3 ⟩
-          rest (comp (comp g f) (rest f))
-          ≅⟨ cong rest ass ⟩
-          rest (comp g (comp f (rest f)))
-          ≅⟨ cong (rest ∘ comp g) R1 ⟩
-          rest (comp g f)
-          ∎
-
-        .law2gf : comp (comp r' rf) (comp mf m') ≅ iden {W}
-        law2gf =
-          proof 
-          comp (comp r' rf) (comp mf m')
-          ≅⟨ ass ⟩
-          comp r' (comp rf (comp mf m'))
-          ≅⟨ cong (comp r') (sym ass) ⟩
-          comp r' (comp (comp rf mf) m')
-          ≅⟨ cong (λ y → comp r' (comp y m')) law2f ⟩
-          comp r' (comp iden m')
-          ≅⟨ cong (comp r') idl ⟩
-          comp r' m'
-          ≅⟨ Split.law2 (rsplit (comp (rest g) (comp f mf))) ⟩
-          iden
-          ∎
-
-        fgsplit : Split (record { E = A ; e = rest (comp g f); law = lemii rcat})
-        fgsplit = record { B = W; s = comp mf m'; r = comp r' rf; law1 = law1gf; law2 = law2gf }
-
-        isosplitmap : Σ (Hom Agf W) λ u → Iso cat u
-        isosplitmap = lemmamap (record { E = A ; e = rest (comp g f); law = lemii rcat}) 
-                               (rsplit (comp g f))
-                               fgsplit
-
-        u = proj₁ isosplitmap
-
-        isosplitlaw1 : comp u rgf ≅ comp r' rf
-        isosplitlaw1 = lemmalaw1 (record { E = A ; e = rest (comp g f); law = lemii rcat}) 
-                                 (rsplit (comp g f))
-                                 fgsplit
-       
-        isosplitlaw2 : comp (comp mf m') u ≅ mgf
-        isosplitlaw2 = lemmalaw2 (record { E = A ; e = rest (comp g f); law = lemii rcat}) 
-                                 (rsplit (comp g f))
-                                 fgsplit
-
-        equat : comp (comp g mg) h ≅ comp (comp g f) (comp mf m')
-        equat = 
-          proof
-          comp (comp g mg) h
-          ≅⟨ refl ⟩
-          comp (comp g mg) (comp rg (comp (comp f mf) m'))
-          ≅⟨ ass ⟩
-          comp g (comp mg (comp rg (comp (comp f mf) m')))
-          ≅⟨ cong (comp g) (sym ass) ⟩
-          comp g (comp (comp mg rg) (comp (comp f mf) m'))
-          ≅⟨ cong (λ y → comp g (comp y (comp (comp f mf) m'))) law1g ⟩
-          comp g (comp (rest g) (comp (comp f mf) m'))
-          ≅⟨ sym ass ⟩
-          comp (comp g (rest g)) (comp (comp f mf) m')
-          ≅⟨ cong (λ y → comp y (comp (comp f mf) m')) R1 ⟩
-          comp g (comp (comp f mf) m')
-          ≅⟨ cong (comp g) ass ⟩
-          comp g (comp f (comp mf m'))
-          ≅⟨ sym ass ⟩
-          comp (comp g f) (comp mf m')
-          ∎
-    in spaneq
-        (record { hom = u; tot = lemiii rcat (iso→mono cat (proj₂ isosplitmap))})
-        (IsoTot (record { hom = u; tot = lemiii rcat (iso→mono cat (proj₂ isosplitmap)) }) (proj₂ isosplitmap)) 
-        (TotEq _ _ isosplitlaw2) 
-        (TotEq _ 
-               _ 
-               (proof
-                comp (comp (comp g mg) (comp rg (comp (comp f mf) m'))) u
-                ≅⟨ cong (λ y → comp y u) equat ⟩
-                comp (comp (comp g f) (comp mf m')) u
-                ≅⟨ ass ⟩
-                comp (comp g f) (comp (comp mf m') u)
-                ≅⟨ cong (comp (comp g f)) isosplitlaw2 ⟩
-                comp (comp g f) mgf
-                ∎
-                ))
-
-  Funct : Fun cat Par
-  Funct = record { 
-    OMap = λ A → A; 
-    HMap = abs ∘ HMap1;
-    fid = ax1 _ _ fid;
-    fcomp = λ {_}{_}{_}{g}{f} → ax1 
-      _ 
-      _ 
-      (~trans (fcomp {g = g}{f = f}) (~sym (~cong (ax3 _) (ax3 _))))}
-
-  .frest : ∀{A B}{f : Hom A B} → restp (HMap1 f) ~Span~ HMap1 (rest f)
-  frest {A}{B}{f = f} = 
-    let open Split (rsplit f) renaming (B to A'; s to m)
-        open Split (rsplit (rest f)) renaming (B to A''; s to m'; r to r'; law1 to law1'; law2 to law2')
-
-        ide : Idem
-        ide = record { E = A; e = rest f; law = lemii rcat}
-
-        ide' : Idem
-        ide' = record { E = A; e = rest (rest f); law = lemii rcat}
-
-        ide≅ide' : ide ≅ ide'
-        ide≅ide' = idem≅ refl (sym (lemi rcat))
-
-        umap : Σ (Hom A' A'') (Iso cat)
-        umap = lemmamap' ide 
-                         ide'
-                         ide≅ide'
-                         (rsplit f)
-                         (rsplit (rest f))
-
-        ulaw1 : comp (proj₁ umap) r ≅ r'
-        ulaw1 = lemmalaw1' ide 
-                           ide'
-                           ide≅ide'
-                           (rsplit f)
-                           (rsplit (rest f))
-
-        ulaw2 : comp m' (proj₁ umap) ≅ m
-        ulaw2 = lemmalaw2' ide 
-                           ide'
-                           ide≅ide'
-                           (rsplit f)
-                           (rsplit (rest f))
-
-        eq : comp (comp (rest f) m') (proj₁ umap) ≅ m
-        eq = 
-          proof
-          comp (comp (rest f) m') (proj₁ umap)
-          ≅⟨ ass ⟩
-          comp (rest f) (comp m' (proj₁ umap))
-          ≅⟨ cong (comp (rest f)) ulaw2 ⟩
-          comp (rest f) m
-          ≅⟨ cong (λ y → comp y m) (sym law1) ⟩
-          comp (comp m r) m
-          ≅⟨ ass ⟩
-          comp m (comp r m)
-          ≅⟨ cong (comp m) law2 ⟩
-          comp m iden
-          ≅⟨ idr ⟩
-          m
-          ∎
-
-    in spaneq
-      (record { hom = proj₁ umap; tot = lemiii rcat (iso→mono cat (proj₂ umap)) }) 
-      (IsoTot (record { hom = proj₁ umap; tot = lemiii rcat (iso→mono cat (proj₂ umap))}) (proj₂ umap))
-      (TotEq _ _ ulaw2)
-      (TotEq _ _ eq)
-
-  RFunct : RestFun rcat RestPartials
-  RFunct = record {
-    fun = Funct;
-    frest = λ {_}{_}{f} → ax1
-      _
-      _
-      (~trans (Span~restp (ax3 _)) (frest {f = f})) }
-
-  HMap2 : ∀{A C} → Span A C → Hom A C
-  HMap2 {A}{C} sp = 
-    let open Span sp
-        open Tot fhom renaming (hom to g)
-        open SRestIde m∈
-    in comp g rs
-
---  postulate HMap2~Span : ∀{A B}{sp sp' : Span A B} → sp ~Span~ sp' → HMap2 sp ≅ HMap2 sp'
-
-  .HMap2~Span : ∀{A B}{sp sp' : Span A B} → sp ~Span~ sp' → HMap2 sp ≅ HMap2 sp'
-  HMap2~Span {A}{B}{sp}{sp'} y = --(spaneq iso (inv ,, rinv ,, linv) p q) = 
-    let open _~Span~_ y renaming (s to iso)
-        open Iso Total siso 
-        open Span sp 
-        open Span sp' renaming (A' to A''; mhom to mhom'; fhom to fhom'; m∈ to m∈')
-
-        open Tot mhom renaming (hom to m)
-        open Tot mhom' renaming (hom to m')
-        open Tot fhom renaming (hom to f)
-        open Tot fhom' renaming (hom to g)
-        open Tot iso renaming (hom to s; tot to st) 
-        open Tot inv renaming (hom to s⁻¹)
-
-
-        open SRestIde m∈ renaming (As to Af; rs to rf; law1s to law1f; law2s to law2f)        
-        open SRestIde m∈' renaming (As to Ag; fs to e; rs to rg; law1s to law1g; law2s to law2g)
-
-        seq1 : s ≅ comp rg m
-        seq1 = 
-          proof 
-          s
-          ≅⟨ sym idl ⟩
-          comp iden s
-          ≅⟨ cong (λ y → comp y s) (sym law2g) ⟩
-          comp (comp rg m') s
-          ≅⟨ ass ⟩
-          comp rg (comp m' s)
-          ≅⟨ cong (comp rg) (TotEqHom p) ⟩
-          comp rg m
-          ∎
-
-        seq2 : s⁻¹ ≅ comp rf m'
-        seq2 = 
-          proof 
-          s⁻¹
-          ≅⟨ sym idl ⟩
-          comp iden s⁻¹
-          ≅⟨ cong (λ y → comp y s⁻¹) (sym law2f) ⟩
-          comp (comp rf m) s⁻¹
-          ≅⟨ ass ⟩
-          comp rf (comp m s⁻¹)
-          ≅⟨ cong (λ y → comp rf (comp y s⁻¹)) (sym (TotEqHom p)) ⟩
-          comp rf (comp (comp m' s) s⁻¹)
-          ≅⟨ cong (comp rf) ass ⟩
-          comp rf (comp m' (comp s s⁻¹))
-          ≅⟨ cong ((comp rf) ∘ (comp m')) (TotEqHom rinv) ⟩
-          comp rf (comp m' iden)
-          ≅⟨ cong (comp rf) idr ⟩
-          comp rf m'
-          ∎
-
-        rgeq1 : rg ≅ comp s (comp rf (rest rg))
-        rgeq1 = 
-          proof
-          rg
-          ≅⟨ sym idl ⟩
-          comp iden rg
-          ≅⟨ cong (λ y → comp y rg) (sym (TotEqHom rinv)) ⟩
-          comp (comp s s⁻¹) rg
-          ≅⟨ ass ⟩
-          comp s (comp s⁻¹ rg)
-          ≅⟨ cong (λ y → comp s (comp y rg)) seq2 ⟩
-          comp s (comp (comp rf m') rg)
-          ≅⟨ cong (comp s) ass ⟩
-          comp s (comp rf (comp m' rg))
-          ≅⟨ cong ((comp s) ∘ (comp rf)) (SRIdeProp m∈') ⟩
-          comp s (comp rf (rest rg))
-          ∎
-
-        restrgeq : rest rg ≅ comp (rest rg) (rest rf)
-        restrgeq = 
-          proof
-          rest rg
-          ≅⟨ cong rest rgeq1 ⟩
-          rest (comp s (comp rf (rest rg)))
-          ≅⟨ lemiv rcat ⟩ 
-          rest (comp (rest s) (comp rf (rest rg)))
-          ≅⟨ cong (λ y → rest (comp y (comp rf (rest rg)))) st ⟩
-          rest (comp iden (comp rf (rest rg)))
-          ≅⟨ cong rest idl ⟩
-          rest (comp rf (rest rg))
-          ≅⟨ sym R3 ⟩
-          comp (rest rf) (rest rg)
-          ≅⟨ R2 ⟩
-          comp (rest rg) (rest rf)
-          ∎
-
-        rgeq2 : rg ≅ comp rg (rest rf)
-        rgeq2 = 
-          proof
-          rg
-          ≅⟨ sym R1 ⟩
-          comp rg (rest rg)
-          ≅⟨ cong (comp rg) restrgeq ⟩
-          comp rg (comp (rest rg) (rest rf))
-          ≅⟨ sym ass ⟩
-          comp (comp rg (rest rg)) (rest rf)
-          ≅⟨ cong (λ y → comp y (rest rf)) R1 ⟩
-          comp rg (rest rf)
-          ∎
-
-    in proof
-       comp f rf
-       ≅⟨ cong (λ y → comp y rf) (sym (TotEqHom q)) ⟩
-       comp (comp g s) rf
-       ≅⟨ ass ⟩
-       comp g (comp s rf)
-       ≅⟨ cong (λ y → comp g (comp y rf)) seq1 ⟩
-       comp g (comp (comp rg m) rf)
-       ≅⟨ cong (comp g) ass ⟩
-       comp g (comp rg (comp m rf))
-       ≅⟨ cong ((comp g) ∘ (comp rg)) (SRIdeProp m∈) ⟩
-       comp g (comp rg (rest rf))
-       ≅⟨ cong (comp g) (sym rgeq2) ⟩
-       comp g rg
-       ∎
-
-
-  .fid2 : ∀{A} → HMap2 (rep (abs (idspan {A}))) ≅ iden {A}
-  fid2 = trans (HMap2~Span (ax3 _)) idl
-
-  .fcomp2' : ∀{A B C}{sp' : Span B C}{sp : Span A B} → HMap2 (compspan sp' sp) ≅ comp (HMap2 sp') (HMap2 sp)
-  fcomp2' {A}{B}{C}{sp'}{sp} =
-    let open Span sp 
-        open Span sp' renaming (A' to A''; mhom to mhom'; fhom to fhom'; m∈ to m∈')
-        open Span (compspan sp' sp) renaming (A' to A'''; mhom to mhom''; fhom to fhom''; m∈ to m∈'')
-
-        open Tot mhom renaming (hom to mf)
-        open Tot mhom' renaming (hom to mg)
-        open Tot mhom'' renaming (hom to mfm')
-        open Tot fhom renaming (hom to f)
-        open Tot fhom' renaming (hom to g)
-        open Tot fhom'' renaming (hom to gh)
-
-        open SRestIde m∈ renaming (rs to rf)        
-        open SRestIde m∈' renaming (fs to e; rs to rg; law1s to law1g; law2s to law2g)        
-        open SRestIde m∈'' renaming (rs to r'rf)        
-
-        open Pullback Total (proj₁ (MXpul fhom m∈'))
-        open Square Total sq renaming (h to mt'; k to ht)
-        open SRestIde (proj₂ (MXpul fhom m∈')) renaming (fs to u; rs to r'; law1s to law1')
-
-        open Tot mt' renaming (hom to m'; tot to mp')
-        open Tot ht renaming (hom to h; tot to hp)
-
-    in 
-      proof 
-      comp gh r'rf 
-      ≅⟨ refl ⟩ 
-      comp (comp g h) r'rf 
-      ≅⟨ refl ⟩ 
-      comp (comp g (comp rg (comp f m'))) r'rf 
-      ≅⟨ refl ⟩ 
-      comp (comp g (comp rg (comp f m'))) (comp r' rf) 
-      ≅⟨ sym ass ⟩
-      comp (comp (comp g (comp rg (comp f m'))) r') rf
-      ≅⟨ cong (λ y → comp y rf) ass ⟩ 
-      comp (comp g (comp (comp rg (comp f m')) r')) rf
-      ≅⟨ cong (λ y → comp (comp g y) rf) ass ⟩ 
-      comp (comp g (comp rg (comp (comp f m') r'))) rf
-      ≅⟨ cong (λ y → comp (comp g (comp rg y)) rf) ass ⟩ 
-      comp (comp g (comp rg (comp f (comp m' r')))) rf
-      ≅⟨ cong (λ y → comp (comp g (comp rg (comp f y))) rf) law1' ⟩
-      comp (comp g (comp rg (comp f (rest (comp (rest e) f))))) rf
-      ≅⟨ cong (λ y → comp (comp g (comp rg y)) rf) (sym R4) ⟩
-      comp (comp g (comp rg (comp (rest (rest e)) f))) rf
-      ≅⟨ cong (λ y → comp (comp g (comp rg (comp y f))) rf) (lemi rcat) ⟩
-      comp (comp g (comp rg (comp (rest e) f))) rf
-      ≅⟨ cong (λ y → comp (comp g (comp rg (comp y f))) rf) (sym law1g) ⟩
-      comp (comp g (comp rg (comp (comp mg rg) f))) rf
-      ≅⟨ cong (λ y → comp (comp g (comp rg y)) rf) ass ⟩
-      comp (comp g (comp rg (comp mg (comp rg f)))) rf
-      ≅⟨ cong (λ y → comp (comp g y) rf) (sym ass) ⟩
-      comp (comp g (comp (comp rg mg) (comp rg f))) rf
-      ≅⟨ cong (λ y → comp (comp g (comp y (comp rg f))) rf) law2g ⟩
-      comp (comp g (comp iden (comp rg f))) rf
-      ≅⟨ cong (λ y → comp (comp g y) rf) idl ⟩
-      comp (comp g (comp rg f)) rf
-      ≅⟨ cong (λ y → comp y rf) (sym ass) ⟩
-      comp (comp (comp g rg) f) rf
-      ≅⟨ ass ⟩
-      comp (comp g rg) (comp f rf) 
-      ∎
-
-  .fcomp2 : ∀{A B C}{q' : QSpan B C}{q : QSpan A B} → HMap2 (rep (abs (compspan (rep q') (rep q)))) ≅ comp (HMap2 (rep q')) (HMap2 (rep q))
-  fcomp2 {A}{B}{C}{q'}{q} = trans (HMap2~Span (ax3 _)) (fcomp2' {sp' = rep q'}{sp = rep q})
-
-  Funct2 : Fun Par cat
-  Funct2 = record {
-    OMap = λ A → A; 
-    HMap = HMap2 ∘ rep;
-    fid = fid2;
-    fcomp = fcomp2 }
-
-  open Fun
-
-  .frest2' : ∀{A B}{sp : Span A B} → rest (HMap2 sp) ≅ HMap2 (restp sp)
-  frest2' {sp = sp} = 
-    let open Span sp renaming (mhom to mp; fhom to fp)
-        open Tot mp renaming (hom to m)
-        open Tot fp renaming (hom to f; tot to ft)
-        open SRestIde m∈ renaming (rs to r)
-    in 
-      proof
-      rest (comp f r)
-      ≅⟨ lemiv rcat ⟩
-      rest (comp (rest f) r)
-      ≅⟨ cong (λ y → rest (comp y r)) ft ⟩
-      rest (comp iden r)
-      ≅⟨ cong rest idl ⟩
-      rest r
-      ≅⟨ sym (SRIdeProp m∈) ⟩
-      comp m r
-      ∎
-
-  .frest2 : ∀{A B}{q : QSpan A B} → rest (HMap2 (rep q)) ≅ HMap2 (rep (abs (restp (rep q))))
-  frest2 {q = q} = trans (frest2' {sp = rep q}) (HMap2~Span (~sym (ax3 _)))
-
-  RFunct2 : RestFun RestPartials rcat
-  RFunct2 = record {
-    fun = Funct2;
-    frest = frest2 }
+open Fun
 
 -- Iso proof
 
-  .HIso1' : ∀{A C}(sp : Span A C) → HMap1 (HMap2 sp) ~Span~ sp
-  HIso1' {A}{C} sp = 
-    let open Span sp renaming (mhom to nt; fhom to gt; m∈ to n∈)
-        open Tot nt renaming (hom to n)
-        open Tot gt renaming (hom to g; tot to gp)
+HIso1Span : ∀{A C}(mf : Span A C) → HMap1 (HMap2 mf) ~Span~ mf
+HIso1Span mf = 
+  let span A' (tot m _) fhom m∈ = mf 
+      span A'' (tot n _) _ n∈ = HMap1 (HMap2 mf)
+      open Tot fhom renaming (hom to f; totProp to fTotProp)
+      open SectionOfRestIdem m∈
+      open SectionOfRestIdem n∈ renaming (e to e'; r to r'; splitLaw1 to splitLaw1'; splitLaw2 to splitLaw2')
 
-        open SRestIde n∈ renaming (rs to r; law1s to law1; law2s to law2)
+      splitLaw1'' : comp m r ≅ rest r
+      splitLaw1'' = proof comp m r ≅⟨ splitLaw1 ⟩ e ≅⟨ restRetractionProp m∈ ⟩ rest r ∎
 
-        open Span (HMap1 (HMap2 sp)) renaming (A' to A''; mhom to mt)
-        open Tot mt renaming (hom to m)
+      splitLaw1''' : comp n r' ≅ rest r
+      splitLaw1''' = 
+        proof
+        comp n r'
+        ≅⟨ splitLaw1' ⟩
+        rest (comp f r)
+        ≅⟨ lemiv ⟩
+        rest (comp (rest f) r)
+        ≅⟨ cong (λ y → rest (comp y r)) fTotProp ⟩
+        rest (comp iden r)
+        ≅⟨ cong rest idl ⟩
+        rest r
+        ∎
 
-        open SRestIde m∈ renaming (rs to r'; law1s to law1'; law2s to law2')
+      sp : Split (restIdemIdemGen r)
+      sp = split _ m r splitLaw1'' splitLaw2 
 
-        spl : Split (record { E = A; e = rest r; law = lemii rcat})
-        spl = record { 
-          B = A'; 
-          s = n; 
-          r = r; 
-          law1 = SRIdeProp n∈;
-          law2 = law2}
+      sp' : Split (restIdemIdemGen r)
+      sp' = split _ n r' splitLaw1''' splitLaw2'
 
-        spl' : Split (record { E = A; e = rest r; law = lemii rcat})
-        spl' = record { 
-          B = A''; 
-          s = m; 
-          r = r'; 
-          law1 = 
-            proof
-            comp m r'
-            ≅⟨ law1' ⟩
-            rest (comp g r)
-            ≅⟨ lemiv rcat ⟩
-            rest (comp (rest g) r)
-            ≅⟨ cong (λ y → rest (comp y r)) gp ⟩
-            rest (comp iden r)
-            ≅⟨ cong rest idl ⟩
-            rest r
-            ∎;
-          law2 = law2'}
+      u : Hom A' A''
+      u = splitMap sp sp' 
 
-        α : Hom A' A''
-        α = proj₁ (lemmamap (record { E = A; e = rest r; law = lemii rcat}) spl spl')
+      uTotProp : rest u ≅ iden
+      uTotProp = lemiii (isoIsMono cat (splitsAreIso sp sp'))
 
-        αt : Tot A' A''
-        αt = record { 
-          hom = α; 
-          tot = lemiii rcat (iso→mono cat (proj₂ (lemmamap (record { E = A; e = rest r; law = lemii rcat}) spl spl')))}
+      rightTr : comp n u ≅ m
+      rightTr = splitsAreIsoRightTr sp sp'
 
-        equat : comp (comp (comp g r) m) α ≅ g
-        equat = 
-          proof
-          comp (comp (comp g r) m) α 
-          ≅⟨ ass ⟩
-          comp (comp g r) (comp m α) 
-          ≅⟨ cong (comp (comp g r)) (lemmalaw2 (record { E = A; e = rest r; law = lemii rcat}) spl spl') ⟩
-          comp (comp g r) n 
-          ≅⟨ ass ⟩
-          comp g (comp r n) 
-          ≅⟨ cong (comp g) law2 ⟩
-          comp g iden
-          ≅⟨ idr ⟩
-          g
-          ∎
+      leftTr : comp (comp (comp f r) n) u ≅ f
+      leftTr = 
+        proof
+        comp (comp (comp f r) n) u 
+        ≅⟨ ass ⟩
+        comp (comp f r) (comp n u) 
+        ≅⟨ cong (comp (comp f r)) rightTr ⟩
+        comp (comp f r) m 
+        ≅⟨ ass ⟩
+        comp f (comp r m) 
+        ≅⟨ cong (comp f) splitLaw2 ⟩
+        comp f iden
+        ≅⟨ idr ⟩
+        f
+        ∎
+  in ~sym (spaneq (tot u uTotProp) (isoTot (splitsAreIso sp sp')) (totEq rightTr) (totEq leftTr))
 
-    in ~sym (spaneq
-                αt 
-                (IsoTot αt (proj₂ (lemmamap (record { E = A; e = rest r; law = lemii rcat}) spl spl')))
-                (TotEq _ nt (lemmalaw2 (record { E = A; e = rest r; law = lemii rcat}) spl spl'))
-                (TotEq _ gt equat))
+HIso1 : ∀{A C}(mf : QSpan A C) → abs (HMap1 (qHMap2 mf)) ≅ mf
+HIso1 = 
+  lift (λ mf → abs (HMap1 (qHMap2 mf)) ≅ mf) 
+        (λ mf → 
+           proof
+           abs (HMap1 (qHMap2 (abs mf)))
+           ≅⟨ cong (abs ∘ HMap1) qHMap2Liftbeta ⟩
+           abs (HMap1 (HMap2 mf))
+           ≅⟨ sound (HIso1Span mf) ⟩
+           abs mf
+           ∎)
+        (fixtypes ∘ sound)
 
-  .HIso1 : ∀{A C}(q : QSpan A C) → abs (HMap1 (HMap2 (rep q))) ≅ q
-  HIso1 {A}{C} q = trans (ax1 _ _ (HIso1' (rep q))) (ax2 q)
 
-  .HIso2' : ∀{A C}(f : Hom A C) → HMap2 (HMap1 f) ≅ f
-  HIso2' {A}{C} f = 
-    let open Split (rsplit f)
-    in 
-      proof
-      comp (comp f s) r
-      ≅⟨ ass ⟩
-      comp f (comp s r)
-      ≅⟨ cong (comp f) law1 ⟩
-      comp f (rest f)
-      ≅⟨ R1 ⟩
-      f
-      ∎
+HIso2 : ∀{A C}(f : Hom A C) → qHMap2 (abs (HMap1 f)) ≅ f
+HIso2 f = 
+  let open Split (restIdemSplitGen f)
+  in 
+    proof
+    qHMap2 (abs (HMap1 f))
+    ≅⟨ qHMap2Liftbeta ⟩
+    comp (comp f s) r
+    ≅⟨ ass ⟩
+    comp f (comp s r)
+    ≅⟨ cong (comp f) splitLaw1 ⟩
+    comp f (rest f)
+    ≅⟨ R1 ⟩
+    f
+    ∎
 
-  .HIso2 : ∀{A C}(f : Hom A C) → HMap2 (rep (abs (HMap1 f))) ≅ f
-  HIso2 f = trans (HMap2~Span (ax3 _)) (HIso2' f)
+IsoCompl : Iso CCat Funct
+IsoCompl =
+  iso Funct2
+      (funEq refl (iext (λ _ → iext (λ _ → ext HIso1))))
+      (funEq refl (iext (λ _ → iext (λ _ → ext HIso2))))
 
-{-
-  IsoCompl : Iso CCat Funct
-  IsoCompl = Funct2 ,, 
-             Fun≅ refl HIso1 ,, 
-             Fun≅ refl HIso2
+RIsoCompl : Iso RCCat RFunct
+RIsoCompl = 
+  iso RFunct2
+      (restFunEq (funEq refl (iext (λ _ → iext (λ _ → ext HIso1)))))
+      (restFunEq (funEq refl (iext (λ _ → iext (λ _ → ext HIso2)))))
 
-  RIsoCompl : Iso RCCat RFunct
-  RIsoCompl = RFunct2 ,, 
-              RFun≅ (Fun≅ refl HIso1) ,, 
-              RFun≅ (Fun≅ refl HIso2)
--}
 

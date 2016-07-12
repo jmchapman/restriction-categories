@@ -1,12 +1,10 @@
-
+{-# OPTIONS --type-in-type #-}
 module Monads.Maybe where
 
 open import Monads
-open import Sets
+open import Categories.Sets
 open import Data.Maybe
-open import Relation.Binary.HeterogeneousEquality
 open import Utilities
-open import Function
 
 mbind : {X Y : Set} → (X → Maybe Y) → Maybe X → Maybe Y
 mbind f (just x) = f x
@@ -20,8 +18,6 @@ mlaw3 : ∀{A B C}{f : A → Maybe B}{g : B → Maybe C}(a : Maybe A) →
         mbind (mbind g ∘ f) a  ≅ (mbind g ∘ mbind f) a
 mlaw3 (just a) = refl
 mlaw3 nothing  = refl
-
-open import Relation.Binary.PropositionalEquality
 
 MaybeMonad : Monad Sets
 MaybeMonad = record {

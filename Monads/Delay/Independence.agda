@@ -76,4 +76,3 @@ d⊥-cong (later≈ p) (↓≈ (later↓ q) (later↓ q')) (later⊥later r) =
 d⊥-cong (later≈ p) (later≈ q) (later⊥later r) = 
   later⊥later (♯ (d⊥-cong (♭ p) (♭ q) (♭ r)))
 -}
-

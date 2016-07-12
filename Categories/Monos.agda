@@ -1,19 +1,16 @@
+
 open import Categories
-open import Level
 
-module Categories.Monos {a b}(X : Cat {a}{b}) where
-
-open import Relation.Binary.HeterogeneousEquality
-open ≅-Reasoning renaming (begin_ to proof_)
-open import Function
+module Categories.Monos {i j}(X : Cat {i}{j}) where
+open import Utilities
 
 open Cat X
 
-Mono : ∀{A B} → Hom A B → Set (a ⊔ b)
+Mono : ∀{A B} → Hom A B → Set (i ⊔ j)
 Mono f = ∀{C}{g h : Hom C _} → (comp f g ≅ comp f h) → g ≅ h
 
-.idmono : ∀{A} → Mono (iden {A})
-idmono {_}{_}{g}{h} p = 
+idMono : ∀{A} → Mono (iden {A})
+idMono {g = g}{h} p = 
   proof
   g 
   ≅⟨ sym idl ⟩ 
@@ -24,9 +21,9 @@ idmono {_}{_}{g}{h} p =
   h 
   ∎
 
-.compmonos : ∀{A B C}(f : Hom A B)(g : Hom B C) → Mono f → Mono g → 
-            Mono (comp g f)
-compmonos f g p q {D}{h1}{h2} r = p $ q $
+compMono : ∀{A B C}{g : Hom B C}{f : Hom A B} → Mono g → Mono f → 
+           Mono (comp g f)
+compMono {g = g}{f} q p {_}{h1}{h2} r = p $ q $
   proof 
   comp g (comp f h1)
   ≅⟨ sym ass ⟩ 

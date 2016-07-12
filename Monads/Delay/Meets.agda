@@ -2,9 +2,7 @@
 module Monads.Delay.Meets where
 
 open import Coinduction
-open import Relation.Binary.HeterogeneousEquality
 open import Utilities
-open ≅-Reasoning renaming (begin_ to proof_)
 open import Monads.Delay
 open import RestrictionDelay
 open import RestrictionCat
@@ -67,6 +65,9 @@ dmeet : {X Y : Set}{_≟_ : SemiDecidable {A = Y}{B = Y} _≡_}
 dmeet {X}{Y}{_≟_} f g x = dmeet-aux {Y}{_≟_} (f x) (g x)
 -}
 
+
+
+
 {-
 dMt1-aux  : ∀{X}{_≟_ : Decidable {A = X} _≡_}(dx : Delay X) → 
             dmeet-aux {X}{_≟_} dx dx ≈ dx
@@ -114,7 +115,4 @@ dMt2a {X}{Y}{_≟_}{f}{g} = ext (λ x →
   ∎)
 
 -- dMt2b is similar
-
-
 -}
-

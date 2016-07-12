@@ -10,9 +10,7 @@ open Cat (Kl DelayM)
 open import RestrictionDelay
 open RestCat DelayR
 open import Data.Sum hiding (map)
-open import Data.Product hiding (map)
 open import Utilities
-open import Relation.Binary.HeterogeneousEquality
 
 {-
 ι₀ : {A B : Set} → A → Delay (A ⊎ B)
@@ -30,11 +28,7 @@ const⊎ (later bc) a = later (♯ (const⊎ (♭ bc) a))
 ⟨ f ⟩ a = const⊎ (f a) a
 
 _m⊎_ : {A A' B B' : Set} → (A → Delay B) → (A' → Delay B') → A ⊎ A' → 
-<<<<<<< HEAD
-         Delay (B ⊎ B') 
-=======
        Delay (B ⊎ B') 
->>>>>>> 58a89b3a4dd07e6042ca569c574aec2bb4fefc44
 (f m⊎ g) (inj₁ a) = comp ι₀ f a
 (f m⊎ g) (inj₂ a') = comp ι₁ g a'
 
@@ -86,4 +80,3 @@ Dec2 : ∀{A B C}(f : A → Delay (B ⊎ C))(a : A) →
 Dec2 f a = Dec2' f _ a refl≈
 
 -}
-

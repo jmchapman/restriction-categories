@@ -1,328 +1,156 @@
+
 open import Categories
 
-module Categories.Idems {a b}(X : Cat {a}{b}) where
+module Categories.Idems {ℓ₁ ℓ₂}(X : Cat {ℓ₁}{ℓ₂}) where
 
-  open import Utilities
-  open import Relation.Binary.HeterogeneousEquality
-  open ≅-Reasoning renaming (begin_ to proof_)
-  open import Function
-  open import Data.Product
-  open import Level
+open import Utilities
+open Cat X
+open import Categories.Functors
 
-  open Cat X
+record Idem : Set (ℓ₁ ⊔ ℓ₂) where
+  constructor idem
+  field E       : Obj
+        e       : Hom E E
+        idemLaw : comp e e ≅ e
 
-  record Idem : Set (a ⊔ b) where
-    field E : Obj
-          e : Hom E E
-          .law : comp e e ≅ e
+idIdem : {X : Obj} → Idem
+idIdem {X} = idem X iden idl
 
-  .idem≅ : ∀{ide ide' : Idem} → 
-                    let open Idem ide
-                        open Idem ide' renaming (E to E'; e to e')
-                    in E ≅ E' → e ≅ e' → ide ≅ ide'
-  idem≅ {ide} {ide'} p q = cong₃ 
-    {A = Obj}
-    {B = λ E → Hom E E}
-    {C = λ E e → comp e e ≅ e}
-    {D = λ _ _ _ → Idem}
-    p 
-    q 
-    {z = Idem.law ide}
-    (fixtypes (trans (Idem.law ide) (trans q (sym (Idem.law ide')))) 
-              q) 
-    (λ x y z → record { E = x; e = y; law = z })
+idemEq : ∀{E E' e e' p p'} → E ≅ E' → e ≅ e' → 
+         idem E e p ≅ idem E' e' p'
+idemEq refl refl = cong (idem _ _) (proof-irr _ _)
 
-  record Split (ide : Idem) : Set (a ⊔ b) where
-    open Idem ide
-    field B : Obj 
-          s : Hom B E
-          r : Hom E B
-          .law1 : comp s r ≅ e
-          .law2 : comp r s ≅ iden {B}
+record IdemClass : Set (suc (ℓ₁ ⊔ ℓ₂)) where
+  field ∈class   : Idem → Set ℓ₂
+        id∈class : ∀{X} → ∈class (idIdem {X})
 
-  open import Categories.Epis X
-  open import Categories.Monos X
+record IdemMor (i i' : Idem) : Set ℓ₂ where
+  constructor idemmor
+  open Idem i
+  open Idem i' renaming (E to E' ; e to e')
+  field imap    : Hom E E'
+        imapLaw : comp e' (comp imap e) ≅ imap
 
-  .repi : ∀{e : Idem}{sp : Split e} → 
-         let open Split sp
-         in
-         Epi r
-  repi {_}{sp}{_}{g}{h} p = 
-    let open Split sp
-    in
-    proof 
-    g 
-    ≅⟨ sym idr ⟩ 
-    comp g iden 
-    ≅⟨ cong (comp g) (sym law2) ⟩ 
-    comp g (comp r s) 
-    ≅⟨ sym ass ⟩ 
-    comp (comp g r) s 
-    ≅⟨ cong (λ y → comp y s) p ⟩ 
-    comp (comp h r) s 
-    ≅⟨ ass ⟩ 
-    comp h (comp r s) 
-    ≅⟨ cong (comp h) law2 ⟩ 
-    comp h iden 
-    ≅⟨ idr ⟩ 
-    h 
+idemMorLift : {A B : Obj}(f : Hom A B) →
+              IdemMor (idIdem {A}) (idIdem {B})
+idemMorLift f = idemmor f (trans idl idr)
+
+idemMorPrecomp : {i i' : Idem}(f : IdemMor i i') →
+                 comp (IdemMor.imap f) (Idem.e i) ≅ IdemMor.imap f
+idemMorPrecomp {i}{i'} f = 
+  let open IdemMor f
+      open Idem i
+      open Idem i' renaming (e to e'; idemLaw to idemLaw')
+  in 
+    proof
+    comp imap e
+    ≅⟨ cong (λ y → comp y e) (sym imapLaw) ⟩
+    comp (comp e' (comp imap e)) e
+    ≅⟨ cong (λ y → comp y e) (sym ass) ⟩
+    comp (comp (comp e' imap) e) e
+    ≅⟨ ass ⟩
+    comp (comp e' imap) (comp e e)
+    ≅⟨ cong (comp (comp e' imap)) idemLaw ⟩
+    comp (comp e' imap) e
+    ≅⟨ ass ⟩
+    comp e' (comp imap e)
+    ≅⟨ imapLaw ⟩
+    imap
     ∎
 
-  import Categories.Isos
+idemMorPostcomp : {i i' : Idem}(f : IdemMor i i') →
+                  comp (Idem.e i') (IdemMor.imap f) ≅ IdemMor.imap f
+idemMorPostcomp {i}{i'} f = 
+  let open IdemMor f
+      open Idem i
+      open Idem i' renaming (e to e'; idemLaw to idemLaw')
+  in 
+    proof
+    comp e' imap
+    ≅⟨ cong (comp e') (sym imapLaw) ⟩
+    comp e' (comp e' (comp imap e))
+    ≅⟨ sym ass ⟩
+    comp (comp e' e') (comp imap e)
+    ≅⟨ cong (λ y → comp y (comp imap e)) idemLaw' ⟩
+    comp e' (comp imap e)
+    ≅⟨ imapLaw ⟩
+    imap
+    ∎
 
-  lemmamap : ∀(e : Idem)(sp sp' : Split e) → 
-             let open Categories.Isos X
-                 open Split sp
-                 open Split sp' renaming (B to B')
-             in
-             Σ (Hom B B') λ α → Iso α
-  lemmamap ide sp sp' =  
-    let open Categories.Isos X
-        open Idem ide
-        open Split sp
-        open Split sp' renaming (B to B'; 
-                                 s to s'; 
-                                 r to r';
-                                 law1 to law1';
-                                 law2 to law2')
-    in comp r' s 
-       , 
-       (comp r s' 
-        ,, 
-        (proof 
-         comp (comp r' s) (comp r s') 
-         ≅⟨ ass ⟩ 
-         comp r' (comp s (comp r s'))
-         ≅⟨ cong (comp r') (sym ass) ⟩ 
-         comp r' (comp (comp s r) s')
-         ≅⟨ cong (λ f → comp r' (comp f s')) law1 ⟩ 
-         comp r' (comp e s')
-         ≅⟨ cong (λ f → comp r' (comp f s')) (sym law1') ⟩ 
-         comp r' (comp (comp s' r') s')
-         ≅⟨ cong (comp r') ass ⟩
-         comp r' (comp s' (comp r' s'))
-         ≅⟨ cong (comp r' ∘ comp s') law2' ⟩
-         comp r' (comp s' iden)
-         ≅⟨ sym ass ⟩
-         comp (comp r' s') iden
-         ≅⟨ idr ⟩
-         comp r' s'
-         ≅⟨ law2' ⟩
-         iden 
-         ∎) 
-        ,,
-        (proof 
-         comp (comp r s') (comp r' s) 
-         ≅⟨ ass ⟩
-         comp r (comp s' (comp r' s))
-         ≅⟨ cong (comp r) (sym ass) ⟩ 
-         comp r (comp (comp s' r') s)
-         ≅⟨ cong (λ f → comp r (comp f s)) law1' ⟩ 
-         comp r (comp e s)
-         ≅⟨ cong (λ f → comp r (comp f s)) (sym law1) ⟩ 
-         comp r (comp (comp s r) s)
-         ≅⟨ cong (comp r) ass ⟩
-         comp r (comp s (comp r s))
-         ≅⟨ cong (comp r ∘ comp s) law2 ⟩
-         comp r (comp s iden)
-         ≅⟨ sym ass ⟩
-         comp (comp r s) iden
-         ≅⟨ idr ⟩
-         comp r s
-         ≅⟨ law2 ⟩
-         iden 
-         ∎))
+idemMorEq : ∀{i i' f f' p p'} → f ≅ f' → 
+            idemmor {i = i}{i'} f p ≅ idemmor {i = i}{i'} f' p'
+idemMorEq refl = cong (idemmor _) (fixtypes2 refl) 
 
-  .lemmalaw1 : ∀(e : Idem)(sp sp' : Split e) → 
-              let open Categories.Isos X
-                  open Split sp
-                  open Split sp' renaming (r to r')
-                  α = proj₁ (lemmamap e sp sp')
-              in comp α r ≅ r'
-  lemmalaw1 ide sp sp' =
-    let open Categories.Isos X
-        open Idem ide
-        open Split sp
-        open Split sp' renaming (B to B'; 
-                                 s to s'; 
-                                 r to r';
-                                 law1 to law1';
-                                 law2 to law2')
-    in 
-      proof 
-      comp (comp r' s) r 
-      ≅⟨ ass ⟩ 
-      comp r' (comp s r)
-      ≅⟨ cong (comp r') law1 ⟩ 
-      comp r' e
-      ≅⟨ cong (comp r') (sym law1') ⟩ 
-      comp r' (comp s' r')
-      ≅⟨ sym ass ⟩ 
-      comp (comp r' s') r'
-      ≅⟨ cong (λ f → comp f r') law2' ⟩ 
-      comp iden r'
-      ≅⟨ idl ⟩ 
-      r'
-      ∎
+idemMorEqProj : {i i' : Idem}{f g : IdemMor i i'} → f ≅ g → IdemMor.imap f ≅ IdemMor.imap g
+idemMorEqProj refl = refl
 
-  .lemmalaw2 : ∀(e : Idem)(sp sp' : Split e) → 
-              let open Categories.Isos X
-                  open Split sp
-                  open Split sp' renaming (s to s')
-                  α = proj₁ (lemmamap e sp sp')
-              in comp s' α ≅ s
-  lemmalaw2 ide sp sp' =
-    let open Categories.Isos X
-        open Idem ide
-        open Split sp
-        open Split sp' renaming (B to B'; 
-                                 s to s'; 
-                                 r to r';
-                                 law1 to law1';
-                                 law2 to law2')
-    in 
-      proof 
-      comp s' (comp r' s) 
-      ≅⟨ sym ass ⟩ 
-      comp (comp s' r') s
-      ≅⟨ cong (λ f → comp f s) law1' ⟩ 
-      comp e s
-      ≅⟨ cong (λ f → comp f s) (sym law1) ⟩ 
-      comp (comp s r) s
-      ≅⟨ ass ⟩ 
-      comp s (comp r s)
-      ≅⟨ cong (comp s) law2 ⟩ 
-      comp s iden
-      ≅⟨ idr ⟩ 
-      s
-      ∎
+idIdemMor : {i : Idem} → IdemMor i i
+idIdemMor {idem _ e p} = record {
+  imap = e; 
+  imapLaw = 
+    proof 
+    comp e (comp e e) 
+    ≅⟨ cong (comp e) p ⟩ 
+    comp e e
+    ≅⟨ p ⟩ 
+    e 
+    ∎}
 
-{-
-  lemma : ∀(e : Idem)(sp sp' : Split e) → 
-          let open Categories.Isos X
-              open Split sp
-              open Split sp' renaming (B to B'; s to s'; r to r')
-          in
-          Σ' (Hom B B') λ α → Iso α × (comp α r ≅ r') × comp s' α ≅ s
-  lemma ide sp sp' =  
-    let open Categories.Isos X
-        open Idem ide
-        open Split sp
-        open Split sp' renaming (B to B'; 
-                                 s to s'; 
-                                 r to r';
-                                 law1 to law1';
-                                 law2 to law2')
-    in comp r' s 
-       ,, 
-       (comp r s' 
-        ,, 
-        (proof 
-         comp (comp r' s) (comp r s') 
-         ≅⟨ ass ⟩ 
-         comp r' (comp s (comp r s'))
-         ≅⟨ cong (comp r') (sym ass) ⟩ 
-         comp r' (comp (comp s r) s')
-         ≅⟨ cong (λ f → comp r' (comp f s')) law1 ⟩ 
-         comp r' (comp e s')
-         ≅⟨ cong (λ f → comp r' (comp f s')) (sym law1') ⟩ 
-         comp r' (comp (comp s' r') s')
-         ≅⟨ cong (comp r') ass ⟩
-         comp r' (comp s' (comp r' s'))
-         ≅⟨ cong (comp r' ∘ comp s') law2' ⟩
-         comp r' (comp s' iden)
-         ≅⟨ sym ass ⟩
-         comp (comp r' s') iden
-         ≅⟨ idr ⟩
-         comp r' s'
-         ≅⟨ law2' ⟩
-         iden 
-         ∎) 
-        ,,
-        (proof 
-         comp (comp r s') (comp r' s) 
-         ≅⟨ ass ⟩
-         comp r (comp s' (comp r' s))
-         ≅⟨ cong (comp r) (sym ass) ⟩ 
-         comp r (comp (comp s' r') s)
-         ≅⟨ cong (λ f → comp r (comp f s)) law1' ⟩ 
-         comp r (comp e s)
-         ≅⟨ cong (λ f → comp r (comp f s)) (sym law1) ⟩ 
-         comp r (comp (comp s r) s)
-         ≅⟨ cong (comp r) ass ⟩
-         comp r (comp s (comp r s))
-         ≅⟨ cong (comp r ∘ comp s) law2 ⟩
-         comp r (comp s iden)
-         ≅⟨ sym ass ⟩
-         comp (comp r s) iden
-         ≅⟨ idr ⟩
-         comp r s
-         ≅⟨ law2 ⟩
-         iden 
-         ∎))
-       , 
-       ((proof 
-        comp (comp r' s) r 
-        ≅⟨ ass ⟩ 
-        comp r' (comp s r)
-        ≅⟨ cong (comp r') law1 ⟩ 
-        comp r' e
-        ≅⟨ cong (comp r') (sym law1') ⟩ 
-        comp r' (comp s' r')
-        ≅⟨ sym ass ⟩ 
-        comp (comp r' s') r'
-        ≅⟨ cong (λ f → comp f r') law2' ⟩ 
-        comp iden r'
-        ≅⟨ idl ⟩ 
-        r'
-        ∎) 
-       , 
-       (proof 
-        comp s' (comp r' s) 
-        ≅⟨ sym ass ⟩ 
-        comp (comp s' r') s
-        ≅⟨ cong (λ f → comp f s) law1' ⟩ 
-        comp e s
-        ≅⟨ cong (λ f → comp f s) (sym law1) ⟩ 
-        comp (comp s r) s
-        ≅⟨ ass ⟩ 
-        comp s (comp r s)
-        ≅⟨ cong (comp s) law2 ⟩ 
-        comp s iden
-        ≅⟨ idr ⟩ 
-        s
-        ∎))
--}
+compIdemMor : {i i' i'' : Idem}(f' : IdemMor i' i'')
+              (f : IdemMor i i') → IdemMor i i''
+compIdemMor {idem _ e l}{idem _ e' _}{idem _ e'' l''} (idemmor g q) (idemmor f p) = 
+  idemmor (comp g f) 
+          (proof
+           comp e'' (comp (comp g f) e)
+           ≅⟨ cong (comp e'') ass ⟩
+           comp e'' (comp g (comp f e))
+           ≅⟨ sym ass ⟩
+           comp (comp e'' g) (comp f e)
+           ≅⟨ cong (λ y → comp (comp e'' y) (comp f e)) (sym q) ⟩
+           comp (comp e'' (comp e'' (comp g e'))) (comp f e)
+           ≅⟨ cong (λ y → comp y (comp f e)) (sym ass) ⟩
+           comp (comp (comp e'' e'') (comp g e')) (comp f e)
+           ≅⟨ cong (λ y → comp (comp y (comp g e')) (comp f e)) l'' ⟩
+           comp (comp e'' (comp g e')) (comp f e)
+           ≅⟨ cong (λ y → comp y (comp f e)) q ⟩
+           comp g (comp f e)
+           ≅⟨ cong (λ y → comp g (comp y e)) (sym p) ⟩
+           comp g (comp (comp e' (comp f e)) e)
+           ≅⟨ cong (λ y → comp g (comp y e)) (sym ass) ⟩
+           comp g (comp (comp (comp e' f) e) e)
+           ≅⟨ cong (comp g) ass ⟩
+           comp g (comp (comp e' f) (comp e e))
+           ≅⟨ cong (λ y → comp g (comp (comp e' f) y)) l ⟩
+           comp g (comp (comp e' f) e)
+           ≅⟨ cong (comp g) ass ⟩
+           comp g (comp e' (comp f e))
+           ≅⟨ cong (comp g) p ⟩
+           comp g f
+           ∎)
+           
+SplitCat : IdemClass → Cat
+SplitCat E = 
+  let open IdemClass E
+  in record {
+    Obj  = Σ Idem ∈class;
+    Hom  = λ {(i , _) (i' , _) → IdemMor i i'};
+    iden = idIdemMor;
+    comp = compIdemMor;
+    idl  = λ {_}{_}{f} → idemMorEq (idemMorPostcomp f);
+    idr  = λ {_}{_}{f} → idemMorEq (idemMorPrecomp f);
+    ass  = idemMorEq ass }
 
-  lemmamap' : ∀(e e' : Idem) → e ≅ e' → (sp : Split e)(sp' : Split e') → 
-             let open Categories.Isos X
-                 open Split sp
-                 open Split sp' renaming (B to B')
-             in
-             Σ (Hom B B') λ α → Iso α
-  lemmamap' e .e refl sp sp' = lemmamap e sp sp'
+InclSplitCat : (E : IdemClass) → Fun X (SplitCat E)
+InclSplitCat E = 
+  let open IdemClass E
+  in record { 
+    OMap  = λ A → idIdem {A} , id∈class; 
+    HMap  = idemMorLift;
+    fid   = idemMorEq refl ;
+    fcomp = idemMorEq refl }
 
-  .lemmalaw1' : ∀(e e' : Idem) → (p : e ≅ e') → (sp : Split e)(sp' : Split e') → 
-              let open Categories.Isos X
-                  open Split sp
-                  open Split sp' renaming (r to r')
-                  α = proj₁ (lemmamap' e e' p sp sp')
-              in comp α r ≅ r'
-  lemmalaw1' e .e refl sp sp' = lemmalaw1 e sp sp'
+FullInclSplitCat : {E : IdemClass} → Full (InclSplitCat E)
+FullInclSplitCat {f = idemmor f _} = f , idemMorEq refl
 
-  .lemmalaw2' : ∀(e e' : Idem) → (p : e ≅ e') → (sp : Split e)(sp' : Split e') → 
-              let open Categories.Isos X
-                  open Split sp
-                  open Split sp' renaming (s to s')
-                  α = proj₁ (lemmamap' e e' p sp sp')
-              in comp s' α ≅ s
-  lemmalaw2' e .e refl sp sp' = lemmalaw2 e sp sp'
-
-{-
-  .lemma' : ∀(e e' : Idem) → e ≅ e' → (sp : Split e)(sp' : Split e') → 
-            let open Categories.Isos X
-                open Split sp
-                open Split sp' renaming (B to B'; s to s'; r to r')
-            in Σ (Hom B B') λ α → Iso α × (comp α r ≅ r') × comp s' α ≅ s
-  lemma' e .e refl sp sp' = lemma e sp sp'
--}
+FaithfulInclSplitCat : {E : IdemClass} → Faithful (InclSplitCat E)
+FaithfulInclSplitCat refl = refl
