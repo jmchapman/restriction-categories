@@ -15,7 +15,8 @@ record StableSys : Set where
   field ∈sys     : ∀{X Y}(f : Hom X Y) → Set
         mono∈sys : ∀{X Y}{f : Hom X Y} → ∈sys f → Mono f
         iso∈sys  : ∀{X Y}{f : Hom X Y} → Iso f → ∈sys f 
-        comp∈sys : ∀{X Y Z}{f : Hom Z X}{g : Hom X Y} → ∈sys f → ∈sys g → ∈sys (comp g f)
+        comp∈sys : ∀{X Y Z}{f : Hom Z X}{g : Hom X Y} → ∈sys f →
+                   ∈sys g → ∈sys (comp g f)
         pul∈sys  : ∀{X Y Z}(f : Hom X Z){m : Hom Y Z} → ∈sys m → 
                    Σ (Pullback f m) λ p → ∈sys (h (sq p))
   

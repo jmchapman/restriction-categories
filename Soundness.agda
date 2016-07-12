@@ -10,7 +10,6 @@ open import PartialMaps.Cat X M
 open Cat X
 open import Categories.Pullbacks X
 open StableSys X M
-open import Categories.Pullbacks.PullbacksLemmas X
 open import Categories.Pullbacks.PastingLemmas X
 open import Categories.Isos X
 
@@ -28,7 +27,10 @@ R1Span : ∀{A B}{mf : Span A B} → compSpan mf (restSpan mf) ~Span~ mf
 R1Span {mf = span _ m f m∈} =
   let p , _ = pul∈sys m m∈
       pullback (square _ h _ scom) _ = p
-  in spaneq h (pullbackIso (monicPullback (mono∈sys m∈)) p) refl (cong (comp f) (mono∈sys m∈ scom))
+  in spaneq h
+            (pullbackIso (monicPullback (mono∈sys m∈)) p)
+            refl
+            (cong (comp f) (mono∈sys m∈ scom))
 
 R2Span : ∀{A B C}{mf : Span A B}{m'f' : Span A C} → 
           compSpan (restSpan mf) (restSpan m'f') ~Span~ compSpan (restSpan m'f') (restSpan mf)

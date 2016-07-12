@@ -6,6 +6,7 @@ module Categories.Pullbacks (X : Cat) where
 open import Utilities
 open Cat X
 open import Categories.Isos X
+open import Categories.Monos X
 
 record Square {X Y Z}(f : Hom X Z)(g : Hom Y Z) : Set where
   constructor square
@@ -28,8 +29,8 @@ record Pullback {X Y Z}(f : Hom X Z)(g : Hom Y Z) : Set where
   constructor pullback
   field sq      : Square f g
         uniqPul : (sq' : Square f g) → 
-                  Σ (SqMap sq' sq) 
-                     λ u → (u' : SqMap sq' sq) → sqMor u ≅ sqMor u'
+                  Σ (SqMap sq' sq) λ u → 
+                    (u' : SqMap sq' sq) → sqMor u ≅ sqMor u'
 
 open Pullback
 
@@ -150,3 +151,27 @@ symPullback (pullback (square W h k p) uniqPul) = record {
   uniqPul = λ {(square W' h' k' p') → 
     let sqmap u l r , h = uniqPul (square W' k' h' (sym p'))
     in sqmap u r l , λ {(sqmap u' l' r') → h (sqmap u' r' l') }}}
+
+monicPullback : ∀{A' A}{m : Hom A' A} → Mono m → Pullback m m
+monicPullback {X}{Z}{f} p = record { 
+  sq = square X iden iden refl; 
+  uniqPul = λ {(square _ h k scom) → 
+    record { 
+      sqMor = h; 
+      leftTr = idl; 
+      rightTr =
+        proof 
+        comp iden h
+        ≅⟨ cong (comp iden) (p scom) ⟩ 
+        comp iden k
+        ≅⟨ idl ⟩ 
+        k
+        ∎} ,
+    λ u' → 
+      proof 
+      h
+      ≅⟨ sym (leftTr u') ⟩ 
+      comp iden (sqMor u')
+      ≅⟨ idl ⟩ 
+      sqMor u'
+      ∎}}

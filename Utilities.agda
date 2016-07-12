@@ -28,8 +28,8 @@ cong₃ : {A B C D : Set}
         f a b c ≅ f a' b' c'
 cong₃ f refl refl refl = refl
 
-fixtypes : {A A' A'' A''' : Set}{a : A}{a' : A'}{a'' : A''}{a''' : A'''}
-       {p : a ≅ a'}{q : a'' ≅ a'''} → a' ≅ a''' → p ≅ q
+fixtypes : {A B C D : Set}{a : A}{b : B}{c : C}{d : D}
+           {p : a ≅ b}{q : c ≅ d} → b ≅ d → p ≅ q
 fixtypes {p = refl}{refl} refl = refl
 
 fixtypes2 : {A A' A'' A''' : Set}{a : A}{a' : A'}{a'' : A''}{a''' : A'''}
@@ -37,23 +37,24 @@ fixtypes2 : {A A' A'' A''' : Set}{a : A}{a' : A'}{a'' : A''}{a''' : A'''}
 fixtypes2 {p = refl}{refl} refl = refl
 
 EqR : (A : Set) → Set
-EqR A = Σ (Rel A _) (λ R → IsEquivalence R)
+EqR A = Σ (Rel A _) IsEquivalence
 
 open IsEquivalence renaming (refl to irefl; sym to isym; trans to itrans)
 
-record Quotient (A : Set) (R : EqR A) : Set where
-  open Σ R renaming (proj₁ to _~_)
-  field Q : Set
+record Quotient (A : Set)(R : EqR A) : Set where
+  open Σ R renaming (proj₁ to _∼_)
+  field Q   : Set
         abs : A → Q 
 
-  compat : (B : Q → Set) → ((a : A) → B (abs a)) → Set
-  compat B f = ∀{a b} → a ~ b → f a ≅ f b
+  compat : (B : Q → Set)(f : (a : A) → B (abs a)) → Set
+  compat B f = ∀{a b} → a ∼ b → f a ≅ f b
      
-  field sound : compat (λ _ → Q) abs
-        lift : (B : Q → Set)(f : (a : A) → B (abs a)) → compat B f →
-                (x : Q) → B x
-        liftbeta : (B : Q → Set)(f : (a : A) → B (abs a))(p : compat B f)
-                (a : A) → (lift B f p) (abs a) ≅ f a
+  field sound    : compat _ abs
+        lift     : (B : Q → Set)(f : (a : A) → B (abs a))
+                   (p : compat B f) → (x : Q) → B x
+        liftbeta : (B : Q → Set)(f : (a : A) → B (abs a))
+                   (p : compat B f)(a : A) → 
+                   lift B f p (abs a) ≅ f a
 
 postulate quot : (A : Set)(R : EqR A) → Quotient A R
 
@@ -97,12 +98,12 @@ module Quotient₂Lib {A A' : Set}{R : EqR A}{R' : EqR A'}
                              sound to sound'; liftbeta to liftbeta')
 
   compat₂ : (B : Q → Q' → Set)
-            (f : (a : A)(a' : A') → B (abs a) (abs' a')) → Set
+            (f : (a : A)(a' : A') → B (abs a) (abs' a')) → Set 
   compat₂ B f = ∀{a b a' b'} → a ∼ a' → b ≈ b' → f a b ≅ f a' b'
 
   lift₂ : (B : Q → Q' → Set)
-           (f : (a : A)(a' : A') → B (abs a) (abs' a')) 
-           (p : compat₂ B f)(x : Q)(x' : Q') → B x x'
+          (f : (a : A)(a' : A') → B (abs a) (abs' a')) 
+          (p : compat₂ B f)(x : Q)(x' : Q') → B x x'
   lift₂ B f p = 
     let g : (a : A)(x' : Q') → B (abs a) x'
         g a = lift' (B (abs a)) (f a) (p (irefl e))
@@ -110,8 +111,8 @@ module Quotient₂Lib {A A' : Set}{R : EqR A}{R' : EqR A'}
              (λ r → ext (liftCong q' _ _ (λ _ → p r (irefl e'))))
   
   liftbeta₂ : (B : Q → Q' → Set)
-              (f : (a : A)(a' : A') → B (abs a) (abs' a')) 
-              (p : compat₂ B f)(a : A)(a' : A') → 
+              (f : (a : A)(a' : A') → B (abs a) (abs' a'))
+              (p : compat₂ B f)(a : A)(a' : A') →
               lift₂ B f p (abs a) (abs' a') ≅ f a a'
   liftbeta₂ B f p a a' = 
     proof

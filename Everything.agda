@@ -9,7 +9,6 @@ open import Categories.Pullbacks
 open import Categories.Epis
 open import Categories.Isos
 open import Categories.Pullbacks.PastingLemmas
-open import Categories.Pullbacks.PullbacksLemmas
 open import Categories.Idems
 open import Categories.Monos
 open import Categories.Splits

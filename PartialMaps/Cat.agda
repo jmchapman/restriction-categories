@@ -118,7 +118,11 @@ Span~EqR =
     trans = ~trans }
 
 idSpan : {X : Obj} → Span X X
-idSpan = span _ iden iden (iso∈sys idIso)
+idSpan {X} = record{
+  A' = X;
+  mhom = iden;
+  fhom = iden;
+  m∈sys = iso∈sys idIso}
 
 compSpan : {X Y Z : Obj} → Span Y Z → Span X Y → Span X Z
 compSpan (span B' n g n∈) (span A' m f m∈) = 

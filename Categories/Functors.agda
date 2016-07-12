@@ -48,11 +48,14 @@ G ○ F = record {
   fid   = ○fid G F;
   fcomp = ○fcomp G F}
 
-Faithful : ∀{C D} → Fun C D → Set
-Faithful {C} F = ∀{A B}{f g : Hom C A B} → HMap F f ≅ HMap F g → f ≅ g
-
-Full : ∀{C D} → Fun C D → Set
-Full {C}{D} F = ∀{A B}{f : Hom D (OMap F A) (OMap F B)} → Σ (Hom C A B) λ g → HMap F g ≅ f
+Full : {C D : Cat}(F : Fun C D) → Set
+Full {C}{D} F = 
+  ∀{A B}{f : Hom D (OMap F A) (OMap F B)} →
+    Σ (Hom C A B) λ g → HMap F g ≅ f
+  
+Faithful : {C D : Cat}(F : Fun C D) → Set
+Faithful {C} F = 
+  ∀{A B}{f g : Hom C A B} → HMap F f ≅ HMap F g → f ≅ g
 
 funEq : ∀{C D}{F₀ G₀ : Obj C → Obj D}
         {F₁ : ∀{X Y} → Hom C X Y → Hom D (F₀ X) (F₀ Y)}

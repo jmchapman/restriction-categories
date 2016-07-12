@@ -20,7 +20,10 @@ record _∼_ (A B : Obj) : Set where
         linv : comp g f ≅ iden {A}
 
 idIso : ∀{A} → Iso (iden {A})
-idIso = iso iden idl idl
+idIso = record{
+  inv = iden;
+  rinv = idl;
+  linv = idl}
 
 invUniq : ∀{A B}{f : Hom A B}(p q : Iso f) → Iso.inv p ≅ Iso.inv q
 invUniq {f = f} r s =
