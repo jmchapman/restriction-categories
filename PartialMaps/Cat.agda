@@ -6,7 +6,7 @@ open import Utilities
 module PartialMaps.Cat (X : Cat)(M : StableSys X) where
 
 open Cat X
-open StableSys X M
+open StableSys M
 open import Categories.Isos X
 open import Categories.Pullbacks X
 open import Categories.Monos X

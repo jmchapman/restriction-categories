@@ -146,8 +146,8 @@ fcompSpan {A}{C}{D}{g = g}{f} =
 -- (tot (comp f s) compfsTotProp) 
 --                                          (sridem {s = tot s' s'TotProp} (rest g) (sym lemi) r' splitLaw1' splitLaw2')
 
-      open Pullback Total p
-      open Square Total sq
+      open Pullback p
+      open Square sq
       tot m _ = h
       tot n _ = k
       sridem _ _ r''' _ _ = sr
@@ -325,7 +325,7 @@ HMap2 (span _ _ (tot g _) (sridem _ _ r _ _)) = comp g r
 compatHMap2 : ∀{A B}{sp sp' : Span A B} → sp ~Span~ sp' → HMap2 sp ≅ HMap2 sp'
 compatHMap2 {sp = span _ mt ft m∈}{span _ nt gt n∈} p = 
   let open _~Span~_ p
-      open Iso Total sIso
+      open Iso sIso
       open Tot s renaming (hom to i; totProp to iTotProp) 
       open Tot inv renaming (hom to j; totProp to jTotProp) 
       open Tot gt renaming (hom to g; totProp to gTotProp) 

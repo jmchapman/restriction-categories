@@ -9,7 +9,7 @@ open import Restriction.Cat
 open import PartialMaps.Cat X M
 open Cat X
 open import Categories.Pullbacks X
-open StableSys X M
+open StableSys M
 open import Categories.Pullbacks.PastingLemmas X
 open import Categories.Isos X
 
