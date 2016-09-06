@@ -61,10 +61,12 @@ data _↓_ {X : Set} : Delay X → X → Set where
   now↓ : ∀{y} → now y ↓ y
   later↓ : ∀{dy y} → (force dy) ↓ y → later dy ↓ y
 
+
+det~↓ : ∀{X}{dx dy : Delay X}{x : X} → dx ~ dy → dx ↓ x → dy ↓ x
+det~↓ now∼       q = q
+det~↓ (later∼ p) (later↓ q) = later↓ (det~↓ (force p) q)
+
 {-
-∼↓ : ∀{X}{dx dy : Delay X}{x : X} → dx ∼ dy → dx ↓ x → dy ↓ x
-∼↓ now∼ q = q
-∼↓ (later∼ p) (later↓ q) = later↓ (∼↓ (♭ p) q)
 
 unique↓ : ∀{X}{dx : Delay X}{x y : X} → dx ↓ x → dx ↓ y → x ≅ y
 unique↓ now↓ now↓ = refl
@@ -116,26 +118,29 @@ mutual
   sym∞≈ : ∀{X}{dx dx' : ∞Delay X} → dx ∞≈ dx' → dx' ∞≈ dx
   force (sym∞≈ p) = sym≈ (force p)
 
+det≈↓ : ∀{X}{dx dy : Delay X}{x : X} → dx ≈ dy → dx ↓ x → dy ↓ x
+det≈↓ (↓≈ now↓ q)       now↓       = q
+det≈↓ (↓≈ (later↓ p) q) (later↓ r) = det≈↓ (↓≈ p q) r
+det≈↓ (later≈ p)        (later↓ q) = later↓ (det≈↓ (force p) q)
+
 {-
 ∼→≈ : ∀{X}{dx dy : Delay X} → dx ∼ dy → dx ≈ dy
 ∼→≈ now∼ = refl≈
 ∼→≈ (later∼ p) = later≈ (♯ (∼→≈ (♭ p)))
+-}
 
-≈↓ : ∀{X}{dx dy : Delay X}{x : X} → dx ≈ dy → dx ↓ x → dy ↓ x
-≈↓ (↓≈ now↓ q) now↓ = q
-≈↓ (↓≈ (later↓ p) r) (later↓ q) with unique↓ p q
-≈↓ (↓≈ (later↓ p) r) (later↓ q) | refl = r
-≈↓ (later≈ p) (later↓ q) = later↓ (≈↓ (♭ p) q)
+mutual
+  trans≈ : ∀{X}{dx dy dz : Delay X} → dx ≈ dy → dy ≈ dz → dx ≈ dz
+  trans≈ (later≈ p) (later≈ q) = later≈ (trans∞≈ p q)
+  trans≈ (↓≈ p q)   r          = ↓≈ p (det≈↓ r q)
+  trans≈ p          (↓≈ q r)   = ↓≈ (det≈↓ (sym≈ p) q) r
 
-trans≈ : ∀{X}{dx dy dz : Delay X} → dx ≈ dy → dy ≈ dz → dx ≈ dz
-trans≈ (↓≈ p r) (↓≈ q s) with unique↓ r q
-trans≈ (↓≈ p r) (↓≈ q s) | refl = ↓≈ p s
-trans≈ (↓≈ p (later↓ r)) (later≈ q) = ↓≈ p (later↓ (≈↓ (♭ q) r))
-trans≈ (later≈ p) (↓≈ (later↓ q) s) = ↓≈ (later↓ (≈↓ (sym≈ (♭ p)) q)) s
-trans≈ (later≈ p) (later≈ q) = later≈ (♯ (trans≈ (♭ p) (♭ q)))
+  trans∞≈ : ∀{X}{dx dy dz : ∞Delay X} → dx ∞≈ dy → dy ∞≈ dz → dx ∞≈ dz
+  force (trans∞≈ p q) = trans≈ (force p) (force q)
+
 
 ≈EqR : ∀{X} → EqR (Delay X)
-≈EqR = _≈_ , record {refl = refl≈; sym = sym≈; trans = trans≈ }
+≈EqR = _≈_ , record {refl = refl≈ _; sym = sym≈; trans = trans≈ }
 
 -- Quotienting Delay by weak bisimilarity
 
@@ -145,20 +150,20 @@ QDelay X = Quotient.Q (quot (Delay X) ≈EqR)
 abs : ∀{X} → Delay X → QDelay X
 abs {X} = Quotient.abs (quot (Delay X) ≈EqR)
 
-compat : ∀{X}{Y : QDelay X → Set} → ((x : Delay X) → Y (abs x)) → Set
-compat {X}{Y} = Quotient.compat (quot (Delay X) ≈EqR) {Y}
+compat : ∀{X}(Y : QDelay X → Set) → ((x : Delay X) → Y (abs x)) → Set
+compat {X} = Quotient.compat (quot (Delay X) ≈EqR)
 
-lift : ∀{X}{Y : QDelay X → Set}(f : (x : Delay X) → Y (abs x)) → 
-       .(compat {X}{Y} f) → (q : QDelay X) → Y q
+lift : ∀{X}(Y : QDelay X → Set)(f : (x : Delay X) → Y (abs x)) → 
+       (compat {X} Y f) → (q : QDelay X) → Y q
 lift {X} = Quotient.lift (quot (Delay X) ≈EqR)
 
-.ax1 : ∀{X}(dx dx' : Delay X) → dx ≈ dx' → abs dx ≅ abs dx'
-ax1 {X} = Quotient.sound (quot (Delay X) ≈EqR)
+sound : ∀{X}{dx dx' : Delay X} → dx ≈ dx' → abs dx ≅ abs dx'
+sound {X} = Quotient.sound (quot (Delay X) ≈EqR)
 
-.ax3 : ∀{X}{Y : QDelay X → Set}(f : (x : Delay X) → Y (abs x))
-       (p : compat {X}{Y} f)(x : Delay X) →  (lift {X}{Y} f p) (abs x) ≅ f x
-ax3 {X} = Quotient.liftbeta (quot (Delay X) ≈EqR)
--}
+liftbeta : ∀{X}(Y : QDelay X → Set)(f : (x : Delay X) → Y (abs x))
+       (p : compat {X} Y f)(x : Delay X) →  (lift {X} Y f p) (abs x) ≅ f x
+liftbeta {X} = Quotient.liftbeta (quot (Delay X) ≈EqR)
+
 {-
 QDelay-map : (X Y : Set) → Set
 QDelay-map X Y = Quotient.Q (quot (X → Delay Y) (EqR→ ≈EqR))
