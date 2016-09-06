@@ -56,13 +56,12 @@ mutual
             dx ∞~ dx' → dx' ∞~ dx'' → dx ∞~ dx''
   force (trans∞~ p q) = trans~ (force p) (force q)
 
-{-
 -- convergence
-
 data _↓_ {X : Set} : Delay X → X → Set where
   now↓ : ∀{y} → now y ↓ y
-  later↓ : ∀{dy y} → (♭ dy) ↓ y → later dy ↓ y
+  later↓ : ∀{dy y} → (force dy) ↓ y → later dy ↓ y
 
+{-
 ∼↓ : ∀{X}{dx dy : Delay X}{x : X} → dx ∼ dy → dx ↓ x → dy ↓ x
 ∼↓ now∼ q = q
 ∼↓ (later∼ p) (later↓ q) = later↓ (∼↓ (♭ p) q)
@@ -87,21 +86,37 @@ trans↯ : ∀{X}{c d e : Delay X} → c ↯ d → d ↯ e → c ↯ e
 trans↯ (∼↯ p) (∼↯ q) = ∼↯ (trans∼ p q)
 trans↯ (∼↯ (later∼ p)) (later↯ q) = later↯ (trans↯ (∼↯ (♭ p)) q)
 trans↯ (later↯ p) q = later↯ (trans↯ p q)
+-}
 
 -- weak bisimilarity
 
-data _≈_ {X : Set} : Delay X → Delay X → Set where
-  ↓≈ : ∀{dy dy' y} → dy ↓ y → dy' ↓ y → dy ≈ dy'
-  later≈ : ∀{dy dy'} → ∞ (♭ dy ≈ ♭ dy') → later dy ≈ later dy'
+mutual 
+  data _≈_ {X : Set} : Delay X → Delay X → Set where
+    ↓≈ : ∀{dy dy' y} → dy ↓ y → dy' ↓ y → dy ≈ dy'
+    later≈ : ∀{dy dy'} → dy ∞≈ dy' → later dy ≈ later dy'
+  
+  record _∞≈_ {X : Set}(dx dx' : ∞Delay X) : Set where
+    coinductive
+    field force : force dx ≈ force dx'
+open _∞≈_
 
-refl≈ : ∀{X}{dx : Delay X} → dx ≈ dx
-refl≈ {dx = now x}    = ↓≈ now↓ now↓
-refl≈ {dx = later dx} = later≈ (♯ refl≈)
+mutual 
+  refl≈ : ∀{X}(dx : Delay X) → dx ≈ dx
+  refl≈ (now x)   = ↓≈ now↓ now↓
+  refl≈ (later x) = later≈ (refl∞≈ x)
 
-sym≈ : ∀{X}{dx dx' : Delay X} → dx ≈ dx' → dx' ≈ dx
-sym≈ (↓≈ p q) = ↓≈ q p
-sym≈ (later≈ p) = later≈ (♯ (sym≈ (♭ p)))
+  refl∞≈ : ∀{X}(dx : ∞Delay X) → dx ∞≈ dx
+  force (refl∞≈ dx) = refl≈ (force dx)
 
+mutual
+  sym≈ : ∀{X}{dx dx' : Delay X} → dx ≈ dx' → dx' ≈ dx
+  sym≈ (↓≈ p q)   = ↓≈ q p
+  sym≈ (later≈ p) = later≈ (sym∞≈ p)
+
+  sym∞≈ : ∀{X}{dx dx' : ∞Delay X} → dx ∞≈ dx' → dx' ∞≈ dx
+  force (sym∞≈ p) = sym≈ (force p)
+
+{-
 ∼→≈ : ∀{X}{dx dy : Delay X} → dx ∼ dy → dx ≈ dy
 ∼→≈ now∼ = refl≈
 ∼→≈ (later∼ p) = later≈ (♯ (∼→≈ (♭ p)))
