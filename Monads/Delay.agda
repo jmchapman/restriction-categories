@@ -7,31 +7,56 @@ open import Monads
 open import Categories.Sets
 open import Utilities
 open import Categories.Functors
-open import Relation.Binary
-open IsEquivalence renaming (refl to irefl; sym to isym; trans to itrans)
 
-data Delay (X : Set) : Set where
-  now : X → Delay X
-  later : ∞ (Delay X) → Delay X
+mutual
+  data Delay (X : Set) : Set where
+    now : X → Delay X
+    later : ∞Delay X → Delay X
+
+
+  record ∞Delay (X : Set) : Set where
+    coinductive
+    field force : Delay X
+open ∞Delay
 
 -- strong bisimilarity
+mutual 
+  data _~_ {X : Set} : Delay X → Delay X → Set where
+    now∼ : ∀{x} → now x ~ now x
+    later∼ : ∀{dy dy'} → dy ∞~ dy' → later dy ~ later dy'
 
-data _∼_ {X : Set} : Delay X → Delay X → Set where
-  now∼ : ∀{x} → now x ∼ now x
-  later∼ : ∀{dy dy'} → ∞ (♭ dy ∼ ♭ dy') → later dy ∼ later dy'
+  record _∞~_ {X : Set}(dx : ∞Delay X)(dx' : ∞Delay X) : Set where
+    coinductive
+    field force : force dx ~ force dx'
+open _∞~_
 
-refl∼ : ∀{X}{dx : Delay X} → dx ∼ dx
-refl∼ {X}{now x}   = now∼
-refl∼ {X}{later x} = later∼ (♯ refl∼)
+mutual 
+  refl~ : ∀{X}(dx : Delay X) → dx ~ dx
+  refl~ (now x)    = now∼
+  refl~ (later dx) = later∼ (refl∞~ dx)
 
-sym∼ : ∀{X}{dx dx' : Delay X} → dx ∼ dx' → dx' ∼ dx
-sym∼ now∼ = refl∼
-sym∼ (later∼ p) = later∼ (♯ (sym∼ (♭ p)))
+  refl∞~ : ∀{X}(dx : ∞Delay X) → dx ∞~ dx
+  force (refl∞~ dx) = refl~ (force dx)
 
-trans∼ : ∀{X}{dx dx' dx'' : Delay X} → dx ∼ dx' → dx' ∼ dx'' → dx ∼ dx''
-trans∼ now∼ now∼ = now∼
-trans∼ (later∼ p) (later∼ q) = later∼ (♯ trans∼ (♭ p) (♭ q))
+mutual
+  sym~ : ∀{X}{dx dx' : Delay X} → dx ~ dx' → dx' ~ dx
+  sym~ now∼       = now∼
+  sym~ (later∼ p) = later∼ (sym∞~ p)
 
+  sym∞~ : ∀{X}{dx dx' : ∞Delay X} → dx ∞~ dx' → dx' ∞~ dx
+  force (sym∞~ p) = sym~ (force p)
+
+mutual
+  trans~ : ∀{X}{dx dx' dx'' : Delay X} → 
+           dx ~ dx' → dx' ~ dx'' → dx ~ dx''
+  trans~ now∼       now∼       = now∼
+  trans~ (later∼ p) (later∼ q) = later∼ (trans∞~ p q)
+
+  trans∞~ : ∀{X}{dx dx' dx'' : ∞Delay X} → 
+            dx ∞~ dx' → dx' ∞~ dx'' → dx ∞~ dx''
+  force (trans∞~ p q) = trans~ (force p) (force q)
+
+{-
 -- convergence
 
 data _↓_ {X : Set} : Delay X → X → Set where
@@ -113,12 +138,13 @@ lift : ∀{X}{Y : QDelay X → Set}(f : (x : Delay X) → Y (abs x)) →
 lift {X} = Quotient.lift (quot (Delay X) ≈EqR)
 
 .ax1 : ∀{X}(dx dx' : Delay X) → dx ≈ dx' → abs dx ≅ abs dx'
-ax1 {X} = Quotient.ax1 (quot (Delay X) ≈EqR)
+ax1 {X} = Quotient.sound (quot (Delay X) ≈EqR)
 
 .ax3 : ∀{X}{Y : QDelay X → Set}(f : (x : Delay X) → Y (abs x))
        (p : compat {X}{Y} f)(x : Delay X) →  (lift {X}{Y} f p) (abs x) ≅ f x
-ax3 {X} = Quotient.ax3 (quot (Delay X) ≈EqR)
-
+ax3 {X} = Quotient.liftbeta (quot (Delay X) ≈EqR)
+-}
+{-
 QDelay-map : (X Y : Set) → Set
 QDelay-map X Y = Quotient.Q (quot (X → Delay Y) (EqR→ ≈EqR))
 
@@ -803,4 +829,5 @@ Agree {X} f g = Σ X (λ x → f x ∼ g x)
 
 Meet : ∀{X Y}(f g : X → Delay Y) → Agree f g → Delay Y
 Meet f g (x , p) = f x
+-}
 -}
