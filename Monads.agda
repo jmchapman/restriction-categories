@@ -1,17 +1,16 @@
 module Monads where
 
 open import Categories
-open import Relation.Binary.HeterogeneousEquality
-open ≅-Reasoning renaming (begin_ to proof_)
+open import Utilities renaming (_≅⟨_⟩_ to _≅[_]_)
 
 record Monad (C : Cat) : Set where
   open Cat C
   field T    : Obj → Obj
         η    : ∀ {X} → Hom X (T X)
         bind : ∀{X Y} → Hom X (T Y) → Hom (T X) (T Y)
-        .law1 : ∀{X} → bind (η {X}) ≅ iden {T X}
-        .law2 : ∀{X Y}{f : Hom X (T Y)} → comp (bind f) η ≅ f
-        .law3 : ∀{X Y Z}{f : Hom X (T Y)}{g : Hom Y (T Z)} →
+        law1 : ∀{X} → bind (η {X}) ≅ iden {T X}
+        law2 : ∀{X Y}{f : Hom X (T Y)} → comp (bind f) η ≅ f
+        law3 : ∀{X Y Z}{f : Hom X (T Y)}{g : Hom Y (T Z)} →
                bind (comp (bind g) f) ≅ comp (bind g) (bind f)
 
   μ : ∀{X} → Hom (T (T X)) (T X)
@@ -29,21 +28,21 @@ TFun {C} M =
     fid   = 
       proof
       bind (comp η iden)
-      ≅⟨ cong bind idr ⟩
+      ≅[ cong bind idr ]
       bind η
-      ≅⟨ law1 ⟩
+      ≅[ law1 ]
       iden
       ∎;
     fcomp = λ {_}{_}{_}{f}{g} → 
       proof
       bind (comp η (comp f g))
-      ≅⟨ cong bind (sym ass) ⟩
+      ≅[ cong bind (sym ass) ]
       bind (comp (comp η f) g)
-      ≅⟨ cong (λ y → bind (comp y g)) (sym law2) ⟩
+      ≅[ cong (λ y → bind (comp y g)) (sym law2) ]
       bind (comp (comp (bind (comp η f)) η) g)
-      ≅⟨ cong bind ass ⟩
+      ≅[ cong bind ass ]
       bind (comp (bind (comp η f)) (comp η g))
-      ≅⟨ law3 ⟩
+      ≅[ law3 ]
       comp (bind (comp η f)) (bind (comp η g))
       ∎}
 
@@ -66,15 +65,15 @@ id-mhom {C}{M} =
        hlaw2 = 
          proof
          comp iden μ
-         ≅⟨ idl ⟩
+         ≅[ idl ]
          μ
-         ≅⟨ sym idr ⟩
+         ≅[ sym idr ]
          comp μ iden
-         ≅⟨ cong (comp μ) (sym law1) ⟩
+         ≅[ cong (comp μ) (sym law1) ]
          comp μ (bind η)
-         ≅⟨ cong (λ f → comp μ (bind f)) (sym idr) ⟩
+         ≅[ cong (λ f → comp μ (bind f)) (sym idr) ]
          comp μ (bind (comp η iden))
-         ≅⟨ cong (comp μ) (sym idl) ⟩
+         ≅[ cong (comp μ) (sym idl) ]
          comp μ (comp iden (bind (comp η iden)))
          ∎}
 
