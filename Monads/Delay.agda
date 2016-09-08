@@ -13,7 +13,6 @@ mutual
     now : X → Delay X
     later : ∞Delay X → Delay X
 
-
   record ∞Delay (X : Set) : Set where
     coinductive
     field force : Delay X
@@ -22,39 +21,39 @@ open ∞Delay
 -- strong bisimilarity
 mutual 
   data _~_ {X : Set} : Delay X → Delay X → Set where
-    now∼ : ∀{x} → now x ~ now x
-    later∼ : ∀{dy dy'} → dy ∞~ dy' → later dy ~ later dy'
+    now~ : ∀{x} → now x ~ now x
+    later~ : ∀{dy dy'} → dy ∞~ dy' → later dy ~ later dy'
 
   record _∞~_ {X : Set}(dx : ∞Delay X)(dx' : ∞Delay X) : Set where
     coinductive
-    field force : force dx ~ force dx'
+    field ~force : force dx ~ force dx'
 open _∞~_
 
 mutual 
   refl~ : ∀{X}(dx : Delay X) → dx ~ dx
-  refl~ (now x)    = now∼
-  refl~ (later dx) = later∼ (refl∞~ dx)
+  refl~ (now x)    = now~
+  refl~ (later dx) = later~ (refl∞~ dx)
 
   refl∞~ : ∀{X}(dx : ∞Delay X) → dx ∞~ dx
-  force (refl∞~ dx) = refl~ (force dx)
+  ~force (refl∞~ dx) = refl~ (force dx)
 
 mutual
   sym~ : ∀{X}{dx dx' : Delay X} → dx ~ dx' → dx' ~ dx
-  sym~ now∼       = now∼
-  sym~ (later∼ p) = later∼ (sym∞~ p)
+  sym~ now~       = now~
+  sym~ (later~ p) = later~ (sym∞~ p)
 
   sym∞~ : ∀{X}{dx dx' : ∞Delay X} → dx ∞~ dx' → dx' ∞~ dx
-  force (sym∞~ p) = sym~ (force p)
+  ~force (sym∞~ p) = sym~ (~force p)
 
 mutual
   trans~ : ∀{X}{dx dx' dx'' : Delay X} → 
            dx ~ dx' → dx' ~ dx'' → dx ~ dx''
-  trans~ now∼       now∼       = now∼
-  trans~ (later∼ p) (later∼ q) = later∼ (trans∞~ p q)
+  trans~ now~       now~       = now~
+  trans~ (later~ p) (later~ q) = later~ (trans∞~ p q)
 
   trans∞~ : ∀{X}{dx dx' dx'' : ∞Delay X} → 
             dx ∞~ dx' → dx' ∞~ dx'' → dx ∞~ dx''
-  force (trans∞~ p q) = trans~ (force p) (force q)
+  ~force (trans∞~ p q) = trans~ (~force p) (~force q)
 
 -- convergence
 data _↓_ {X : Set} : Delay X → X → Set where
@@ -63,8 +62,50 @@ data _↓_ {X : Set} : Delay X → X → Set where
 
 
 det~↓ : ∀{X}{dx dy : Delay X}{x : X} → dx ~ dy → dx ↓ x → dy ↓ x
-det~↓ now∼       q = q
-det~↓ (later∼ p) (later↓ q) = later↓ (det~↓ (force p) q)
+det~↓ now~       q = q
+det~↓ (later~ p) (later↓ q) = later↓ (det~↓ (~force p) q)
+
+-- Delay is a monad up to strong bisimilarity
+mutual
+  dbind : ∀{X Y} → (X → Delay Y) → Delay X → Delay Y
+  dbind f (now x)   = f x
+  dbind f (later x) = later (∞dbind f x)
+
+  ∞dbind : ∀{X Y} → (X → Delay Y) → ∞Delay X → ∞Delay Y
+  force (∞dbind f x) = dbind f (force x)
+
+mutual
+  dlaw1 : ∀{X}(dx : Delay X) →  dbind now dx ~ dx
+  dlaw1 (now x)   = now~
+  dlaw1 (later x) = later~ (∞dlaw1 x)
+
+  ∞dlaw1 : ∀{X}(dx : ∞Delay X) →  ∞dbind now dx ∞~ dx
+  ~force (∞dlaw1 dx) = dlaw1 (force dx)
+
+mutual
+  dlaw3 : ∀{X Y Z}
+          {f : X → Delay Y}
+          {g : Y → Delay Z}(dx : Delay X) →
+          dbind (dbind g ∘ f) dx ~ dbind g (dbind f dx)
+  dlaw3 (now x)   = refl~ _
+  dlaw3 (later x) = later~ (∞dlaw3 x)
+
+  ∞dlaw3 : ∀{X Y Z}
+          {f : X → Delay Y}
+          {g : Y → Delay Z}(dx : ∞Delay X) →
+          ∞dbind (dbind g ∘ f) dx ∞~ ∞dbind g (∞dbind f dx)
+  ~force (∞dlaw3 dx) = dlaw3 (force dx)
+
+{-
+Delay~M : Monad Sets
+Delay~M = record
+  { T    = Delay 
+  ; η    = now 
+  ; bind = dbind 
+  ; law1 = {!!} 
+  ; law2 = refl 
+  ; law3 = {!!} }
+-}
 
 {-
 
@@ -99,7 +140,7 @@ mutual
   
   record _∞≈_ {X : Set}(dx dx' : ∞Delay X) : Set where
     coinductive
-    field force : force dx ≈ force dx'
+    field ≈force : force dx ≈ force dx'
 open _∞≈_
 
 mutual 
@@ -108,7 +149,7 @@ mutual
   refl≈ (later x) = later≈ (refl∞≈ x)
 
   refl∞≈ : ∀{X}(dx : ∞Delay X) → dx ∞≈ dx
-  force (refl∞≈ dx) = refl≈ (force dx)
+  ≈force (refl∞≈ dx) = refl≈ (force dx)
 
 mutual
   sym≈ : ∀{X}{dx dx' : Delay X} → dx ≈ dx' → dx' ≈ dx
@@ -116,12 +157,12 @@ mutual
   sym≈ (later≈ p) = later≈ (sym∞≈ p)
 
   sym∞≈ : ∀{X}{dx dx' : ∞Delay X} → dx ∞≈ dx' → dx' ∞≈ dx
-  force (sym∞≈ p) = sym≈ (force p)
+  ≈force (sym∞≈ p) = sym≈ (≈force p)
 
 det≈↓ : ∀{X}{dx dy : Delay X}{x : X} → dx ≈ dy → dx ↓ x → dy ↓ x
 det≈↓ (↓≈ now↓ q)       now↓       = q
 det≈↓ (↓≈ (later↓ p) q) (later↓ r) = det≈↓ (↓≈ p q) r
-det≈↓ (later≈ p)        (later↓ q) = later↓ (det≈↓ (force p) q)
+det≈↓ (later≈ p)        (later↓ q) = later↓ (det≈↓ (≈force p) q)
 
 {-
 ∼→≈ : ∀{X}{dx dy : Delay X} → dx ∼ dy → dx ≈ dy
@@ -136,8 +177,7 @@ mutual
   trans≈ p          (↓≈ q r)   = ↓≈ (det≈↓ (sym≈ p) q) r
 
   trans∞≈ : ∀{X}{dx dy dz : ∞Delay X} → dx ∞≈ dy → dy ∞≈ dz → dx ∞≈ dz
-  force (trans∞≈ p q) = trans≈ (force p) (force q)
-
+  ≈force (trans∞≈ p q) = trans≈ (≈force p) (≈force q)
 
 ≈EqR : ∀{X} → EqR (Delay X)
 ≈EqR = _≈_ , record {refl = refl≈ _; sym = sym≈; trans = trans≈ }
@@ -266,10 +306,6 @@ data _≈''_ {X : Set} : Delay X → Delay X → Set where
 ≈→≈'' (later≈ p) = ↯≈'' (∼↯ refl∼) (∼↯ refl∼) (♯ (≈→≈'' (♭ p)))
 
 -- monad operations
-
-dbind : ∀{X Y} → (X → Delay Y) → Delay X → Delay Y
-dbind f (now x)   = f x
-dbind f (later x) = later (♯ dbind f (♭ x))
 
 dbindcong1∼ : ∀{X Y}(f : X → Delay Y){dx dx' : Delay X} → dx ∼ dx' → 
               dbind f dx ∼ dbind f dx'

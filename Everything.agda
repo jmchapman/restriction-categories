@@ -32,3 +32,6 @@ open import PartialMaps.Stable
 open import Soundness
 open import Completeness
 
+-- examples
+open import Monads
+open import Monads.Delay
