@@ -108,7 +108,6 @@ Delay~M = record
 -}
 
 {-
-
 unique↓ : ∀{X}{dx : Delay X}{x y : X} → dx ↓ x → dx ↓ y → x ≅ y
 unique↓ now↓ now↓ = refl
 unique↓ (later↓ p) (later↓ q) = unique↓ p q
@@ -164,12 +163,6 @@ det≈↓ (↓≈ now↓ q)       now↓       = q
 det≈↓ (↓≈ (later↓ p) q) (later↓ r) = det≈↓ (↓≈ p q) r
 det≈↓ (later≈ p)        (later↓ q) = later↓ (det≈↓ (≈force p) q)
 
-{-
-∼→≈ : ∀{X}{dx dy : Delay X} → dx ∼ dy → dx ≈ dy
-∼→≈ now∼ = refl≈
-∼→≈ (later∼ p) = later≈ (♯ (∼→≈ (♭ p)))
--}
-
 mutual
   trans≈ : ∀{X}{dx dy dz : Delay X} → dx ≈ dy → dy ≈ dz → dx ≈ dz
   trans≈ (later≈ p) (later≈ q) = later≈ (trans∞≈ p q)
@@ -179,8 +172,37 @@ mutual
   trans∞≈ : ∀{X}{dx dy dz : ∞Delay X} → dx ∞≈ dy → dy ∞≈ dz → dx ∞≈ dz
   ≈force (trans∞≈ p q) = trans≈ (≈force p) (≈force q)
 
+mutual
+  ~→≈ : ∀{X}{dx dy : Delay X} → dx ~ dy → dx ≈ dy
+  ~→≈ now~ = refl≈ _
+  ~→≈ (later~ p) = later≈ (∞~→≈ p)
+
+  ∞~→≈ : ∀{X}{dx dy : ∞Delay X} → dx ∞~ dy → dx ∞≈ dy
+  ≈force (∞~→≈ p) = ~→≈ (~force p)
+
 ≈EqR : ∀{X} → EqR (Delay X)
 ≈EqR = _≈_ , record {refl = refl≈ _; sym = sym≈; trans = trans≈ }
+
+dlaw1≈ : ∀{X}(dx : Delay X) → dbind now dx ≈ dx
+dlaw1≈ = ~→≈ ∘ dlaw1
+
+dlaw3≈ : ∀{X Y Z}
+         {f : X → Delay Y}
+         {g : Y → Delay Z}(dx : Delay X) →
+         dbind (dbind g ∘ f) dx ≈ dbind g (dbind f dx)
+dlaw3≈ = ~→≈ ∘ dlaw3
+
+{-
+Delay≈M : Monad Sets
+Delay≈M = record
+  { T    = Delay 
+  ; η    = now 
+  ; bind = dbind 
+  ; law1 = {!!} 
+  ; law2 = refl 
+  ; law3 = {!!} }
+-}
+
 
 -- Quotienting Delay by weak bisimilarity
 
