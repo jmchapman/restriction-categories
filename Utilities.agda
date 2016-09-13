@@ -6,7 +6,9 @@ open import Relation.Binary.HeterogeneousEquality public
 open ≅-Reasoning renaming (begin_ to proof_) public
 open import Data.Unit hiding (decSetoid; preorder; setoid; _≤_) public 
 open import Data.Product public
+open import Data.Sum public hiding (map)
 open import Function public
+open import Data.Nat public hiding (_≟_; _≤?_; decTotalOrder)
 
 postulate 
   ext : {A : Set}{B B' : A → Set}{f : ∀ a → B a}{g : ∀ a → B' a} → 
@@ -156,3 +158,41 @@ module Quotient₃Lib {A A' A'' : Set}{R : EqR A}{R' : EqR A'}
                (λ s → ext (liftCong q'' _ _ 
                                    (λ a → p r (irefl e') (irefl e''))))))
 
+-- propositional/squash
+
+Triv : (X : Set) → EqR X
+Triv X = (\ _ _ → ⊤) ,
+         record { refl = tt ; sym = \ _ → tt ; trans = \ _ _ → tt }
+
+∥_∥ : Set → Set
+∥ X ∥ = Quotient.Q $ quot X (Triv X) 
+
+map∥ : {X Y : Set}(f : X → Y) → ∥ X ∥ → ∥ Y ∥
+map∥ {X}{Y} f x = lift (λ _ → ∥ Y ∥) (absY ∘ f) (λ _ → soundY _) x
+  where open Quotient (quot X (Triv X))
+        open Quotient (quot Y (Triv Y)) renaming (abs to absY;
+                                                  lift to liftY;
+                                                  sound to soundY)
+
+record Stream (X : Set) : Set where
+  coinductive
+  field hd : X
+        tl : Stream X
+open Stream public
+
+
+smap : {X Y : Set} → (X → Y) → Stream X → Stream Y
+hd (smap f xs) = f (hd xs)
+tl (smap f xs) = smap f (tl xs)
+
+repeat : {X : Set} → X → Stream X
+hd (repeat x) = x
+tl (repeat x) = repeat x
+
+left : {X : Set} → Stream X → (ℕ → X)
+left xs zero    = hd xs
+left xs (suc n) = left (tl xs) n
+
+right : {X : Set} → (ℕ → X) → Stream X
+hd (right f) = f zero
+tl (right f) = right (f ∘ suc)

@@ -1,38 +1,6 @@
 module AComega where
 
-open import Data.Nat hiding (_+_) public
 open import Utilities
-open IsEquivalence renaming (refl to irefl; sym to isym; trans to itrans)
-
-
-Triv : (X : Set) → EqR X
-Triv X = (\ _ _ → ⊤) ,
-         record { refl = tt ; sym = \ _ → tt ; trans = \ _ _ → tt }
-
-∥_∥ : Set → Set
-∥ X ∥ = Quotient.Q $ quot X (Triv X) 
-
-map∥ : {X Y : Set}(f : X → Y) → ∥ X ∥ → ∥ Y ∥
-map∥ {X}{Y} f x = lift (λ _ → ∥ Y ∥) (absY ∘ f) (λ _ → soundY _) x
-  where open Quotient (quot X (Triv X))
-        open Quotient (quot Y (Triv Y)) renaming (abs to absY;
-                                                  lift to liftY;
-                                                  sound to soundY)
-
-record Stream (X : Set) : Set where
-  coinductive
-  field hd : X
-        tl : Stream X
-open Stream
-
-
-left : {X : Set} → Stream X → (ℕ → X)
-left xs zero    = hd xs
-left xs (suc n) = left (tl xs) n
-
-right : {X : Set} → (ℕ → X) → Stream X
-hd (right f) = f zero
-tl (right f) = right (f ∘ suc)
 
 -- Axiom of countable choice.
 

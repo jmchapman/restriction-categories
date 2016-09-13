@@ -909,3 +909,34 @@ Meet : ∀{X Y}(f g : X → Delay Y) → Agree f g → Delay Y
 Meet f g (x , p) = f x
 -}
 -}
+
+-- axiom of delayed choice
+
+left' : {X : Set} → Delay X → Stream (X ⊎ ⊤)
+left' (now x)   = repeat (inj₁ x)
+hd (left' (later x)) = inj₂ _
+tl (left' (later x)) = left' (force x)
+
+mutual
+  right' : {X : Set} → Stream (X ⊎ ⊤) → Delay X
+  right' xs with hd xs
+  right' xs | inj₁ x = now x
+  right' xs | inj₂ _ = later (∞right' (tl xs))
+
+  ∞right' : {X : Set} → Stream (X ⊎ ⊤) → ∞Delay X
+  force (∞right' xs) = right' xs
+
+open import AComega
+
+lem : {X : Set} → ∥ X ∥ ⊎ ⊤ → ∥ X ⊎ ⊤ ∥
+lem {X} (inj₁ x) = liftX (λ _ → ∥ X ⊎ ⊤ ∥) (absX ∘ inj₁) (λ _ → soundX _) x
+  where open Quotient (quot X (Triv X))
+          renaming (lift to liftX)
+        open Quotient (quot (X ⊎ ⊤) (Triv (X ⊎ ⊤)))
+          renaming (abs to absX; sound to soundX)
+lem {X} (inj₂ y) = absX (inj₂ y)
+  where open Quotient (quot (X ⊎ ⊤) (Triv (X ⊎ ⊤)))
+          renaming (lift to liftX; abs to absX)
+
+ACD : {X : Set} → Delay ∥ X ∥ → ∥ Delay X ∥
+ACD dx = map∥ right' (acco (smap lem  (left' dx)))
