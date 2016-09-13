@@ -1,7 +1,7 @@
 {-# OPTIONS --type-in-type #-}
 module Utilities where
 
-open import Relation.Binary
+open import Relation.Binary public
 open import Relation.Binary.HeterogeneousEquality public
 open ≅-Reasoning renaming (begin_ to proof_) public
 open import Data.Unit hiding (decSetoid; preorder; setoid; _≤_) public 
