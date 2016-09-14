@@ -60,9 +60,51 @@ record Quotient (A : Set)(R : EqR A) : Set where
 
 postulate quot : (A : Set)(R : EqR A) → Quotient A R
 
+
+
+-- propositional/squash
+
+Triv : (X : Set) → EqR X
+Triv X = (\ _ _ → ⊤) ,
+         record { refl = tt ; sym = \ _ → tt ; trans = \ _ _ → tt }
+
+∥_∥ : Set → Set
+∥ X ∥ = Quotient.Q $ quot X (Triv X) 
+
+box : {X : Set} → X → ∥ X ∥
+box {X} x = Quotient.abs (quot X (Triv X)) x 
+
+
+
+map∥ : {X Y : Set}(f : X → Y) → ∥ X ∥ → ∥ Y ∥
+map∥ {X}{Y} f x = lift (λ _ → ∥ Y ∥) (absY ∘ f) (λ _ → soundY _) x
+  where open Quotient (quot X (Triv X))
+        open Quotient (quot Y (Triv Y)) renaming (abs to absY;
+                                                  lift to liftY;
+                                                  sound to soundY)
+
+
+isProp∥ : ∀ {X X'} → {x : ∥ X ∥}{x' : ∥ X' ∥} → X ≅ X' → x ≅ x'
+isProp∥ {X}{_}{bx}{bx'} refl = 
+  lift (λ q → q ≅ bx') 
+       (λ x → lift (λ q → abs x ≅ q) 
+                   (λ _ → sound _) 
+                   (λ _ → fixtypes (sound _)) 
+                   bx') 
+       (λ _ → fixtypes refl) 
+       bx 
+       where open Quotient (quot X (Triv X))
+
 module QuotientLib {A : Set}{R : EqR A}(q : Quotient A R) where
 
   open Quotient q
+
+  abs-surj : ∀(q : Q) → ∥ (Σ A λ a → abs a ≅ q) ∥
+  abs-surj q = lift (λ q₁ → ∥ (Σ A (λ a → abs a ≅ q₁)) ∥) 
+                    (λ a → box (a , refl)) 
+                    (λ {a}{b} p → 
+                      isProp∥ (cong (Σ A) (ext (λ x → cong (λ p → abs x ≅ p) (sound p))))) 
+                    q
 
   liftCong : (B B' : Q → Set)
               {f : (a : A) → B (abs a)}{g : (a : A) → B' (abs a)}
@@ -157,22 +199,6 @@ module Quotient₃Lib {A A' A'' : Set}{R : EqR A}{R' : EqR A'}
              (λ r → ext (liftCong q' _ _ 
                (λ s → ext (liftCong q'' _ _ 
                                    (λ a → p r (irefl e') (irefl e''))))))
-
--- propositional/squash
-
-Triv : (X : Set) → EqR X
-Triv X = (\ _ _ → ⊤) ,
-         record { refl = tt ; sym = \ _ → tt ; trans = \ _ _ → tt }
-
-∥_∥ : Set → Set
-∥ X ∥ = Quotient.Q $ quot X (Triv X) 
-
-map∥ : {X Y : Set}(f : X → Y) → ∥ X ∥ → ∥ Y ∥
-map∥ {X}{Y} f x = lift (λ _ → ∥ Y ∥) (absY ∘ f) (λ _ → soundY _) x
-  where open Quotient (quot X (Triv X))
-        open Quotient (quot Y (Triv Y)) renaming (abs to absY;
-                                                  lift to liftY;
-                                                  sound to soundY)
 
 record Stream (X : Set) : Set where
   coinductive
