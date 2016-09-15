@@ -222,3 +222,51 @@ left xs (suc n) = left (tl xs) n
 right : {X : Set} → (ℕ → X) → Stream X
 hd (right f) = f zero
 tl (right f) = right (f ∘ suc)
+
+-- strong bisimilarity for streams (lifting relation on carrrier to streams)
+record SR {A : Set}(ER : EqR A)(as as' : Stream A) : Set where
+  coinductive
+  open Σ ER renaming (proj₁ to R; proj₂ to eR)
+  field hdSR : R (hd as) (hd as')
+        tlSR : SR ER (tl as) (tl as')
+open SR
+
+≅EqR : ∀{A} → EqR A
+≅EqR = (λ a a' → a ≅ a') , record {refl = refl; sym = sym; trans = trans}
+
+postulate ≅SR : ∀{A}{as as' : Stream A} → SR ≅EqR as as' → as ≅ as'
+
+mapSR : ∀{A B : Set}(ER : EqR A)(ES : EqR B)(f : A → B)
+        (P : ∀{a a' : A} → proj₁ ER a a' → proj₁ ES (f a) (f a')) →
+        {as as' : Stream A} → 
+        SR ER as as' → SR {B} ES (smap f as) (smap f as')
+hdSR (mapSR ER ES f P p) = P (hdSR p)
+tlSR (mapSR ER ES f P p) = mapSR ER ES f P (tlSR p)
+
+reflSR : {A : Set}(ER : EqR A)(as : Stream A) → SR ER as as
+hdSR (reflSR ER as) = IsEquivalence.refl (proj₂ ER)
+tlSR (reflSR ER as) = reflSR ER (tl as)
+
+symSR : {A : Set}(ER : EqR A){as as' : Stream A} → SR ER as as' → SR ER as' as
+hdSR (symSR ER p) = IsEquivalence.sym (proj₂ ER) (hdSR p)
+tlSR (symSR ER p) = symSR ER (tlSR p)
+
+transSR : {A : Set}(ER : EqR A){as as' as'' : Stream A} → 
+          SR ER as as' → SR ER as' as'' → SR ER as as''
+hdSR (transSR ER p q) = itrans (proj₂ ER) (hdSR p) (hdSR q)
+tlSR (transSR ER p q) = transSR ER (tlSR p) (tlSR q)
+
+
+EqSR : {A : Set}(ER : EqR A) → EqR (Stream A)
+EqSR ER = SR ER , 
+          record { refl = reflSR ER _; sym = symSR ER; trans = transSR ER}
+
+Θ : {A : Set}{ER : EqR A} → 
+    Quotient.Q (quot (Stream A) (EqSR ER)) →
+    Stream (Quotient.Q (quot A ER))
+Θ {A}{ER} q = Quotient.lift (quot (Stream A) (EqSR ER))
+  (λ _ → Stream Q)
+  (λ as → smap abs as) 
+  (λ {as}{as'} p → ≅SR (mapSR ER ≅EqR abs sound p)) 
+  q
+  where open Quotient (quot A ER)
