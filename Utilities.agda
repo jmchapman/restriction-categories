@@ -231,6 +231,18 @@ record SR {A : Set}(ER : EqR A)(as as' : Stream A) : Set where
         tlSR : SR ER (tl as) (tl as')
 open SR
 
+-- allP
+record SP {A : Set}(P : A → Set)(as : Stream A) : Set where
+  coinductive
+  field hdSP : P (hd as)
+        tlSP : SP P (tl as)
+open SP
+
+rightP : {X : Set}(s : ℕ → X)(P : X → Set) → 
+         ((n : ℕ) → P (s n)) → SP P (right s)
+hdSP (rightP s P p) = p zero
+tlSP (rightP s P p) = rightP (s ∘ suc) P (p ∘ suc)
+
 ≅EqR : ∀{A} → EqR A
 ≅EqR = (λ a a' → a ≅ a') , record {refl = refl; sym = sym; trans = trans}
 
@@ -270,3 +282,6 @@ EqSR ER = SR ER ,
   (λ {as}{as'} p → ≅SR (mapSR ER ≅EqR abs sound p)) 
   q
   where open Quotient (quot A ER)
+
+sabs : {A : Set}{ER : EqR A} → Stream A → Stream (Quotient.Q (quot A ER))
+sabs {A}{ER} as = smap (Quotient.abs (quot A ER)) as
